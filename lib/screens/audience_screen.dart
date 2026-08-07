@@ -4,9 +4,10 @@ import '../data/enquiry_forms.dart';
 import '../data/form_fields.dart';
 import '../data/site_data.dart';
 import '../widgets/app_hero.dart';
-import '../widgets/division_grid.dart';
+import '../widgets/division_carousel.dart';
 import '../widgets/enquiry_wizard.dart';
 import '../widgets/eyebrow.dart';
+import '../widgets/reveal.dart';
 
 /// One screen shape shared by Brands, Franchisees, Landlords and Investors —
 /// each just supplies its slug, matching how the website drives all four
@@ -36,34 +37,46 @@ class AudienceScreen extends StatelessWidget {
     final divisions = DivisionData.forAudience(slug);
 
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AppHero(eyebrow: audience.nav, title: audience.lead),
+          const SizedBox(height: 36),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Eyebrow('How we work with you'),
-                const SizedBox(height: 10),
-                Text(
-                  'What Connectors brings to ${audience.title.toLowerCase()}.',
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
-                const SizedBox(height: 20),
-                DivisionGrid(divisions: divisions),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Reveal(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Eyebrow('How we work with you'),
+                  const SizedBox(height: 10),
+                  Text(
+                    'What Connectors brings to ${audience.title.toLowerCase()}.',
+                    style: Theme.of(context).textTheme.displaySmall,
+                  ),
+                ],
+              ),
             ),
           ),
+          const SizedBox(height: 22),
+          DivisionCarousel(divisions: divisions),
+          const SizedBox(height: 44),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 32, 20, 32),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Eyebrow('Get started'),
-                const SizedBox(height: 10),
-                Text(formHeading, style: Theme.of(context).textTheme.displaySmall),
+                Reveal(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Eyebrow('Get started'),
+                      const SizedBox(height: 10),
+                      Text(formHeading, style: Theme.of(context).textTheme.displaySmall),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 20),
                 EnquiryWizard(
                   steps: formSteps,

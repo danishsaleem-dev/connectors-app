@@ -6,11 +6,30 @@ import 'colors.dart';
 /// website. `GoogleFonts.getFont` (not the per-family generated methods) so
 /// this doesn't depend on both families having a generated binding in
 /// whatever google_fonts version ends up resolved.
-TextStyle _display({double? size, FontWeight? weight, double? height}) =>
-    GoogleFonts.getFont('Instrument Sans', fontSize: size, fontWeight: weight, height: height);
+TextStyle _display({double? size, FontWeight? weight, double? height, double? spacing}) =>
+    GoogleFonts.getFont(
+      'Instrument Sans',
+      fontSize: size,
+      fontWeight: weight,
+      height: height,
+      letterSpacing: spacing,
+    );
 
 TextStyle _body({double? size, FontWeight? weight, double? height}) =>
     GoogleFonts.getFont('Geist', fontSize: size, fontWeight: weight, height: height);
+
+/// Soft, deep shadow for elevated cards — a real sense of lift rather than a
+/// hairline border, which is most of what separated the first pass from
+/// reading as a native, considered app rather than a form filled in with
+/// Material defaults.
+List<BoxShadow> cardShadow({double opacity = 0.06}) => [
+      BoxShadow(
+        color: AppColors.ink.withValues(alpha: opacity),
+        blurRadius: 28,
+        offset: const Offset(0, 12),
+        spreadRadius: -8,
+      ),
+    ];
 
 ThemeData buildAppTheme() {
   final base = ThemeData(
@@ -29,15 +48,18 @@ ThemeData buildAppTheme() {
   return base.copyWith(
     textTheme: base.textTheme
         .copyWith(
-          displayLarge: _display(size: 40, weight: FontWeight.w500, height: 1.08),
-          displayMedium: _display(size: 32, weight: FontWeight.w500, height: 1.1),
-          displaySmall: _display(size: 26, weight: FontWeight.w500, height: 1.15),
-          headlineMedium: _display(size: 22, weight: FontWeight.w500, height: 1.2),
-          titleLarge: _display(size: 19, weight: FontWeight.w500, height: 1.25),
-          bodyLarge: _body(size: 16, weight: FontWeight.w400, height: 1.55),
-          bodyMedium: _body(size: 14, weight: FontWeight.w400, height: 1.55),
-          labelLarge: _body(size: 13, weight: FontWeight.w600, height: 1.2),
-          labelMedium: _body(size: 11, weight: FontWeight.w600, height: 1.2),
+          // Larger and tighter than Material defaults — the "big, premium
+          // editorial" register the site's own display type sets, rather
+          // than a scaled-up default app type ramp.
+          displayLarge: _display(size: 52, weight: FontWeight.w500, height: 1.02, spacing: -1.4),
+          displayMedium: _display(size: 38, weight: FontWeight.w500, height: 1.06, spacing: -0.8),
+          displaySmall: _display(size: 30, weight: FontWeight.w500, height: 1.1, spacing: -0.4),
+          headlineMedium: _display(size: 24, weight: FontWeight.w500, height: 1.2),
+          titleLarge: _display(size: 20, weight: FontWeight.w500, height: 1.25),
+          bodyLarge: _body(size: 17, weight: FontWeight.w400, height: 1.6),
+          bodyMedium: _body(size: 15, weight: FontWeight.w400, height: 1.6),
+          labelLarge: _body(size: 13.5, weight: FontWeight.w600, height: 1.2),
+          labelMedium: _body(size: 11.5, weight: FontWeight.w600, height: 1.2),
         )
         .apply(bodyColor: AppColors.ink, displayColor: AppColors.ink),
     appBarTheme: const AppBarTheme(
@@ -52,37 +74,19 @@ ThemeData buildAppTheme() {
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.violet600,
         foregroundColor: AppColors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-        textStyle: _body(size: 14, weight: FontWeight.w600),
+        textStyle: _body(size: 15, weight: FontWeight.w600),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.ink,
-        side: const BorderSide(color: AppColors.grey200),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+        side: const BorderSide(color: AppColors.grey200, width: 1.4),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-        textStyle: _body(size: 14, weight: FontWeight.w600),
+        textStyle: _body(size: 15, weight: FontWeight.w600),
       ),
-    ),
-    navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: AppColors.white,
-      indicatorColor: AppColors.violet50,
-      surfaceTintColor: AppColors.white,
-      elevation: 0,
-      height: 64,
-      labelTextStyle: WidgetStateProperty.resolveWith((states) {
-        final selected = states.contains(WidgetState.selected);
-        return _body(
-          size: 11,
-          weight: selected ? FontWeight.w600 : FontWeight.w500,
-        ).copyWith(color: selected ? AppColors.violet600 : AppColors.grey500);
-      }),
-      iconTheme: WidgetStateProperty.resolveWith((states) {
-        final selected = states.contains(WidgetState.selected);
-        return IconThemeData(color: selected ? AppColors.violet600 : AppColors.grey500, size: 22);
-      }),
     ),
   );
 }

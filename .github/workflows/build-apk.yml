@@ -23,7 +23,11 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      - run: flutter build apk --release
+      # Single-ABI (arm64 — virtually every phone from the last ~6 years) so
+      # this ships one ~20-25MB APK instead of a "fat" universal one bundling
+      # arm64 + armv7 + x86_64 native code, which is what made the first
+      # build 70+MB for an app this size.
+      - run: flutter build apk --release --target-platform android-arm64
 
       - uses: actions/upload-artifact@v4
         with:
