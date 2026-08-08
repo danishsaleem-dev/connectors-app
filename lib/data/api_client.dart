@@ -48,7 +48,7 @@ class ApiClient {
       'name': name,
       'email': email,
       'password': password,
-      if (discipline != null) 'discipline': discipline,
+      'discipline': ?discipline,
     });
   }
 
