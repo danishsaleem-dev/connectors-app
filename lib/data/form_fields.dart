@@ -50,13 +50,16 @@ class RangeFieldSpec extends FieldSpec {
 class CheckboxGroupSpec extends FieldSpec {
   final String name;
   final List<String> options;
+  /// The API field name for the free-text companion when "Other" is
+  /// selected — e.g. "cities" pairs with "otherCity". Null when the group
+  /// has no "Other" option.
+  final String? otherFieldName;
 
-  /// The website's "Other" checkbox reveals a free-text field when checked —
-  /// same behaviour here, keyed off the literal option text "Other".
   const CheckboxGroupSpec({
     required this.name,
     required super.label,
     required this.options,
+    this.otherFieldName,
     super.required,
     super.hint,
   });

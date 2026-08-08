@@ -15,6 +15,7 @@ import '../widgets/reveal.dart';
 /// filter and enquiry form, rather than four near-duplicate page files.
 class AudienceScreen extends StatelessWidget {
   final String slug;
+  final String formSource;
   final String formHeading;
   final List<FormStep> formSteps;
   final String submitLabel;
@@ -24,6 +25,7 @@ class AudienceScreen extends StatelessWidget {
   const AudienceScreen({
     super.key,
     required this.slug,
+    required this.formSource,
     required this.formHeading,
     required this.formSteps,
     required this.submitLabel,
@@ -79,6 +81,7 @@ class AudienceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 EnquiryWizard(
+                  source: formSource,
                   steps: formSteps,
                   submitLabel: submitLabel,
                   successTitle: successTitle,
@@ -99,6 +102,7 @@ Widget buildAudienceScreen(String slug) {
     case 'for-brands':
       return AudienceScreen(
         slug: slug,
+        formSource: 'brand',
         formHeading: "Tell us what you're looking to open, and where.",
         formSteps: EnquiryForms.brandSteps,
         submitLabel: 'Submit request',
@@ -110,6 +114,7 @@ Widget buildAudienceScreen(String slug) {
     case 'for-franchise':
       return AudienceScreen(
         slug: slug,
+        formSource: 'franchise',
         formHeading: 'Tell us your budget, territory and industry interest.',
         formSteps: EnquiryForms.franchiseSteps,
         submitLabel: 'Submit application',
@@ -121,6 +126,7 @@ Widget buildAudienceScreen(String slug) {
     case 'for-landlords':
       return AudienceScreen(
         slug: slug,
+        formSource: 'landlord',
         formHeading: 'Submit your space, and we bring the brands to it.',
         formSteps: EnquiryForms.landlordSteps,
         submitLabel: 'Submit property',
@@ -132,6 +138,7 @@ Widget buildAudienceScreen(String slug) {
     case 'for-investors':
       return AudienceScreen(
         slug: slug,
+        formSource: 'investor',
         formHeading: 'Tell us your ticket size, sectors and horizon.',
         formSteps: EnquiryForms.investorSteps,
         submitLabel: 'Submit interest',

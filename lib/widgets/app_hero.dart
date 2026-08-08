@@ -46,7 +46,11 @@ class AppHero extends StatelessWidget {
                 child: SizedBox(
                   width: 260,
                   height: 260,
-                  child: OrbitField(color: AppColors.white.withValues(alpha: 0.9), count: 22),
+                  child: OrbitField(
+                    color: AppColors.white.withValues(alpha: 0.9),
+                    count: 22,
+                    animate: false,
+                  ),
                 ),
               ),
             ),

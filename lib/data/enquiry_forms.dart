@@ -48,7 +48,13 @@ class EnquiryForms {
     FormStep(
       title: 'Expansion Requirement',
       fields: [
-        CheckboxGroupSpec(name: 'cities', label: 'Required City', options: _requiredCities, required: true),
+        CheckboxGroupSpec(
+          name: 'cities',
+          label: 'Required City',
+          options: _requiredCities,
+          otherFieldName: 'otherCity',
+          required: true,
+        ),
         TextFieldSpec(
           name: 'preferredAreas',
           label: 'Preferred Area(s)',
@@ -66,6 +72,7 @@ class EnquiryForms {
           label: 'Outlet Type',
           required: true,
           options: ['Restaurant', 'Coffee Shop', 'Clothing', 'Pharmacy', 'Electronics', 'Grocery', 'Other'],
+          otherFieldName: 'otherOutletType',
         ),
         RangeFieldSpec(minName: 'areaMin', maxName: 'areaMax', label: 'Required Area (Sq Ft)', required: true),
         CheckboxGroupSpec(
@@ -155,7 +162,13 @@ class EnquiryForms {
       title: 'Franchise Preference',
       fields: [
         CheckboxGroupSpec(name: 'industryInterest', label: 'Industry Interest', required: true, options: _industries),
-        CheckboxGroupSpec(name: 'cities', label: 'Preferred Territory', required: true, options: _requiredCities),
+        CheckboxGroupSpec(
+          name: 'cities',
+          label: 'Preferred Territory',
+          required: true,
+          options: _requiredCities,
+          otherFieldName: 'otherCity',
+        ),
         RadioGroupSpec(
           name: 'operationalCapability',
           label: 'How Will You Operate It?',
@@ -204,7 +217,13 @@ class EnquiryForms {
           ],
         ),
         TextFieldSpec(name: 'address', label: 'Property Address / Location', required: true, hint: 'Street, area, landmark'),
-        CheckboxGroupSpec(name: 'cities', label: 'City', required: true, options: _requiredCities),
+        CheckboxGroupSpec(
+          name: 'cities',
+          label: 'City',
+          required: true,
+          options: _requiredCities,
+          otherFieldName: 'otherCity',
+        ),
         TextFieldSpec(
           name: 'totalAreaSqFt',
           label: 'Total Area (Sq Ft)',
@@ -292,7 +311,13 @@ class EnquiryForms {
     FormStep(
       title: 'Preferences',
       fields: [
-        CheckboxGroupSpec(name: 'cities', label: 'Preferred City / Region', required: true, options: _requiredCities),
+        CheckboxGroupSpec(
+          name: 'cities',
+          label: 'Preferred City / Region',
+          required: true,
+          options: _requiredCities,
+          otherFieldName: 'otherCity',
+        ),
         RadioGroupSpec(
           name: 'horizon',
           label: 'Investment Horizon',

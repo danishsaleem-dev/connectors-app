@@ -37,6 +37,8 @@ dependencies:
 
   # Instrument Sans (display) + Geist (body) — same faces as the website.
   google_fonts: ^8.2.1
+  # Enquiry submissions and login/register calls to the website's API.
+  http: ^1.6.0
   # Opens the mailto/tel links in the CTA sections.
   url_launcher: ^6.3.1
 

@@ -5,6 +5,7 @@ import 'screens/franchise_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/investors_screen.dart';
 import 'screens/landlords_screen.dart';
+import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/floating_nav_bar.dart';
 
@@ -71,6 +72,15 @@ class _AppShellState extends State<AppShell> {
           semanticLabel: '${SiteData.name} — ${SiteData.tagline}',
         ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline_rounded),
+            tooltip: 'Sign in',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+            ),
+          ),
+        ],
       ),
       extendBody: true,
       body: SafeArea(

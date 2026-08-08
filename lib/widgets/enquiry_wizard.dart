@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
+import '../data/api_client.dart';
 import '../data/form_fields.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 
 /// Renders any of the four ported enquiry forms from a `List<FormStep>` —
 /// same step-by-step shape as the website's useFormWizard hook (progress
-/// dots, per-step required-field validation, Back/Next, a real "reviewed by
-/// hand" success screen on the last step).
-///
-/// There's no backend to post to yet — this app is public screens only for
-/// now (see the mobile-app phase notes) — so "submitting" just validates and
-/// shows the success state locally. Wiring real submission needs a JSON API
-/// route on the website; Server Actions aren't callable from outside Next.js.
+/// dots, per-step required-field validation, Back/Next), submitting to the
+/// same /api/mobile/enquiries route every audience shares (see ApiClient),
+/// which validates with the exact zod schemas the website's own Server
+/// Actions use and lands the entry in the same admin queue.
 class EnquiryWizard extends StatefulWidget {
+  final String source;
   final List<FormStep> steps;
   final String submitLabel;
   final String successTitle;
@@ -20,6 +19,7 @@ class EnquiryWizard extends StatefulWidget {
 
   const EnquiryWizard({
     super.key,
+    required this.source,
     required this.steps,
     required this.successTitle,
     required this.successBody,
@@ -33,6 +33,7 @@ class EnquiryWizard extends StatefulWidget {
 class _EnquiryWizardState extends State<EnquiryWizard> {
   int _stepIndex = 0;
   bool _submitted = false;
+  bool _submitting = false;
   String? _stepError;
 
   final Map<String, dynamic> _values = {};
@@ -40,6 +41,8 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
 
   TextEditingController _controllerFor(String name) =>
       _controllers.putIfAbsent(name, () => TextEditingController());
+
+  String _otherKey(CheckboxGroupSpec field) => field.otherFieldName ?? '${field.name}:other';
 
   @override
   void dispose() {
@@ -62,7 +65,7 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
         final selected = _values[name] as Set<String>?;
         if (selected == null || selected.isEmpty) return false;
         if (selected.contains('Other')) {
-          return _controllerFor('$name:other').text.trim().isNotEmpty;
+          return _controllerFor(_otherKey(field)).text.trim().isNotEmpty;
         }
         return true;
       case RadioGroupSpec(:final name):
@@ -84,10 +87,69 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
     return true;
   }
 
+  /// Walks every step's fields (not just the current one — earlier steps'
+  /// values are already collected in _values/_controllers) into the flat
+  /// JSON body /api/mobile/enquiries expects.
+  Map<String, dynamic> _collectPayload() {
+    final payload = <String, dynamic>{};
+    for (final step in widget.steps) {
+      for (final field in step.fields) {
+        switch (field) {
+          case TextFieldSpec(:final name):
+            final text = _controllerFor(name).text.trim();
+            if (text.isNotEmpty) payload[name] = text;
+          case RangeFieldSpec(:final minName, :final maxName):
+            final min = _controllerFor(minName).text.trim();
+            final max = _controllerFor(maxName).text.trim();
+            if (min.isNotEmpty) payload[minName] = min;
+            if (max.isNotEmpty) payload[maxName] = max;
+          case DateFieldSpec(:final name):
+            final date = _values[name] as DateTime?;
+            if (date != null) {
+              payload[name] =
+                  '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+            }
+          case CheckboxGroupSpec(:final name):
+            final selected = (_values[name] as Set<String>?) ?? <String>{};
+            payload[name] = selected.toList();
+            if (field.otherFieldName != null && selected.contains('Other')) {
+              final other = _controllerFor(_otherKey(field)).text.trim();
+              if (other.isNotEmpty) payload[field.otherFieldName!] = other;
+            }
+          case RadioGroupSpec(:final name):
+            final value = _values[name] as String?;
+            if (value != null) payload[name] = value;
+          case FileFieldSpec():
+            break; // no upload support yet — see FileFieldSpec's doc comment
+        }
+      }
+    }
+    return payload;
+  }
+
+  Future<void> _submit() async {
+    setState(() => _submitting = true);
+    try {
+      await ApiClient.submitEnquiry(widget.source, _collectPayload());
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _submitted = true;
+      });
+    } catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _stepError = err is ApiException ? err.message : 'Something went wrong. Please try again.';
+      });
+    }
+  }
+
   void _next() {
+    if (_submitting) return;
     if (!_validateStep(_stepIndex)) return;
     if (_stepIndex == widget.steps.length - 1) {
-      setState(() => _submitted = true);
+      _submit();
     } else {
       setState(() => _stepIndex++);
     }
@@ -142,14 +204,22 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
             children: [
               if (_stepIndex > 0)
                 Expanded(
-                  child: OutlinedButton(onPressed: _back, child: const Text('Back')),
+                  child: OutlinedButton(
+                    onPressed: _submitting ? null : _back,
+                    child: const Text('Back'),
+                  ),
                 ),
               if (_stepIndex > 0) const SizedBox(width: 12),
               Expanded(
-                flex: _stepIndex > 0 ? 1 : 1,
                 child: ElevatedButton(
-                  onPressed: _next,
-                  child: Text(isLastStep ? widget.submitLabel : 'Next'),
+                  onPressed: _submitting ? null : _next,
+                  child: _submitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                        )
+                      : Text(isLastStep ? widget.submitLabel : 'Next'),
                 ),
               ),
             ],
@@ -403,8 +473,9 @@ class _FieldRenderer extends StatelessWidget {
           ],
         );
 
-      case CheckboxGroupSpec(:final name, :final options, :final hint):
+      case CheckboxGroupSpec(:final name, :final options, :final hint, :final otherFieldName):
         final selected = (values[name] as Set<String>?) ?? <String>{};
+        final otherKey = otherFieldName ?? '$name:other';
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -438,7 +509,7 @@ class _FieldRenderer extends StatelessWidget {
             if (selected.contains('Other')) ...[
               const SizedBox(height: 10),
               TextField(
-                controller: controllerFor('$name:other'),
+                controller: controllerFor(otherKey),
                 decoration: _decoration(context, hintText: 'Please specify'),
                 onChanged: (_) => onChanged(),
               ),
