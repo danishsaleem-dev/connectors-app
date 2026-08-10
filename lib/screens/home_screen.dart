@@ -11,18 +11,10 @@ import '../widgets/marquee_strip.dart';
 import '../widgets/offices_section.dart';
 import '../widgets/reveal.dart';
 
-const _audienceIcons = {
-  'for-brands': Icons.storefront_rounded,
-  'for-franchise': Icons.handshake_rounded,
-  'for-landlords': Icons.apartment_rounded,
-  'for-investors': Icons.trending_up_rounded,
-};
-
-/// Main screen — the promise line + description from the website hero, the
-/// "four doors" split, real "why Connectors" and "what we create" content
-/// from the site's own copy, an industries marquee, and real office contact
-/// details. Tapping an audience card switches the app's bottom-nav tab
-/// rather than navigating to a route.
+/// Main screen — a compact promise banner, the "four doors" split (the
+/// screen's actual job), a glanceable trust grid, an industries marquee and
+/// office contact details. Tapping an audience card switches the app's
+/// bottom-nav tab rather than navigating to a route.
 class HomeScreen extends StatelessWidget {
   final void Function(int tabIndex) onSelectAudience;
 
@@ -36,12 +28,11 @@ class HomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AppHero(
-            big: true,
-            eyebrow: 'Business Expansion · Franchise Development · Retail Leasing',
+            eyebrow: 'Business Expansion',
             title: SiteData.promise,
             body: SiteData.description,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -50,12 +41,12 @@ class HomeScreen extends StatelessWidget {
                 const Eyebrow('Who we serve'),
                 const SizedBox(height: 10),
                 Text(
-                  'Four doors into the same network.',
+                  'Where do you fit?',
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 for (var i = 0; i < SiteData.audiences.length; i++) ...[
-                  if (i > 0) const SizedBox(height: 12),
+                  if (i > 0) const SizedBox(height: 10),
                   Reveal(
                     index: i,
                     child: _AudienceCard(
@@ -67,7 +58,7 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -75,19 +66,19 @@ class HomeScreen extends StatelessWidget {
               children: [
                 const Eyebrow('Why Connectors'),
                 const SizedBox(height: 10),
-                Text('Built as one ecosystem.', style: Theme.of(context).textTheme.displaySmall),
-                const SizedBox(height: 20),
+                Text('One ecosystem.', style: Theme.of(context).textTheme.displaySmall),
+                const SizedBox(height: 16),
                 FeatureRows(features: CompanyData.whyChoose),
               ],
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Eyebrow('Industries we serve'),
+                const Eyebrow('Industries'),
                 const SizedBox(height: 10),
                 Text(
                   'Wherever retail happens.',
@@ -96,19 +87,14 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           MarqueeStrip(items: CompanyData.industries),
-          const SizedBox(height: 44),
+          const SizedBox(height: 36),
           const OfficesSection(),
-          const SizedBox(height: 32),
+          const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: EnquireCta(
-              title: 'Not sure where you fit? Just tell us.',
-              body:
-                  'Send a short note about what you\'re trying to do, and our '
-                  'team will point you to the right place.',
-            ),
+            child: EnquireCta(message: "Not sure where you fit? Email our team."),
           ),
         ],
       ),
@@ -145,11 +131,7 @@ class _AudienceCard extends StatelessWidget {
                   color: AppColors.violet50,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
-                  _audienceIcons[audience.slug] ?? Icons.arrow_forward_rounded,
-                  color: AppColors.violet600,
-                  size: 24,
-                ),
+                child: Icon(audience.icon, color: AppColors.violet600, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(

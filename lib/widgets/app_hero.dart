@@ -3,22 +3,16 @@ import '../theme/colors.dart';
 import 'eyebrow.dart';
 import 'orbit_field.dart';
 
-/// Banner used at the top of every screen — a violet gradient carrying the
-/// brand's own orbit-sphere motif (not a photo, not a generic gradient
-/// blob), rounded into the content below rather than a hard rectangle.
+/// The Home tab's own banner, carrying the brand's orbit-sphere motif — kept
+/// off every other screen on purpose (see PageHeader), so it reads as the
+/// app's one branded moment rather than a marketing hero repeated on every
+/// tap, which is what made the app feel like a scrolled-down website.
 class AppHero extends StatelessWidget {
   final String eyebrow;
   final String title;
   final String? body;
-  final bool big;
 
-  const AppHero({
-    super.key,
-    required this.eyebrow,
-    required this.title,
-    this.body,
-    this.big = false,
-  });
+  const AppHero({super.key, required this.eyebrow, required this.title, this.body});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +23,7 @@ class AppHero extends StatelessWidget {
       ),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.fromLTRB(24, big ? 12 : 20, 24, big ? 40 : 30),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -46,8 +40,10 @@ class AppHero extends StatelessWidget {
                 child: SizedBox(
                   width: 260,
                   height: 260,
+                  // Dim — this sits directly behind the title, and a bright
+                  // mark there reads as visual noise clashing with the text.
                   child: OrbitField(
-                    color: AppColors.white.withValues(alpha: 0.9),
+                    color: AppColors.white.withValues(alpha: 0.08),
                     count: 22,
                     animate: false,
                   ),
@@ -58,18 +54,15 @@ class AppHero extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(width: 32, height: 3, color: AppColors.violet400),
-                const SizedBox(height: 16),
-                Eyebrow(eyebrow, color: AppColors.violet200),
                 const SizedBox(height: 14),
+                Eyebrow(eyebrow, color: AppColors.violet200),
+                const SizedBox(height: 12),
                 Text(
                   title,
-                  style: (big
-                          ? Theme.of(context).textTheme.displayLarge
-                          : Theme.of(context).textTheme.displayMedium)
-                      ?.copyWith(color: AppColors.white),
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(color: AppColors.white),
                 ),
                 if (body != null) ...[
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
                   Text(
                     body!,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(

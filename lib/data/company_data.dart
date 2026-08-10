@@ -20,29 +20,10 @@ class CompanyData {
       'for sustainable growth and long-term success.';
 
   static const whyChoose = [
-    Feature(
-      title: 'One complete ecosystem',
-      body:
-          'Location, franchise, capital, marketing and technology under a '
-          'single platform — not five vendors who have never spoken to '
-          'each other.',
-    ),
-    Feature(
-      title: 'Powerful network',
-      body:
-          'Strong existing relationships with brands, investors, malls, '
-          'landlords and franchise operators.',
-    ),
-    Feature(
-      title: 'Technology driven',
-      body: 'Modern systems built for networks that need to scale without losing control.',
-    ),
-    Feature(
-      title: 'End-to-end solutions',
-      body:
-          'From location sourcing to franchise sales and marketing — we '
-          'manage the complete growth journey.',
-    ),
+    Feature(title: 'One ecosystem', body: 'Location, capital, marketing and tech — one platform.'),
+    Feature(title: 'Real network', body: 'Existing ties to brands, investors, malls and landlords.'),
+    Feature(title: 'Built on tech', body: 'Modern systems that scale without losing control.'),
+    Feature(title: 'End-to-end', body: 'From location sourcing to franchise sales, handled.'),
   ];
 
   static const valueCreation = [

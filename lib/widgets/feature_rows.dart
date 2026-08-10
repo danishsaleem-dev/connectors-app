@@ -4,8 +4,9 @@ import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import 'reveal.dart';
 
-/// "Why Connectors" feature cards — real copy from the site's whyChoose
-/// content, each on its own elevated card rather than a plain bulleted list.
+/// "Why Connectors" as a glanceable 2-column grid of icon + short label —
+/// trust badges, not marketing paragraphs, so this reads as an app screen
+/// rather than a scrolled-down website section.
 class FeatureRows extends StatelessWidget {
   final List<Feature> features;
 
@@ -22,57 +23,74 @@ class FeatureRows extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        for (var i = 0; i < features.length; i++) ...[
-          if (i > 0) const SizedBox(height: 14),
-          Reveal(
-            index: i,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: cardShadow(),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: AppColors.violet50,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      _icons[i % _icons.length],
-                      color: AppColors.violet600,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(features[i].title, style: Theme.of(context).textTheme.titleLarge),
-                        const SizedBox(height: 6),
-                        Text(
-                          features[i].body,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: AppColors.grey500),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+        for (var row = 0; row < features.length; row += 2) ...[
+          if (row > 0) const SizedBox(height: 12),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: _Tile(feature: features[row], icon: _icons[row % _icons.length], index: row)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: row + 1 < features.length
+                      ? _Tile(
+                          feature: features[row + 1],
+                          icon: _icons[(row + 1) % _icons.length],
+                          index: row + 1,
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
             ),
           ),
         ],
       ],
+    );
+  }
+}
+
+class _Tile extends StatelessWidget {
+  final Feature feature;
+  final IconData icon;
+  final int index;
+
+  const _Tile({required this.feature, required this.icon, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
+    return Reveal(
+      index: index,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: cardShadow(),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.violet50,
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Icon(icon, color: AppColors.violet600, size: 18),
+            ),
+            const SizedBox(height: 12),
+            Text(feature.title, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 4),
+            Text(
+              feature.body,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

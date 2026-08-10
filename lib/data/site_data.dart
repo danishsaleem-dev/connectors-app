@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Ported from the website's src/lib/site.ts — same office details, contact
 /// emails and audience copy, so the app never says something the site
 /// doesn't (or vice versa).
@@ -20,12 +22,14 @@ class Audience {
   final String nav;
   final String title;
   final String lead;
+  final IconData icon;
 
   const Audience({
     required this.slug,
     required this.nav,
     required this.title,
     required this.lead,
+    required this.icon,
   });
 }
 
@@ -36,10 +40,8 @@ class SiteData {
   static const tagline = 'Connecting Growth Through Opportunities';
   static const promise = "We Don't Just Connect Businesses — We Create Growth.";
   static const description =
-      'Connectors is a business expansion, franchise development, retail '
-      'leasing and investment facilitation company. We connect brands with '
-      'locations, franchisees and investors — and connect landlords with the '
-      'brands that fill their space.';
+      'Business expansion, franchise development and retail leasing — all '
+      'in one place.';
 
   static const generalEmail = 'info@connectors.group';
 
@@ -64,39 +66,36 @@ class SiteData {
     ),
   ];
 
-  /// Same four doors as the website nav/homepage.
+  /// Same four doors as the website nav/homepage. Icons are the app's own —
+  /// the site has no equivalent since it uses full nav labels instead.
   static const audiences = [
     Audience(
       slug: 'for-brands',
       nav: 'For Brands',
       title: 'Brands',
-      lead:
-          'Expand into the right locations, turn your business into a '
-          'franchise, and meet investors ready to back it.',
+      lead: 'Expand into the right locations and meet investors ready to back it.',
+      icon: Icons.storefront_rounded,
     ),
     Audience(
       slug: 'for-franchise',
       nav: 'For Franchisees',
       title: 'Franchisees',
-      lead:
-          'Find a franchise matched to your budget, territory and '
-          'experience — with the training and systems to run it.',
+      lead: 'A franchise matched to your budget, territory and experience.',
+      icon: Icons.handshake_rounded,
     ),
     Audience(
       slug: 'for-landlords',
       nav: 'For Landlords',
       title: 'Landlords & Developers',
-      lead:
-          'Fill vacant retail, mall and commercial space with established '
-          'brands actively looking to expand.',
+      lead: 'Fill vacant space with established brands actively expanding.',
+      icon: Icons.apartment_rounded,
     ),
     Audience(
       slug: 'for-investors',
       nav: 'For Investors',
       title: 'Investors',
-      lead:
-          'Access proven business models, expansion-ready brands and '
-          'multi-unit franchise opportunities.',
+      lead: 'Proven business models and multi-unit franchise opportunities.',
+      icon: Icons.trending_up_rounded,
     ),
   ];
 

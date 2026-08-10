@@ -26,7 +26,7 @@ void main() {
     // The app bar shows the logo image, not a text wordmark.
     expect(find.image(const AssetImage('assets/images/logo.png')), findsOneWidget);
     expect(find.byType(FloatingNavBar), findsOneWidget);
-    expect(find.text('Four doors into the same network.'), findsOneWidget);
+    expect(find.text('Where do you fit?'), findsOneWidget);
   });
 
   testWidgets('Tapping Brands in the nav switches to the Brands screen', (
@@ -41,8 +41,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.storefront_outlined));
     await _settle(tester);
 
-    // Eyebrow renders its text uppercased.
-    expect(find.text('HOW WE WORK WITH YOU'), findsOneWidget);
+    // formHeading is unique per audience type, unlike the old shared
+    // "How we work with you" eyebrow this replaced.
+    expect(find.text('What are you looking to open, and where?'), findsOneWidget);
   });
 
   testWidgets(

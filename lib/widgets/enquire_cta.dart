@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/site_data.dart';
 import '../theme/colors.dart';
-import 'eyebrow.dart';
-import 'orbit_field.dart';
 
-/// Dark CTA card closing a screen — same role as VendorCta / JoinCommunityCta
-/// on the site. Opens a real mailto to the general inbox rather than a form:
-/// the enquiry forms and their Server Actions are a later phase, this app is
-/// public screens only for now.
+/// A single-line fallback prompt, not a repeated marketing CTA card — the
+/// audience cards above already do the routing, so this only needs to catch
+/// whoever doesn't fit any of them.
 class EnquireCta extends StatelessWidget {
-  final String title;
-  final String body;
+  final String message;
 
-  const EnquireCta({super.key, required this.title, required this.body});
+  const EnquireCta({super.key, required this.message});
 
   Future<void> _openEmail() async {
     final uri = Uri(
@@ -26,56 +22,29 @@ class EnquireCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
-        decoration: const BoxDecoration(color: AppColors.ink),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -50,
-              bottom: -60,
-              child: IgnorePointer(
-                child: SizedBox(
-                  width: 220,
-                  height: 220,
-                  child: OrbitField(color: AppColors.white, count: 18, animate: false),
-                ),
+    return Material(
+      color: AppColors.grey50,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: _openEmail,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: const BoxDecoration(color: AppColors.violet600, shape: BoxShape.circle),
+                child: const Icon(Icons.mail_outline_rounded, color: AppColors.white, size: 16),
               ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Eyebrow('Get in touch', color: AppColors.violet200),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .displaySmall
-                      ?.copyWith(color: AppColors.white),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  body,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.white.withValues(alpha: 0.65),
-                      ),
-                ),
-                const SizedBox(height: 22),
-                ElevatedButton(
-                  onPressed: _openEmail,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.white,
-                    foregroundColor: AppColors.ink,
-                  ),
-                  child: const Text('Start a conversation'),
-                ),
-              ],
-            ),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
+              ),
+              const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.violet600),
+            ],
+          ),
         ),
       ),
     );
