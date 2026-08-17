@@ -23,7 +23,7 @@ class AppHero extends StatelessWidget {
       ),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 26),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -32,19 +32,23 @@ class AppHero extends StatelessWidget {
           ),
         ),
         child: Stack(
+          clipBehavior: Clip.hardEdge,
           children: [
+            // Pushed into the corner and clipped mostly off-canvas so it
+            // reads as a faint brand flourish, not a globe sitting behind
+            // the headline — the previous 260px version overlapped the
+            // text directly, which is what made it feel distracting.
             Positioned(
               right: -60,
-              top: -40,
+              bottom: -60,
               child: IgnorePointer(
                 child: SizedBox(
-                  width: 260,
-                  height: 260,
-                  // Dim — this sits directly behind the title, and a bright
-                  // mark there reads as visual noise clashing with the text.
+                  width: 150,
+                  height: 150,
                   child: OrbitField(
-                    color: AppColors.white.withValues(alpha: 0.08),
-                    count: 22,
+                    color: AppColors.white.withValues(alpha: 0.05),
+                    count: 16,
+                    accent: false,
                     animate: false,
                   ),
                 ),
@@ -53,20 +57,20 @@ class AppHero extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(width: 32, height: 3, color: AppColors.violet400),
-                const SizedBox(height: 14),
                 Eyebrow(eyebrow, color: AppColors.violet200),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.displayMedium?.copyWith(color: AppColors.white),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.white),
                 ),
                 if (body != null) ...[
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Text(
                     body!,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColors.white.withValues(alpha: 0.72),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.white.withValues(alpha: 0.68),
                         ),
                   ),
                 ],
