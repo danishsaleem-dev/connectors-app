@@ -219,7 +219,17 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
                         )
-                      : Text(isLastStep ? widget.submitLabel : 'Next'),
+                      // Scales the label down to fit one line instead of
+                      // wrapping — labels like "Submit application" don't
+                      // fit the button's default padding on narrower phones
+                      // once it's sharing the row with Back.
+                      : FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            isLastStep ? widget.submitLabel : 'Next',
+                            maxLines: 1,
+                          ),
+                        ),
                 ),
               ),
             ],
