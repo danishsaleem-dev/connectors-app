@@ -46,6 +46,29 @@ void main() {
     expect(find.text('What are you looking to open, and where?'), findsOneWidget);
   });
 
+  testWidgets('Menu opens the More hub, which opens About', (WidgetTester tester) async {
+    await tester.pumpWidget(const ConnectorsApp());
+    await tester.pump();
+
+    // Two icon buttons live in the app bar (Menu, then Sign in) — Menu is
+    // the unique one to reach the new secondary-navigation hub. An extra
+    // zero-duration pump registers the Navigator.push before the bounded
+    // pump drives its transition, same two-step needed anywhere else a
+    // route (rather than an IndexedStack tab) changes.
+    await tester.tap(find.byIcon(Icons.menu_rounded));
+    await tester.pump();
+    await _settle(tester);
+    expect(find.text('About Connectors'), findsOneWidget);
+
+    await tester.tap(find.text('About Connectors'));
+    await tester.pump();
+    await _settle(tester);
+    expect(
+      find.text('We built the bridge that expansion kept falling through.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets(
     'Brand enquiry wizard blocks on an empty required field, then advances once filled',
     (WidgetTester tester) async {

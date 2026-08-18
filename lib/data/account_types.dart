@@ -1,6 +1,6 @@
-/// Same six self-service account types and per-type organisation-name
+/// Same seven self-service account types and per-type organisation-name
 /// labels as the website's RegisterForm CHOICES — kept in sync by hand
-/// since it's six short lines, not worth a codegen step for.
+/// since it's seven short lines, not worth a codegen step for.
 class AccountTypeOption {
   final String value;
   final String label;
@@ -28,6 +28,7 @@ const accountTypes = [
     orgLabel: 'Company / individual name',
   ),
   AccountTypeOption(value: 'vendor', label: 'Vendor', orgLabel: 'Studio / company name'),
+  AccountTypeOption(value: 'consultant', label: 'Consultant', orgLabel: 'Full name'),
 ];
 
 /// Same discipline options as VENDOR_DISCIPLINE_LABEL on the website.

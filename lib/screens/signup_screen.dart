@@ -7,14 +7,19 @@ import '../widgets/form_controls.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  /// Preselects the "I am a…" chip — used by screens like Consultants and
+  /// Partners that already know which account type their CTA should land on,
+  /// so the visitor doesn't have to hunt for it among seven options.
+  final String? initialType;
+
+  const SignupScreen({super.key, this.initialType});
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  String _type = accountTypes.first.value;
+  late String _type = widget.initialType ?? accountTypes.first.value;
   String? _discipline;
   final _orgController = TextEditingController();
   final _nameController = TextEditingController();

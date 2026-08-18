@@ -19,6 +19,24 @@ class CompanyData {
       'investors, franchisees, landlords and commercial projects together '
       'for sustainable growth and long-term success.';
 
+  static const vision =
+      'To become the leading global business connectivity platform for '
+      'retail expansion, franchise development and commercial growth.';
+
+  static const about =
+      'Connectors bridges the gap between brands, franchisees, investors, '
+      'mall owners, landlords and project developers — a growth partner, '
+      'not just a consultant, so every side of an expansion moves through '
+      'one ecosystem instead of five disconnected vendors.';
+
+  static const values = [
+    Feature(title: 'Integrity', body: 'Transparent, ethical business relationships.'),
+    Feature(title: 'Innovation', body: 'Modern business and technology solutions.'),
+    Feature(title: 'Growth', body: 'Helping every partner scale successfully.'),
+    Feature(title: 'Partnerships', body: 'Long-term strategic relationships.'),
+    Feature(title: 'Excellence', body: 'Premium service, measurable results.'),
+  ];
+
   static const whyChoose = [
     Feature(title: 'One ecosystem', body: 'Location, capital, marketing and tech — one platform.'),
     Feature(title: 'Real network', body: 'Existing ties to brands, investors, malls and landlords.'),

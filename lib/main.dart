@@ -6,6 +6,7 @@ import 'screens/home_screen.dart';
 import 'screens/investors_screen.dart';
 import 'screens/landlords_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/more_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/floating_nav_bar.dart';
 
@@ -73,6 +74,13 @@ class _AppShellState extends State<AppShell> {
         ),
         centerTitle: false,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            tooltip: 'Menu',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const MoreScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.person_outline_rounded),
             tooltip: 'Sign in',

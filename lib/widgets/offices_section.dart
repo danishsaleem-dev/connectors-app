@@ -37,6 +37,11 @@ class _OfficeCard extends StatelessWidget {
 
   const _OfficeCard({required this.office});
 
+  Future<void> _openDirections() async {
+    final query = Uri.encodeComponent(office.address);
+    await launchUrl(Uri.parse('https://www.google.com/maps/search/?api=1&query=$query'));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -64,20 +69,48 @@ class _OfficeCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          Material(
-            color: AppColors.violet600,
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: () => launchUrl(Uri.parse(office.phoneHref)),
-              child: const Padding(
-                padding: EdgeInsets.all(12),
-                child: Icon(Icons.call_rounded, color: AppColors.white, size: 18),
-              ),
-            ),
+          const SizedBox(width: 8),
+          _CircleAction(
+            icon: Icons.directions_rounded,
+            onTap: _openDirections,
+            outlined: true,
+          ),
+          const SizedBox(width: 8),
+          _CircleAction(
+            icon: Icons.call_rounded,
+            onTap: () => launchUrl(Uri.parse(office.phoneHref)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CircleAction extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool outlined;
+
+  const _CircleAction({required this.icon, required this.onTap, this.outlined = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: outlined ? AppColors.white : AppColors.violet600,
+      shape: CircleBorder(
+        side: outlined ? const BorderSide(color: AppColors.grey200) : BorderSide.none,
+      ),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Icon(
+            icon,
+            color: outlined ? AppColors.violet600 : AppColors.white,
+            size: 18,
+          ),
+        ),
       ),
     );
   }
