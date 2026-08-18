@@ -113,10 +113,10 @@ class _Tile extends StatelessWidget {
     final card = Material(
       color: flat ? AppColors.grey50 : AppColors.white,
       borderRadius: radius,
+      elevation: 0,
       child: item.onTap != null
           ? InkWell(onTap: item.onTap, borderRadius: radius, child: content)
           : content,
-      elevation: 0,
     );
 
     return Reveal(
