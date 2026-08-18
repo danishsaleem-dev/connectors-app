@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../data/partners_data.dart';
-import '../theme/app_theme.dart';
 import '../theme/colors.dart';
-import '../widgets/eyebrow.dart';
+import '../widgets/enquire_cta.dart';
 import '../widgets/reveal.dart';
+import '../widgets/section_intro.dart';
+import '../widgets/tile_grid.dart';
 import 'signup_screen.dart';
 
 const _icons = {
@@ -28,7 +29,7 @@ class PartnersScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Partners Program')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -44,28 +45,17 @@ class PartnersScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
               ),
               const SizedBox(height: 24),
-              const Eyebrow('Six disciplines'),
-              const SizedBox(height: 12),
-              for (var row = 0; row < PartnersData.disciplines.length; row += 2) ...[
-                if (row > 0) const SizedBox(height: 10),
-                IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(child: _DisciplineTile(index: row)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: row + 1 < PartnersData.disciplines.length
-                            ? _DisciplineTile(index: row + 1)
-                            : const SizedBox.shrink(),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 28),
-              const Eyebrow('What you get'),
-              const SizedBox(height: 12),
+              const SectionIntro(eyebrow: 'Six disciplines', title: 'One bench, every trade.'),
+              const SizedBox(height: 16),
+              TileGrid(
+                items: [
+                  for (final d in PartnersData.disciplines)
+                    TileItem(icon: _icons[d.key] ?? Icons.circle, title: d.title, body: d.body),
+                ],
+              ),
+              const SizedBox(height: 32),
+              const SectionIntro(eyebrow: 'What you get', title: "Why vendors stay on the bench."),
+              const SizedBox(height: 16),
               for (var i = 0; i < PartnersData.benefits.length; i++) ...[
                 if (i > 0) const SizedBox(height: 10),
                 Reveal(index: i, child: _BenefitRow(benefit: PartnersData.benefits[i])),
@@ -80,45 +70,10 @@ class PartnersScreen extends StatelessWidget {
                   child: const Text('Become a vendor'),
                 ),
               ),
+              const SizedBox(height: 12),
+              const EnquireCta(message: 'Questions before you apply? Email our team.'),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DisciplineTile extends StatelessWidget {
-  final int index;
-
-  const _DisciplineTile({required this.index});
-
-  @override
-  Widget build(BuildContext context) {
-    final discipline = PartnersData.disciplines[index];
-    return Reveal(
-      index: index,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: cardShadow(),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(_icons[discipline.key] ?? Icons.circle, color: AppColors.violet600, size: 20),
-            const SizedBox(height: 10),
-            Text(discipline.title, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text(
-              discipline.body,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
-            ),
-          ],
         ),
       ),
     );
@@ -135,22 +90,28 @@ class _BenefitRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 4),
-          child: Icon(Icons.check_circle_rounded, color: AppColors.violet600, size: 18),
+        Container(
+          width: 28,
+          height: 28,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(color: AppColors.violet50, shape: BoxShape.circle),
+          child: const Icon(Icons.check_rounded, color: AppColors.violet600, size: 16),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(benefit.title, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 2),
-              Text(
-                benefit.body,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(benefit.title, style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 2),
+                Text(
+                  benefit.body,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+                ),
+              ],
+            ),
           ),
         ),
       ],

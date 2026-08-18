@@ -1,33 +1,41 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../widgets/enquire_cta.dart';
-import '../widgets/reveal.dart';
+import '../widgets/process_steps.dart';
+import '../widgets/section_intro.dart';
+import '../widgets/tile_grid.dart';
 import 'signup_screen.dart';
 
-class _ConsultingAudience {
-  final String audience;
-  final String body;
-  final IconData icon;
-
-  const _ConsultingAudience({required this.audience, required this.body, required this.icon});
-}
-
 const _audiences = [
-  _ConsultingAudience(
-    audience: 'Brands',
-    body: 'Market entry, site selection and franchise structuring for your next opening.',
+  TileItem(
     icon: Icons.storefront_rounded,
+    title: 'Brands',
+    body: 'Market entry, site selection and franchise structuring for your next opening.',
   ),
-  _ConsultingAudience(
-    audience: 'Franchisees',
-    body: 'Feasibility and operational planning before you commit capital to a territory.',
+  TileItem(
     icon: Icons.handshake_rounded,
+    title: 'Franchisees',
+    body: 'Feasibility and operational planning before you commit capital to a territory.',
   ),
-  _ConsultingAudience(
-    audience: 'Landlords',
-    body: "Positioning a space, and reading which brands it will actually attract.",
+  TileItem(
     icon: Icons.apartment_rounded,
+    title: 'Landlords',
+    body: "Positioning a space, and reading which brands it will actually attract.",
+  ),
+];
+
+const _steps = [
+  ProcessStep(
+    title: 'Tell us what you need',
+    body: 'A short brief on your expansion, site or challenge.',
+  ),
+  ProcessStep(
+    title: 'We match the right consultant',
+    body: 'From our in-house team, based on your industry and stage.',
+  ),
+  ProcessStep(
+    title: 'Start the engagement',
+    body: 'Direct access and real recommendations — no lengthy procurement process.',
   ),
 ];
 
@@ -45,7 +53,7 @@ class ConsultantsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Consultants')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -61,10 +69,13 @@ class ConsultantsScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
               ),
               const SizedBox(height: 24),
-              for (var i = 0; i < _audiences.length; i++) ...[
-                if (i > 0) const SizedBox(height: 10),
-                Reveal(index: i, child: _AudienceRow(item: _audiences[i])),
-              ],
+              const SectionIntro(eyebrow: 'Who we help', title: 'Wherever you sit in the deal.'),
+              const SizedBox(height: 16),
+              const TileGrid(items: _audiences),
+              const SizedBox(height: 32),
+              const SectionIntro(eyebrow: 'How it works', title: 'Three steps to an engagement.'),
+              const SizedBox(height: 20),
+              const ProcessSteps(steps: _steps),
               const SizedBox(height: 28),
               SizedBox(
                 width: double.infinity,
@@ -80,49 +91,6 @@ class ConsultantsScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _AudienceRow extends StatelessWidget {
-  final _ConsultingAudience item;
-
-  const _AudienceRow({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: cardShadow(),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: AppColors.violet50, borderRadius: BorderRadius.circular(12)),
-            child: Icon(item.icon, color: AppColors.violet600, size: 19),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.audience, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 2),
-                Text(
-                  item.body,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
