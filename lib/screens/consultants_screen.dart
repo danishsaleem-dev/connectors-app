@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
+import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
+import '../widgets/info_list.dart';
 import '../widgets/process_steps.dart';
 import '../widgets/section_intro.dart';
-import '../widgets/tile_grid.dart';
 import 'signup_screen.dart';
 
 const _audiences = [
-  TileItem(
+  InfoItem(
     icon: Icons.storefront_rounded,
     title: 'Brands',
     body: 'Market entry, site selection and franchise structuring for your next opening.',
   ),
-  TileItem(
+  InfoItem(
     icon: Icons.handshake_rounded,
     title: 'Franchisees',
     body: 'Feasibility and operational planning before you commit capital to a territory.',
   ),
-  TileItem(
+  InfoItem(
     icon: Icons.apartment_rounded,
     title: 'Landlords',
-    body: "Positioning a space, and reading which brands it will actually attract.",
+    body: 'Positioning a space, and reading which brands it will actually attract.',
   ),
 ];
 
@@ -53,7 +54,12 @@ class ConsultantsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Consultants')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.sm,
+            AppSpacing.page,
+            AppSpacing.section,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -61,22 +67,22 @@ class ConsultantsScreen extends StatelessWidget {
                 'Advice from people who do this for a living.',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 'Site selection, feasibility and franchise structuring — '
                 "Connectors' own consultancy, available whether or not "
                 "you're already working with us on an expansion.",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.section),
               const SectionIntro(eyebrow: 'Who we help', title: 'Wherever you sit in the deal.'),
-              const SizedBox(height: 16),
-              const TileGrid(items: _audiences),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.sm),
+              const InfoList(items: _audiences),
+              const SizedBox(height: AppSpacing.section),
               const SectionIntro(eyebrow: 'How it works', title: 'Three steps to an engagement.'),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.heading),
               const ProcessSteps(steps: _steps),
-              const SizedBox(height: 28),
+              const SizedBox(height: AppSpacing.section),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -86,7 +92,7 @@ class ConsultantsScreen extends StatelessWidget {
                   child: const Text('Join the consultants roster'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               const EnquireCta(message: 'Need a consultant? Email our team.'),
             ],
           ),

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import '../data/vendor_services_data.dart';
+import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
+import '../widgets/eyebrow.dart';
+import '../widgets/info_list.dart';
 import '../widgets/section_intro.dart';
-import '../widgets/tile_grid.dart';
 import 'signup_screen.dart';
 
 /// The Partners Program's full service catalog, grouped into the three
 /// categories a brand actually thinks in — design & build, marketing &
 /// launch, operations & compliance — rather than one undifferentiated list
-/// of twelve near-identical rows. See VendorServicesData for why this stops
-/// at the one-liner instead of the website's per-service deep page.
+/// of twelve. See VendorServicesData for why this stops at the one-liner
+/// instead of the website's per-service deep page.
 class VendorServicesScreen extends StatelessWidget {
   const VendorServicesScreen({super.key});
 
@@ -21,7 +23,12 @@ class VendorServicesScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Vendor Services')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.sm,
+            AppSpacing.page,
+            AppSpacing.section,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -31,17 +38,18 @@ class VendorServicesScreen extends StatelessWidget {
                 lead: 'From first sketch to opening day — the vetted bench '
                     'Connectors puts behind every brand.',
               ),
-              const SizedBox(height: 24),
               for (final group in groups) ...[
-                Text(group.key, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 12),
-                TileGrid(flat: true, items: [
-                  for (final service in group.value)
-                    TileItem(icon: service.icon, title: service.title, body: service.body),
-                ]),
-                if (group != groups.last) const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.section),
+                Eyebrow(group.key),
+                const SizedBox(height: AppSpacing.xs),
+                InfoList(
+                  items: [
+                    for (final service in group.value)
+                      InfoItem(icon: service.icon, title: service.title, body: service.body),
+                  ],
+                ),
               ],
-              const SizedBox(height: 28),
+              const SizedBox(height: AppSpacing.section),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -51,7 +59,7 @@ class VendorServicesScreen extends StatelessWidget {
                   child: const Text('Become a vendor'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               const EnquireCta(message: 'Questions about a specific service? Email our team.'),
             ],
           ),

@@ -2,21 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart';
 
-/// Instrument Sans for display type, Geist for body/UI — same pairing as the
-/// website. `GoogleFonts.getFont` (not the per-family generated methods) so
-/// this doesn't depend on both families having a generated binding in
-/// whatever google_fonts version ends up resolved.
-TextStyle _display({double? size, FontWeight? weight, double? height, double? spacing}) =>
+/// Plus Jakarta Sans throughout — one family for display and body rather
+/// than the previous Instrument Sans + Geist pairing. Two families whose
+/// letterforms are that close buys no useful contrast on a phone; it just
+/// makes headings and body look subtly mismatched. Jakarta's tighter
+/// apertures and even rhythm hold up better at the small sizes an app
+/// actually uses, and weight alone carries the hierarchy.
+/// `GoogleFonts.getFont` (not the per-family generated method) so this
+/// doesn't depend on a generated binding existing in whatever google_fonts
+/// version ends up resolved.
+TextStyle _font({double? size, FontWeight? weight, double? height, double? spacing}) =>
     GoogleFonts.getFont(
-      'Instrument Sans',
+      'Plus Jakarta Sans',
       fontSize: size,
       fontWeight: weight,
       height: height,
       letterSpacing: spacing,
     );
-
-TextStyle _body({double? size, FontWeight? weight, double? height}) =>
-    GoogleFonts.getFont('Geist', fontSize: size, fontWeight: weight, height: height);
 
 /// Soft, deep shadow for elevated cards — a real sense of lift rather than a
 /// hairline border, which is most of what separated the first pass from
@@ -48,18 +50,20 @@ ThemeData buildAppTheme() {
   return base.copyWith(
     textTheme: base.textTheme
         .copyWith(
-          // Larger and tighter than Material defaults — the "big, premium
-          // editorial" register the site's own display type sets, rather
-          // than a scaled-up default app type ramp.
-          displayLarge: _display(size: 52, weight: FontWeight.w500, height: 1.02, spacing: -1.4),
-          displayMedium: _display(size: 38, weight: FontWeight.w500, height: 1.06, spacing: -0.8),
-          displaySmall: _display(size: 30, weight: FontWeight.w500, height: 1.1, spacing: -0.4),
-          headlineMedium: _display(size: 24, weight: FontWeight.w500, height: 1.2),
-          titleLarge: _display(size: 20, weight: FontWeight.w500, height: 1.25),
-          bodyLarge: _body(size: 17, weight: FontWeight.w400, height: 1.6),
-          bodyMedium: _body(size: 15, weight: FontWeight.w400, height: 1.6),
-          labelLarge: _body(size: 13.5, weight: FontWeight.w600, height: 1.2),
-          labelMedium: _body(size: 11.5, weight: FontWeight.w600, height: 1.2),
+          // Tight, editorial display sizes; a deliberately small step
+          // between titleLarge and body so full-width list rows read as
+          // rows rather than a stack of competing headlines — the old
+          // 20pt row title was sized for a card, not a list.
+          displayLarge: _font(size: 40, weight: FontWeight.w600, height: 1.05, spacing: -1.2),
+          displayMedium: _font(size: 31, weight: FontWeight.w600, height: 1.1, spacing: -0.8),
+          displaySmall: _font(size: 25, weight: FontWeight.w600, height: 1.18, spacing: -0.5),
+          headlineMedium: _font(size: 22, weight: FontWeight.w600, height: 1.28, spacing: -0.4),
+          titleLarge: _font(size: 17, weight: FontWeight.w600, height: 1.35, spacing: -0.1),
+          titleMedium: _font(size: 15, weight: FontWeight.w600, height: 1.35),
+          bodyLarge: _font(size: 16, weight: FontWeight.w400, height: 1.55),
+          bodyMedium: _font(size: 14.5, weight: FontWeight.w400, height: 1.55),
+          labelLarge: _font(size: 13, weight: FontWeight.w600, height: 1.2),
+          labelMedium: _font(size: 11, weight: FontWeight.w700, height: 1.2),
         )
         .apply(bodyColor: AppColors.ink, displayColor: AppColors.ink),
     appBarTheme: const AppBarTheme(
@@ -76,7 +80,7 @@ ThemeData buildAppTheme() {
         foregroundColor: AppColors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-        textStyle: _body(size: 15, weight: FontWeight.w600),
+        textStyle: _font(size: 15, weight: FontWeight.w600),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -85,7 +89,7 @@ ThemeData buildAppTheme() {
         side: const BorderSide(color: AppColors.grey200, width: 1.4),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-        textStyle: _body(size: 15, weight: FontWeight.w600),
+        textStyle: _font(size: 15, weight: FontWeight.w600),
       ),
     ),
   );

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../data/partners_data.dart';
 import '../theme/colors.dart';
+import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
+import '../widgets/info_list.dart';
 import '../widgets/reveal.dart';
 import '../widgets/section_intro.dart';
-import '../widgets/tile_grid.dart';
 import 'signup_screen.dart';
 
 const _icons = {
@@ -29,7 +30,12 @@ class PartnersScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Partners Program')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.sm,
+            AppSpacing.page,
+            AppSpacing.section,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -37,30 +43,30 @@ class PartnersScreen extends StatelessWidget {
                 'The people who actually build the openings we broker.',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 'A vetted bench of designers, architects, interior '
                 'specialists, agencies, consultants and contractors we can '
-                "put in front of a brand the day the lease is signed.",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+                'put in front of a brand the day the lease is signed.',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.section),
               const SectionIntro(eyebrow: 'Six disciplines', title: 'One bench, every trade.'),
-              const SizedBox(height: 16),
-              TileGrid(
+              const SizedBox(height: AppSpacing.sm),
+              InfoList(
                 items: [
                   for (final d in PartnersData.disciplines)
-                    TileItem(icon: _icons[d.key] ?? Icons.circle, title: d.title, body: d.body),
+                    InfoItem(icon: _icons[d.key] ?? Icons.circle, title: d.title, body: d.body),
                 ],
               ),
-              const SizedBox(height: 32),
-              const SectionIntro(eyebrow: 'What you get', title: "Why vendors stay on the bench."),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.section),
+              const SectionIntro(eyebrow: 'What you get', title: 'Why vendors stay on the bench.'),
+              const SizedBox(height: AppSpacing.heading),
               for (var i = 0; i < PartnersData.benefits.length; i++) ...[
-                if (i > 0) const SizedBox(height: 10),
+                if (i > 0) const SizedBox(height: AppSpacing.lg),
                 Reveal(index: i, child: _BenefitRow(benefit: PartnersData.benefits[i])),
               ],
-              const SizedBox(height: 28),
+              const SizedBox(height: AppSpacing.section),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -70,7 +76,7 @@ class PartnersScreen extends StatelessWidget {
                   child: const Text('Become a vendor'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               const EnquireCta(message: 'Questions before you apply? Email our team.'),
             ],
           ),
@@ -90,28 +96,22 @@ class _BenefitRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 28,
-          height: 28,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(color: AppColors.violet50, shape: BoxShape.circle),
-          child: const Icon(Icons.check_rounded, color: AppColors.violet600, size: 16),
+        const Padding(
+          padding: EdgeInsets.only(top: 2),
+          child: Icon(Icons.check_rounded, color: AppColors.violet600, size: 18),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(benefit.title, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 2),
-                Text(
-                  benefit.body,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
-                ),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(benefit.title, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 3),
+              Text(
+                benefit.body,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+              ),
+            ],
           ),
         ),
       ],

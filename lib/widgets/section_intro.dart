@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
+import '../theme/spacing.dart';
 import 'eyebrow.dart';
 
 /// The eyebrow + heading (+ optional lead paragraph) that opens most
@@ -25,11 +26,11 @@ class SectionIntro extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Eyebrow(eyebrow, color: eyebrowColor),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.sm),
         Text(title, style: Theme.of(context).textTheme.displaySmall),
         if (lead != null) ...[
-          const SizedBox(height: 8),
-          Text(lead!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500)),
+          const SizedBox(height: AppSpacing.sm),
+          Text(lead!, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500)),
         ],
       ],
     );

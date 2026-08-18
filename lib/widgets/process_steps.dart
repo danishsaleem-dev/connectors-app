@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
+import '../theme/spacing.dart';
 import 'reveal.dart';
 
 /// One step in a [ProcessSteps] timeline.
@@ -54,15 +55,15 @@ class ProcessSteps extends StatelessWidget {
                         ),
                     ],
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: AppSpacing.lg),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: i < steps.length - 1 ? 22 : 0),
+                      padding: EdgeInsets.only(bottom: i < steps.length - 1 ? AppSpacing.xl : 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(steps[i].title, style: Theme.of(context).textTheme.titleLarge),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Text(
                             steps[i].body,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
