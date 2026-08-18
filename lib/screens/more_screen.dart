@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import '../data/api_client.dart';
+import '../data/auth_state.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/info_list.dart';
 import '../widgets/section_intro.dart';
 import 'about_screen.dart';
+import 'account_screen.dart';
 import 'consultants_screen.dart';
 import 'login_screen.dart';
 import 'partners_screen.dart';
@@ -69,7 +72,17 @@ class MoreScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.section),
-              _AccountCard(onTap: () => _push(context, const LoginScreen())),
+              ValueListenableBuilder<AuthResult?>(
+                valueListenable: Auth.session,
+                builder: (context, session, _) => _AccountCard(
+                  title: session == null ? 'Sign in' : session.name,
+                  subtitle: session == null ? 'Or create an account.' : 'View your account.',
+                  onTap: () => _push(
+                    context,
+                    session == null ? const LoginScreen() : AccountScreen(session: session),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -85,9 +98,11 @@ class MoreScreen extends StatelessWidget {
 /// The one card on the screen — it's the only action here, as opposed to a
 /// destination, so it's worth letting it look different from the list.
 class _AccountCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
   final VoidCallback onTap;
 
-  const _AccountCard({required this.onTap});
+  const _AccountCard({required this.title, required this.subtitle, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -112,10 +127,10 @@ class _AccountCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Sign in', style: Theme.of(context).textTheme.titleLarge),
+                    Text(title, style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 2),
                     Text(
-                      'Or create an account.',
+                      subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
                     ),
                   ],

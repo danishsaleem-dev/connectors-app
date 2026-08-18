@@ -5,6 +5,7 @@ import '../widgets/enquire_cta.dart';
 import '../widgets/eyebrow.dart';
 import '../widgets/info_list.dart';
 import '../widgets/section_intro.dart';
+import '../widgets/signed_out_only.dart';
 import 'signup_screen.dart';
 
 /// The Partners Program's full service catalog, grouped into the three
@@ -50,16 +51,22 @@ class VendorServicesScreen extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: AppSpacing.section),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SignupScreen(initialType: 'vendor')),
+              SignedOutOnly(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SignupScreen(initialType: 'vendor'),
+                        ),
+                      ),
+                      child: const Text('Become a vendor'),
+                    ),
                   ),
-                  child: const Text('Become a vendor'),
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
               const EnquireCta(message: 'Questions about a specific service? Email our team.'),
             ],
           ),

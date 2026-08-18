@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'data/api_client.dart';
+import 'data/auth_state.dart';
 import 'data/site_data.dart';
+import 'screens/account_screen.dart';
 import 'screens/brands_screen.dart';
 import 'screens/franchise_screen.dart';
 import 'screens/home_screen.dart';
@@ -81,11 +84,21 @@ class _AppShellState extends State<AppShell> {
               MaterialPageRoute(builder: (_) => const MoreScreen()),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.person_outline_rounded),
-            tooltip: 'Sign in',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
+          // Signed in, this is the account screen rather than a login form —
+          // there's nothing to log into twice.
+          ValueListenableBuilder<AuthResult?>(
+            valueListenable: Auth.session,
+            builder: (context, session, _) => IconButton(
+              icon: Icon(
+                session == null ? Icons.person_outline_rounded : Icons.person_rounded,
+              ),
+              tooltip: session == null ? 'Sign in' : 'Account',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      session == null ? const LoginScreen() : AccountScreen(session: session),
+                ),
+              ),
             ),
           ),
         ],

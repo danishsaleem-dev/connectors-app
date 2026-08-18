@@ -5,6 +5,7 @@ import '../widgets/enquire_cta.dart';
 import '../widgets/info_list.dart';
 import '../widgets/process_steps.dart';
 import '../widgets/section_intro.dart';
+import '../widgets/signed_out_only.dart';
 import 'signup_screen.dart';
 
 const _audiences = [
@@ -83,16 +84,22 @@ class ConsultantsScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.heading),
               const ProcessSteps(steps: _steps),
               const SizedBox(height: AppSpacing.section),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SignupScreen(initialType: 'consultant')),
+              SignedOutOnly(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SignupScreen(initialType: 'consultant'),
+                        ),
+                      ),
+                      child: const Text('Join the consultants roster'),
+                    ),
                   ),
-                  child: const Text('Join the consultants roster'),
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
               const EnquireCta(message: 'Need a consultant? Email our team.'),
             ],
           ),

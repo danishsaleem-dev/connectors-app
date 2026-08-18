@@ -6,6 +6,7 @@ import '../widgets/enquire_cta.dart';
 import '../widgets/info_list.dart';
 import '../widgets/reveal.dart';
 import '../widgets/section_intro.dart';
+import '../widgets/signed_out_only.dart';
 import 'signup_screen.dart';
 
 const _icons = {
@@ -67,16 +68,22 @@ class PartnersScreen extends StatelessWidget {
                 Reveal(index: i, child: _BenefitRow(benefit: PartnersData.benefits[i])),
               ],
               const SizedBox(height: AppSpacing.section),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SignupScreen(initialType: 'vendor')),
+              SignedOutOnly(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SignupScreen(initialType: 'vendor'),
+                        ),
+                      ),
+                      child: const Text('Become a vendor'),
+                    ),
                   ),
-                  child: const Text('Become a vendor'),
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
               const EnquireCta(message: 'Questions before you apply? Email our team.'),
             ],
           ),

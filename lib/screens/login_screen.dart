@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/api_client.dart';
+import '../data/auth_state.dart';
 import '../theme/colors.dart';
 import '../widgets/auth_success_view.dart';
 import '../widgets/form_controls.dart';
@@ -41,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       final result = await ApiClient.login(email: email, password: password);
+      Auth.signIn(result);
       if (!mounted) return;
       setState(() {
         _loading = false;
