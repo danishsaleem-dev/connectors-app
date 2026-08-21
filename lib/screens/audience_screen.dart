@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import '../data/division_data.dart';
 import '../data/enquiry_forms.dart';
 import '../data/form_fields.dart';
 import '../data/site_data.dart';
-import '../widgets/division_carousel.dart';
+import '../theme/spacing.dart';
 import '../widgets/enquiry_wizard.dart';
 import '../widgets/eyebrow.dart';
 import '../widgets/page_header.dart';
@@ -11,8 +10,14 @@ import '../widgets/reveal.dart';
 
 /// One screen shape shared by Brands, Franchisees, Landlords and Investors —
 /// each just supplies its slug, matching how the website drives all four
-/// audience pages from the same `audiences` array plus a per-page divisions
-/// filter and enquiry form, rather than four near-duplicate page files.
+/// audience pages from the same `audiences` array plus a per-page enquiry
+/// form, rather than four near-duplicate page files.
+///
+/// The form leads immediately under the header — it used to open with a
+/// divisions carousel first, which meant the one thing this screen actually
+/// exists to do (capture a lead) was the second thing on it. The divisions
+/// are still there for anyone who wants to browse them, just in Services
+/// under the Menu rather than repeated on all four audience screens.
 class AudienceScreen extends StatelessWidget {
   final String slug;
   final String formSource;
@@ -36,7 +41,6 @@ class AudienceScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final audience = SiteData.audienceBySlug(slug);
-    final divisions = DivisionData.forAudience(slug);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 110),
@@ -44,11 +48,9 @@ class AudienceScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PageHeader(icon: audience.icon, title: audience.title, lead: audience.lead),
-          const SizedBox(height: 24),
-          DivisionCarousel(divisions: divisions),
-          const SizedBox(height: 36),
+          const SizedBox(height: AppSpacing.xl),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -57,12 +59,12 @@ class AudienceScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Eyebrow('Get started'),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       Text(formHeading, style: Theme.of(context).textTheme.titleLarge),
                     ],
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: AppSpacing.heading),
                 EnquiryWizard(
                   source: formSource,
                   steps: formSteps,

@@ -78,9 +78,11 @@ void main() {
       await tester.tap(find.byIcon(Icons.storefront_outlined));
       await _settle(tester);
 
-      // Scroll the form into view — it's below the divisions carousel.
-      // "Next" (not the submit label, which only appears on the last step)
-      // is present as soon as step 1 renders.
+      // The form sits directly under the page header now, but the screen
+      // can still exceed the test viewport once entrance animations set
+      // initial offsets, so scroll defensively rather than assume it's
+      // already on screen. "Next" (not the submit label, which only
+      // appears on the last step) is present as soon as step 1 renders.
       await tester.scrollUntilVisible(find.text('Next'), 400, scrollable: find.byType(Scrollable).first);
       await _settle(tester);
 

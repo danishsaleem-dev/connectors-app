@@ -6,14 +6,26 @@ import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
 import '../widgets/info_list.dart';
+import '../widgets/marquee_strip.dart';
 import '../widgets/section_intro.dart';
 import '../widgets/stat_strip.dart';
 import '../widgets/statement_block.dart';
 
-/// The website's story/values narrative. The figures in the strip are
-/// counts of the app's own content (offices, divisions, values), not
-/// performance claims — the site ships no credibility statistics and this
-/// app shouldn't invent any either.
+const _whyIcons = [
+  Icons.hub_rounded,
+  Icons.diversity_3_rounded,
+  Icons.bolt_rounded,
+  Icons.route_rounded,
+];
+
+/// The website's story/values narrative — plus "Why Connectors" and the
+/// industries list, both moved here from Home so the primary tab could get
+/// down to just the hero and the four audience cards. This screen is meant
+/// to be read, not glanced at, so it's the one place in the app a longer
+/// scroll is the right call. The figures in the strip are counts of the
+/// app's own content (offices, divisions, values), not performance claims —
+/// the site ships no credibility statistics and this app shouldn't invent
+/// any either.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
@@ -69,6 +81,23 @@ class AboutScreen extends StatelessWidget {
                     ),
                 ],
               ),
+              const SizedBox(height: AppSpacing.section),
+              const SectionIntro(eyebrow: 'Why Connectors', title: 'One ecosystem.'),
+              const SizedBox(height: AppSpacing.sm),
+              InfoList(
+                items: [
+                  for (var i = 0; i < CompanyData.whyChoose.length; i++)
+                    InfoItem(
+                      icon: _whyIcons[i % _whyIcons.length],
+                      title: CompanyData.whyChoose[i].title,
+                      body: CompanyData.whyChoose[i].body,
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.section),
+              const SectionIntro(eyebrow: 'Industries', title: 'Wherever retail happens.'),
+              const SizedBox(height: AppSpacing.heading),
+              MarqueeStrip(items: CompanyData.industries),
               const SizedBox(height: AppSpacing.section),
               const EnquireCta(message: 'Want to know more? Email our team.'),
             ],

@@ -8,6 +8,7 @@ import '../widgets/section_intro.dart';
 import 'about_screen.dart';
 import 'account_screen.dart';
 import 'consultants_screen.dart';
+import 'contact_screen.dart';
 import 'login_screen.dart';
 import 'partners_screen.dart';
 import 'services_screen.dart';
@@ -68,6 +69,12 @@ class MoreScreen extends StatelessWidget {
                     title: 'Vendor Services',
                     body: 'Every discipline an opening needs.',
                     onTap: () => _push(context, const VendorServicesScreen()),
+                  ),
+                  InfoItem(
+                    icon: Icons.call_outlined,
+                    title: 'Contact',
+                    body: 'Our three offices, and how to reach them.',
+                    onTap: () => _push(context, const ContactScreen()),
                   ),
                 ],
               ),
