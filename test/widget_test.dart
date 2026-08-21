@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:connectors_app/data/api_client.dart';
+import 'package:connectors_app/data/auth_state.dart';
 import 'package:connectors_app/main.dart';
+import 'package:connectors_app/screens/welcome_screen.dart';
+import 'package:connectors_app/theme/app_theme.dart';
 import 'package:connectors_app/widgets/floating_nav_bar.dart';
 
 /// A bounded pump instead of pumpAndSettle: the app bar/hero and the
@@ -12,11 +16,34 @@ import 'package:connectors_app/widgets/floating_nav_bar.dart';
 /// finish without waiting on the ones that never do.
 Future<void> _settle(WidgetTester tester) => tester.pump(const Duration(milliseconds: 900));
 
+const _fakeBrandSession = AuthResult(
+  name: 'Jamie Test',
+  isAdmin: false,
+  sessionToken: 'fake-token',
+  orgType: 'brand',
+  orgName: 'Test Brand Co',
+);
+
 void main() {
-  testWidgets('App shell renders with bottom nav and Home tab active', (
+  // Auth.session is a process-wide singleton — reset it after every test so
+  // one test's signed-in state can't leak into the next.
+  tearDown(() => Auth.session.value = null);
+
+  testWidgets('Signed out, the app shows Welcome, not the tab shell', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ConnectorsApp());
+    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const WelcomeScreen()));
+    await tester.pump();
+
+    expect(find.text('Sign in'), findsOneWidget);
+    expect(find.text('Create an account'), findsOneWidget);
+  });
+
+  testWidgets('Signed in, the app shell renders with bottom nav and Home active', (
+    WidgetTester tester,
+  ) async {
+    Auth.session.value = _fakeBrandSession;
+    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
     await tester.pump();
     // Let every Reveal's staggered delayed-start timer actually fire —
     // otherwise they're still pending when the test ends, which the test
@@ -26,40 +53,37 @@ void main() {
     // The app bar shows the logo image, not a text wordmark.
     expect(find.image(const AssetImage('assets/images/logo.png')), findsOneWidget);
     expect(find.byType(FloatingNavBar), findsOneWidget);
-    expect(find.text('Where do you fit?'), findsOneWidget);
+    // Home is personalized to the signed-in account now, not generic copy.
+    expect(find.text('Welcome back, Jamie.'), findsOneWidget);
   });
 
-  testWidgets('Tapping Brands in the nav switches to the Brands screen', (
+  testWidgets('Tapping the primary tab shows the account type\'s own form', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ConnectorsApp());
+    Auth.session.value = _fakeBrandSession;
+    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
     await tester.pump();
 
-    // find.text('Brands') is ambiguous — the nav bar label and the Home
-    // screen's Brands audience card title both match. The icon is unique
-    // to the nav bar.
+    // A brand account's second tab is "Locations" — storefront icon, same
+    // as the old fixed Brands tab used.
     await tester.tap(find.byIcon(Icons.storefront_outlined));
     await _settle(tester);
 
-    // formHeading is unique per audience type, unlike the old shared
-    // "How we work with you" eyebrow this replaced.
     expect(find.text('What are you looking to open, and where?'), findsOneWidget);
   });
 
-  testWidgets('Menu opens the More hub, which opens About', (WidgetTester tester) async {
-    await tester.pumpWidget(const ConnectorsApp());
+  testWidgets('Menu tab opens the More hub, which opens About', (WidgetTester tester) async {
+    Auth.session.value = _fakeBrandSession;
+    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
     await tester.pump();
 
-    // Two icon buttons live in the app bar (Menu, then Sign in) — Menu is
-    // the unique one to reach the new secondary-navigation hub. An extra
-    // zero-duration pump registers the Navigator.push before the bounded
-    // pump drives its transition, same two-step needed anywhere else a
-    // route (rather than an IndexedStack tab) changes.
-    await tester.tap(find.byIcon(Icons.menu_rounded));
-    await tester.pump();
+    await tester.tap(find.byIcon(Icons.menu_outlined));
     await _settle(tester);
     expect(find.text('About Connectors'), findsOneWidget);
 
+    // Navigating into About is a real Navigator.push (unlike the tab
+    // switch above), so it needs the extra zero-duration pump to register
+    // before the bounded pump can drive its transition.
     await tester.tap(find.text('About Connectors'));
     await tester.pump();
     await _settle(tester);
@@ -72,7 +96,8 @@ void main() {
   testWidgets(
     'Brand enquiry wizard blocks on an empty required field, then advances once filled',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const ConnectorsApp());
+      Auth.session.value = _fakeBrandSession;
+      await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
       await tester.pump();
 
       await tester.tap(find.byIcon(Icons.storefront_outlined));

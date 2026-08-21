@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
+import 'data/account_type_config.dart';
 import 'data/api_client.dart';
 import 'data/auth_state.dart';
+import 'data/session_storage.dart';
 import 'data/site_data.dart';
 import 'screens/account_screen.dart';
-import 'screens/brands_screen.dart';
-import 'screens/franchise_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/investors_screen.dart';
-import 'screens/landlords_screen.dart';
-import 'screens/login_screen.dart';
 import 'screens/more_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/floating_nav_bar.dart';
 
@@ -26,22 +24,62 @@ class ConnectorsApp extends StatelessWidget {
       title: SiteData.name,
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: const AppShell(),
+      home: const AppRoot(),
     );
   }
 }
 
-const _navItems = [
-  NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
-  NavItem(icon: Icons.storefront_outlined, activeIcon: Icons.storefront_rounded, label: 'Brands'),
-  NavItem(icon: Icons.handshake_outlined, activeIcon: Icons.handshake_rounded, label: 'Franchise'),
-  NavItem(icon: Icons.apartment_outlined, activeIcon: Icons.apartment_rounded, label: 'Landlords'),
-  NavItem(icon: Icons.trending_up_outlined, activeIcon: Icons.trending_up_rounded, label: 'Investors'),
-];
+/// Decides Welcome vs. the signed-in app shell — the one thing every launch
+/// has to settle before showing anything else. Checks SessionStorage for a
+/// token, and if there is one, verifies it's still good with the server
+/// (never trusts a stored token's mere presence, since the account behind
+/// it could since have changed or been deactivated) before signing in.
+class AppRoot extends StatefulWidget {
+  const AppRoot({super.key});
 
-/// Bottom-nav shell holding the five public screens this first phase ships.
-/// IndexedStack (not a route push per tab) keeps each screen's scroll
-/// position when switching tabs, same as a native tab bar would.
+  @override
+  State<AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<AppRoot> {
+  bool _checking = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreSession();
+  }
+
+  Future<void> _restoreSession() async {
+    final token = await SessionStorage.readToken();
+    if (token != null) {
+      try {
+        final result = await ApiClient.checkSession(token);
+        Auth.signIn(result);
+      } catch (_) {
+        await SessionStorage.clearToken();
+      }
+    }
+    if (mounted) setState(() => _checking = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_checking) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return ValueListenableBuilder<AuthResult?>(
+      valueListenable: Auth.session,
+      builder: (context, session, _) =>
+          session == null ? const WelcomeScreen() : const AppShell(),
+    );
+  }
+}
+
+/// The signed-in app — Home, the account type's one primary action, Menu
+/// and Account. Every account is exactly one type (AccountTypeConfig), so
+/// the second tab is the only thing that actually varies between users;
+/// the shape of the bar (4 tabs, this order) stays fixed.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -56,12 +94,24 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final config = configFor(Auth.session.value?.orgType);
+
+    final navItems = [
+      const NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
+      NavItem(icon: config.tabIcon, activeIcon: config.tabActiveIcon, label: config.tabLabel),
+      const NavItem(icon: Icons.menu_outlined, activeIcon: Icons.menu_rounded, label: 'Menu'),
+      const NavItem(
+        icon: Icons.person_outline_rounded,
+        activeIcon: Icons.person_rounded,
+        label: 'Account',
+      ),
+    ];
+
     final pages = [
-      HomeScreen(onSelectAudience: _goTo),
-      const BrandsScreen(),
-      const FranchiseScreen(),
-      const LandlordsScreen(),
-      const InvestorsScreen(),
+      HomeScreen(onOpenPrimaryAction: () => _goTo(1)),
+      config.buildPrimaryScreen(),
+      const MoreBody(),
+      const AccountBody(),
     ];
 
     return Scaffold(
@@ -76,32 +126,6 @@ class _AppShellState extends State<AppShell> {
           semanticLabel: '${SiteData.name} — ${SiteData.tagline}',
         ),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            tooltip: 'Menu',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const MoreScreen()),
-            ),
-          ),
-          // Signed in, this is the account screen rather than a login form —
-          // there's nothing to log into twice.
-          ValueListenableBuilder<AuthResult?>(
-            valueListenable: Auth.session,
-            builder: (context, session, _) => IconButton(
-              icon: Icon(
-                session == null ? Icons.person_outline_rounded : Icons.person_rounded,
-              ),
-              tooltip: session == null ? 'Sign in' : 'Account',
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      session == null ? const LoginScreen() : AccountScreen(session: session),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
       extendBody: true,
       body: SafeArea(
@@ -109,7 +133,7 @@ class _AppShellState extends State<AppShell> {
         child: IndexedStack(index: _index, children: pages),
       ),
       bottomNavigationBar: FloatingNavBar(
-        items: _navItems,
+        items: navItems,
         selectedIndex: _index,
         onSelect: _goTo,
       ),

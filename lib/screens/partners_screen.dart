@@ -6,8 +6,6 @@ import '../widgets/enquire_cta.dart';
 import '../widgets/info_list.dart';
 import '../widgets/reveal.dart';
 import '../widgets/section_intro.dart';
-import '../widgets/signed_out_only.dart';
-import 'signup_screen.dart';
 
 const _icons = {
   'designer': Icons.brush_rounded,
@@ -18,10 +16,9 @@ const _icons = {
   'contractor': Icons.construction_rounded,
 };
 
-/// The vendor side of the business — designers, architects, agencies and
-/// contractors joining the bench Connectors places on real projects.
-/// Condensed from the website's /partners: the "why it exists" pitch, the
-/// six disciplines, three of the six benefits, then straight to signup.
+/// Thin Scaffold wrapper for when this is reached by pushing from the Menu.
+/// A signed-in vendor reaches the same content directly as PartnersBody —
+/// their nav tab — with no second AppBar nested under the app shell's own.
 class PartnersScreen extends StatelessWidget {
   const PartnersScreen({super.key});
 
@@ -29,65 +26,60 @@ class PartnersScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Partners Program')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            AppSpacing.sm,
-            AppSpacing.page,
-            AppSpacing.section,
+      body: const SafeArea(child: SingleChildScrollView(child: PartnersBody())),
+    );
+  }
+}
+
+/// The vendor side of the business — designers, architects, agencies and
+/// contractors joining the bench Connectors places on real projects.
+/// Condensed from the website's /partners: the "why it exists" pitch, the
+/// six disciplines, three of the six benefits, then straight to signup.
+class PartnersBody extends StatelessWidget {
+  const PartnersBody({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.page,
+        AppSpacing.sm,
+        AppSpacing.page,
+        AppSpacing.section,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'The people who actually build the openings we broker.',
+            style: Theme.of(context).textTheme.headlineMedium,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'The people who actually build the openings we broker.',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'A vetted bench of designers, architects, interior '
-                'specialists, agencies, consultants and contractors we can '
-                'put in front of a brand the day the lease is signed.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
-              ),
-              const SizedBox(height: AppSpacing.section),
-              const SectionIntro(eyebrow: 'Six disciplines', title: 'One bench, every trade.'),
-              const SizedBox(height: AppSpacing.sm),
-              InfoList(
-                items: [
-                  for (final d in PartnersData.disciplines)
-                    InfoItem(icon: _icons[d.key] ?? Icons.circle, title: d.title, body: d.body),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.section),
-              const SectionIntro(eyebrow: 'What you get', title: 'Why vendors stay on the bench.'),
-              const SizedBox(height: AppSpacing.heading),
-              for (var i = 0; i < PartnersData.benefits.length; i++) ...[
-                if (i > 0) const SizedBox(height: AppSpacing.lg),
-                Reveal(index: i, child: _BenefitRow(benefit: PartnersData.benefits[i])),
-              ],
-              const SizedBox(height: AppSpacing.section),
-              SignedOutOnly(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const SignupScreen(initialType: 'vendor'),
-                        ),
-                      ),
-                      child: const Text('Become a vendor'),
-                    ),
-                  ),
-                ),
-              ),
-              const EnquireCta(message: 'Questions before you apply? Email our team.'),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'A vetted bench of designers, architects, interior '
+            'specialists, agencies, consultants and contractors we can '
+            'put in front of a brand the day the lease is signed.',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+          ),
+          const SizedBox(height: AppSpacing.section),
+          const SectionIntro(eyebrow: 'Six disciplines', title: 'One bench, every trade.'),
+          const SizedBox(height: AppSpacing.sm),
+          InfoList(
+            items: [
+              for (final d in PartnersData.disciplines)
+                InfoItem(icon: _icons[d.key] ?? Icons.circle, title: d.title, body: d.body),
             ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.section),
+          const SectionIntro(eyebrow: 'What you get', title: 'Why vendors stay on the bench.'),
+          const SizedBox(height: AppSpacing.heading),
+          for (var i = 0; i < PartnersData.benefits.length; i++) ...[
+            if (i > 0) const SizedBox(height: AppSpacing.lg),
+            Reveal(index: i, child: _BenefitRow(benefit: PartnersData.benefits[i])),
+          ],
+          const SizedBox(height: AppSpacing.section),
+          const EnquireCta(message: 'Questions before you apply? Email our team.'),
+        ],
       ),
     );
   }

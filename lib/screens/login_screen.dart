@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
 import '../theme/colors.dart';
-import '../widgets/auth_success_view.dart';
 import '../widgets/form_controls.dart';
 import 'signup_screen.dart';
 
@@ -19,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   bool _obscure = true;
   String? _error;
-  AuthResult? _result;
 
   @override
   void dispose() {
@@ -44,10 +42,10 @@ class _LoginScreenState extends State<LoginScreen> {
       final result = await ApiClient.login(email: email, password: password);
       Auth.signIn(result);
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _result = result;
-      });
+      // AppRoot is listening to Auth.session and has already rebuilt to
+      // the signed-in app shell underneath this screen — popping back to
+      // it is all that's left to do.
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (err) {
       if (!mounted) return;
       setState(() {
@@ -59,13 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_result != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Signed in')),
-        body: AuthSuccessView(result: _result!, title: 'Welcome back, ${_result!.name}.'),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text('Sign in')),
       body: SafeArea(

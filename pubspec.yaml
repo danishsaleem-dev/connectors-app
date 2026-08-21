@@ -41,6 +41,9 @@ dependencies:
   http: ^1.6.0
   # Opens the mailto/tel links in the CTA sections.
   url_launcher: ^6.3.1
+  # Persists the session token in the platform keychain/keystore, so signing
+  # in survives an app restart instead of asking every time.
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:

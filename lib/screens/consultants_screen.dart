@@ -5,8 +5,6 @@ import '../widgets/enquire_cta.dart';
 import '../widgets/info_list.dart';
 import '../widgets/process_steps.dart';
 import '../widgets/section_intro.dart';
-import '../widgets/signed_out_only.dart';
-import 'signup_screen.dart';
 
 const _audiences = [
   InfoItem(
@@ -41,11 +39,10 @@ const _steps = [
   ),
 ];
 
-/// Connectors' own in-house consultancy — not the Partners Program. This
-/// screen is deliberately static (no live roster): browsing individual
-/// consultant profiles needs a public API the website doesn't expose yet,
-/// so for now the app explains the service and routes both directions —
-/// hire one, or join the roster.
+/// Thin Scaffold wrapper for when this is reached by pushing from the Menu.
+/// A signed-in consultant reaches the same content directly as
+/// ConsultantsBody — their nav tab — with no second AppBar nested under the
+/// app shell's own.
 class ConsultantsScreen extends StatelessWidget {
   const ConsultantsScreen({super.key});
 
@@ -53,57 +50,53 @@ class ConsultantsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Consultants')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            AppSpacing.sm,
-            AppSpacing.page,
-            AppSpacing.section,
+      body: const SafeArea(child: SingleChildScrollView(child: ConsultantsBody())),
+    );
+  }
+}
+
+/// Connectors' own in-house consultancy — not the Partners Program. This
+/// screen is deliberately static (no live roster): browsing individual
+/// consultant profiles needs a public API the website doesn't expose yet,
+/// so for now the app explains the service and routes both directions —
+/// hire one, or join the roster.
+class ConsultantsBody extends StatelessWidget {
+  const ConsultantsBody({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.page,
+        AppSpacing.sm,
+        AppSpacing.page,
+        AppSpacing.section,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Advice from people who do this for a living.',
+            style: Theme.of(context).textTheme.headlineMedium,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Advice from people who do this for a living.',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'Site selection, feasibility and franchise structuring — '
-                "Connectors' own consultancy, available whether or not "
-                "you're already working with us on an expansion.",
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
-              ),
-              const SizedBox(height: AppSpacing.section),
-              const SectionIntro(eyebrow: 'Who we help', title: 'Wherever you sit in the deal.'),
-              const SizedBox(height: AppSpacing.sm),
-              const InfoList(items: _audiences),
-              const SizedBox(height: AppSpacing.section),
-              const SectionIntro(eyebrow: 'How it works', title: 'Three steps to an engagement.'),
-              const SizedBox(height: AppSpacing.heading),
-              const ProcessSteps(steps: _steps),
-              const SizedBox(height: AppSpacing.section),
-              SignedOutOnly(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const SignupScreen(initialType: 'consultant'),
-                        ),
-                      ),
-                      child: const Text('Join the consultants roster'),
-                    ),
-                  ),
-                ),
-              ),
-              const EnquireCta(message: 'Need a consultant? Email our team.'),
-            ],
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'Site selection, feasibility and franchise structuring — '
+            "Connectors' own consultancy, available whether or not "
+            "you're already working with us on an expansion.",
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
           ),
-        ),
+          const SizedBox(height: AppSpacing.section),
+          const SectionIntro(eyebrow: 'Who we help', title: 'Wherever you sit in the deal.'),
+          const SizedBox(height: AppSpacing.sm),
+          const InfoList(items: _audiences),
+          const SizedBox(height: AppSpacing.section),
+          const SectionIntro(eyebrow: 'How it works', title: 'Three steps to an engagement.'),
+          const SizedBox(height: AppSpacing.heading),
+          const ProcessSteps(steps: _steps),
+          const SizedBox(height: AppSpacing.section),
+          const EnquireCta(message: 'Need a consultant? Email our team.'),
+        ],
       ),
     );
   }

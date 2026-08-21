@@ -6,19 +6,29 @@ import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/info_list.dart';
 
-/// Where the app bar's person icon goes once someone is signed in, in place
-/// of the login screen. There's no in-app dashboard by design, so this is a
-/// short account card plus the handoff into the real portal.
-class AccountScreen extends StatelessWidget {
-  final AuthResult session;
-
-  const AccountScreen({super.key, required this.session});
+/// The account tab — no session param, unlike the AccountScreen wrapper
+/// below: it's only ever shown once AppRoot has already confirmed someone's
+/// signed in, so it reads Auth.session directly rather than trusting
+/// whatever was passed in from wherever it was reached.
+class AccountBody extends StatelessWidget {
+  const AccountBody({super.key});
 
   Future<void> _openPortal(BuildContext context) async {
-    final ok = await launchUrl(
-      Uri.parse(session.handoffUrl),
-      mode: LaunchMode.externalApplication,
-    );
+    String handoffUrl;
+    try {
+      final handoffToken = await ApiClient.requestHandoff();
+      handoffUrl = '$apiBaseUrl/portal/handoff?token=$handoffToken';
+    } catch (err) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err is ApiException ? err.message : "Couldn't open the portal."),
+        ),
+      );
+      return;
+    }
+
+    final ok = await launchUrl(Uri.parse(handoffUrl), mode: LaunchMode.externalApplication);
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Couldn't open the browser. Please try again.")),
@@ -28,10 +38,12 @@ class AccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Account')),
-      body: SafeArea(
-        child: SingleChildScrollView(
+    return ValueListenableBuilder<AuthResult?>(
+      valueListenable: Auth.session,
+      builder: (context, session, _) {
+        if (session == null) return const SizedBox.shrink();
+
+        return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.sm,
@@ -67,7 +79,8 @@ class AccountScreen extends StatelessWidget {
                         Text(session.name, style: Theme.of(context).textTheme.headlineMedium),
                         const SizedBox(height: 2),
                         Text(
-                          session.isAdmin ? 'Connectors team' : 'Signed in',
+                          session.orgName ??
+                              (session.isAdmin ? 'Connectors team' : 'Signed in'),
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -99,18 +112,30 @@ class AccountScreen extends StatelessWidget {
                   InfoItem(
                     icon: Icons.logout_rounded,
                     title: 'Sign out',
-                    body: 'You can sign back in at any time.',
-                    onTap: () {
-                      Auth.signOut();
-                      Navigator.of(context).pop();
-                    },
+                    body: "You'll need to sign in again next time.",
+                    onTap: Auth.signOut,
                   ),
                 ],
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
+    );
+  }
+}
+
+/// Thin Scaffold wrapper — nothing currently pushes this as its own route
+/// (Account is a nav tab now), kept for the same cheap-optionality reason
+/// as MoreScreen's wrapper.
+class AccountScreen extends StatelessWidget {
+  const AccountScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Account')),
+      body: const SafeArea(child: AccountBody()),
     );
   }
 }

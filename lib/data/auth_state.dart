@@ -1,14 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'api_client.dart';
+import 'auth_result.dart';
+import 'session_storage.dart';
 
-/// Who is signed in, for the lifetime of this app run.
-///
-/// Deliberately not persisted to disk. The mobile API's login/register
-/// responses carry a name, an admin flag and a *one-time* handoff token —
-/// there is no durable session token to store, so writing this to disk
-/// would only fake a signed-in state the app couldn't actually act on.
-/// Persisting a real session needs the website to issue a refreshable
-/// token first.
+/// Who is signed in, for the app's in-memory lifetime — plus the on-disk
+/// token that lets a later launch restore it (see main.dart's boot check,
+/// which calls ApiClient.checkSession with whatever SessionStorage has
+/// before deciding whether to show Welcome or go straight to Home).
 class Auth {
   Auth._();
 
@@ -16,7 +13,17 @@ class Auth {
 
   static bool get isSignedIn => session.value != null;
 
-  static void signIn(AuthResult result) => session.value = result;
+  /// Fire-and-forget on the storage write — a failure to persist (a rare
+  /// platform storage issue) shouldn't block getting the user into the app
+  /// they just signed into; worst case, the next launch just doesn't
+  /// restore the session.
+  static void signIn(AuthResult result) {
+    session.value = result;
+    SessionStorage.saveToken(result.sessionToken);
+  }
 
-  static void signOut() => session.value = null;
+  static void signOut() {
+    session.value = null;
+    SessionStorage.clearToken();
+  }
 }

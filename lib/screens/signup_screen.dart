@@ -3,7 +3,6 @@ import '../data/account_types.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
 import '../theme/colors.dart';
-import '../widgets/auth_success_view.dart';
 import '../widgets/form_controls.dart';
 import 'login_screen.dart';
 
@@ -29,7 +28,6 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _loading = false;
   bool _obscure = true;
   String? _error;
-  AuthResult? _result;
 
   @override
   void dispose() {
@@ -71,10 +69,10 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       Auth.signIn(result);
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _result = result;
-      });
+      // AppRoot is listening to Auth.session and has already rebuilt to
+      // the signed-in app shell underneath this screen — popping back to
+      // it is all that's left to do.
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (err) {
       if (!mounted) return;
       setState(() {
@@ -86,13 +84,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_result != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Account created')),
-        body: AuthSuccessView(result: _result!, title: "You're in, ${_result!.name}."),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text('Create an account')),
       body: SafeArea(
