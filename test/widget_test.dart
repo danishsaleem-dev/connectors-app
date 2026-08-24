@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:connectors_app/data/api_client.dart';
 import 'package:connectors_app/data/auth_state.dart';
+import 'package:connectors_app/data/site_data.dart';
 import 'package:connectors_app/main.dart';
+import 'package:connectors_app/screens/splash_screen.dart';
 import 'package:connectors_app/screens/welcome_screen.dart';
 import 'package:connectors_app/theme/app_theme.dart';
 import 'package:connectors_app/widgets/floating_nav_bar.dart';
@@ -28,6 +30,23 @@ void main() {
   // Auth.session is a process-wide singleton — reset it after every test so
   // one test's signed-in state can't leak into the next.
   tearDown(() => Auth.session.value = null);
+
+  testWidgets('SplashScreen renders the brand mark and a loading indicator', (
+    WidgetTester tester,
+  ) async {
+    // Pumped in isolation rather than driving the real AppRoot boot
+    // sequence — flutter_secure_storage's desktop backend behaves
+    // unpredictably under the test runner (real Windows Credential
+    // Manager calls, not a clean "missing platform channel" failure),
+    // which makes driving the full boot flow here more trouble than it's
+    // worth for what's fundamentally a static screen.
+    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const SplashScreen()));
+    await tester.pump();
+
+    expect(find.text('CONNECTORS'), findsOneWidget);
+    expect(find.text(SiteData.tagline), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
 
   testWidgets('Signed out, the app shows Welcome, not the tab shell', (
     WidgetTester tester,

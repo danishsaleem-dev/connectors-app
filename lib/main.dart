@@ -6,6 +6,7 @@ import 'data/session_storage.dart';
 import 'data/site_data.dart';
 import 'screens/account_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/floating_nav_bar.dart';
@@ -50,22 +51,43 @@ class _AppRootState extends State<AppRoot> {
   }
 
   Future<void> _restoreSession() async {
-    final token = await SessionStorage.readToken();
-    if (token != null) {
+    // Held to a minimum so the splash reads as a deliberate brand moment
+    // rather than a flash on the (common) fast path where there's no
+    // stored token at all — while still actually waiting on the real
+    // session check when that takes longer than the minimum.
+    await Future.wait([
+      _checkStoredSession(),
+      Future.delayed(const Duration(milliseconds: 1400)),
+    ]);
+    if (mounted) setState(() => _checking = false);
+  }
+
+  // Wraps the whole thing, not just the network call: a platform storage
+  // failure reading the token (rare, but flutter_secure_storage can throw —
+  // e.g. a corrupted Android keystore after an OS update) would otherwise
+  // leave _checking true forever, since nothing downstream would ever run
+  // to flip it back. Any failure here should just mean "not signed in",
+  // not a stuck splash screen.
+  Future<void> _checkStoredSession() async {
+    try {
+      final token = await SessionStorage.readToken();
+      if (token == null) return;
+      final result = await ApiClient.checkSession(token);
+      Auth.signIn(result);
+    } catch (_) {
       try {
-        final result = await ApiClient.checkSession(token);
-        Auth.signIn(result);
-      } catch (_) {
         await SessionStorage.clearToken();
+      } catch (_) {
+        // Clearing failed too — nothing more to do; worst case a bad token
+        // is checked again (and fails the same way) on the next launch.
       }
     }
-    if (mounted) setState(() => _checking = false);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_checking) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const SplashScreen();
     }
     return ValueListenableBuilder<AuthResult?>(
       valueListenable: Auth.session,
