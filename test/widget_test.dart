@@ -50,11 +50,11 @@ void main() {
     // framework treats as a leak.
     await _settle(tester);
 
-    // The app bar shows the logo image, not a text wordmark.
-    expect(find.image(const AssetImage('assets/images/logo.png')), findsOneWidget);
+    // No app bar/logo any more — Home's own profile row is the only place
+    // the signed-in account shows up.
     expect(find.byType(FloatingNavBar), findsOneWidget);
-    // Home is personalized to the signed-in account now, not generic copy.
-    expect(find.text('Welcome back, Jamie.'), findsOneWidget);
+    expect(find.text('Jamie Test'), findsOneWidget);
+    expect(find.text('Brand'), findsOneWidget);
   });
 
   testWidgets('Tapping the primary tab shows the account type\'s own form', (
@@ -72,25 +72,39 @@ void main() {
     expect(find.text('What are you looking to open, and where?'), findsOneWidget);
   });
 
-  testWidgets('Menu tab opens the More hub, which opens About', (WidgetTester tester) async {
+  testWidgets("A brand's Home offers all three of its action cards", (
+    WidgetTester tester,
+  ) async {
+    Auth.session.value = _fakeBrandSession;
+    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
+    await tester.pump();
+    await _settle(tester);
+
+    expect(find.text('Request a Location'), findsOneWidget);
+    expect(find.text('More Franchises?'), findsOneWidget);
+    expect(find.text('Looking for Investors?'), findsOneWidget);
+
+    // Tapping the second card opens the franchise form specifically, not
+    // the brand's own — each card is wired to a different existing form.
+    await tester.tap(find.text('More Franchises?'));
+    await tester.pump();
+    await _settle(tester);
+    expect(find.text('Your budget, territory and industry interest.'), findsOneWidget);
+  });
+
+  testWidgets('Account tab offers Contact now that Menu is gone', (WidgetTester tester) async {
     Auth.session.value = _fakeBrandSession;
     await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
     await tester.pump();
 
-    await tester.tap(find.byIcon(Icons.menu_outlined));
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await _settle(tester);
-    expect(find.text('About Connectors'), findsOneWidget);
+    expect(find.text('Contact'), findsOneWidget);
 
-    // Navigating into About is a real Navigator.push (unlike the tab
-    // switch above), so it needs the extra zero-duration pump to register
-    // before the bounded pump can drive its transition.
-    await tester.tap(find.text('About Connectors'));
+    await tester.tap(find.text('Contact'));
     await tester.pump();
     await _settle(tester);
-    expect(
-      find.text('We built the bridge that expansion kept falling through.'),
-      findsOneWidget,
-    );
+    expect(find.text('Three offices, one team.'), findsOneWidget);
   });
 
   testWidgets(

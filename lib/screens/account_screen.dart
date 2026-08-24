@@ -5,11 +5,12 @@ import '../data/auth_state.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/info_list.dart';
+import 'contact_screen.dart';
 
-/// The account tab — no session param, unlike the AccountScreen wrapper
-/// below: it's only ever shown once AppRoot has already confirmed someone's
-/// signed in, so it reads Auth.session directly rather than trusting
-/// whatever was passed in from wherever it was reached.
+/// The account tab — no session param, unlike a pushed screen would need:
+/// it's only ever shown once AppRoot has already confirmed someone's signed
+/// in, so it reads Auth.session directly rather than trusting whatever was
+/// passed in from wherever it was reached.
 class AccountBody extends StatelessWidget {
   const AccountBody({super.key});
 
@@ -110,6 +111,14 @@ class AccountBody extends StatelessWidget {
               InfoList(
                 items: [
                   InfoItem(
+                    icon: Icons.call_outlined,
+                    title: 'Contact',
+                    body: 'Our three offices, and how to reach them.',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ContactScreen()),
+                    ),
+                  ),
+                  InfoItem(
                     icon: Icons.logout_rounded,
                     title: 'Sign out',
                     body: "You'll need to sign in again next time.",
@@ -121,21 +130,6 @@ class AccountBody extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// Thin Scaffold wrapper — nothing currently pushes this as its own route
-/// (Account is a nav tab now), kept for the same cheap-optionality reason
-/// as MoreScreen's wrapper.
-class AccountScreen extends StatelessWidget {
-  const AccountScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Account')),
-      body: const SafeArea(child: AccountBody()),
     );
   }
 }

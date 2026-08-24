@@ -6,7 +6,6 @@ import 'data/session_storage.dart';
 import 'data/site_data.dart';
 import 'screens/account_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/more_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/floating_nav_bar.dart';
@@ -76,10 +75,12 @@ class _AppRootState extends State<AppRoot> {
   }
 }
 
-/// The signed-in app — Home, the account type's one primary action, Menu
-/// and Account. Every account is exactly one type (AccountTypeConfig), so
-/// the second tab is the only thing that actually varies between users;
-/// the shape of the bar (4 tabs, this order) stays fixed.
+/// The signed-in app — Home, the account type's one primary action, and
+/// Account. Every account is exactly one type (AccountTypeConfig), so the
+/// second tab is the only thing that actually varies between users; the
+/// shape of the bar (3 tabs, this order) stays fixed. No app bar — nothing
+/// left to put in one once the logo and the old Menu/Account icons moved
+/// into the tabs and Home's own profile row.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -99,7 +100,6 @@ class _AppShellState extends State<AppShell> {
     final navItems = [
       const NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
       NavItem(icon: config.tabIcon, activeIcon: config.tabActiveIcon, label: config.tabLabel),
-      const NavItem(icon: Icons.menu_outlined, activeIcon: Icons.menu_rounded, label: 'Menu'),
       const NavItem(
         icon: Icons.person_outline_rounded,
         activeIcon: Icons.person_rounded,
@@ -108,28 +108,14 @@ class _AppShellState extends State<AppShell> {
     ];
 
     final pages = [
-      HomeScreen(onOpenPrimaryAction: () => _goTo(1)),
+      const HomeScreen(),
       config.buildPrimaryScreen(),
-      const MoreBody(),
       const AccountBody(),
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        // The one place the logo appears — natural colours against the app
-        // bar's white background, not repeated on every screen's gradient
-        // banner underneath.
-        title: Image.asset(
-          'assets/images/logo.png',
-          height: 30,
-          fit: BoxFit.contain,
-          semanticLabel: '${SiteData.name} — ${SiteData.tagline}',
-        ),
-        centerTitle: false,
-      ),
       extendBody: true,
       body: SafeArea(
-        bottom: false,
         child: IndexedStack(index: _index, children: pages),
       ),
       bottomNavigationBar: FloatingNavBar(

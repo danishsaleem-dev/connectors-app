@@ -16,21 +16,6 @@ const _icons = {
   'contractor': Icons.construction_rounded,
 };
 
-/// Thin Scaffold wrapper for when this is reached by pushing from the Menu.
-/// A signed-in vendor reaches the same content directly as PartnersBody —
-/// their nav tab — with no second AppBar nested under the app shell's own.
-class PartnersScreen extends StatelessWidget {
-  const PartnersScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Partners Program')),
-      body: const SafeArea(child: SingleChildScrollView(child: PartnersBody())),
-    );
-  }
-}
-
 /// The vendor side of the business — designers, architects, agencies and
 /// contractors joining the bench Connectors places on real projects.
 /// Condensed from the website's /partners: the "why it exists" pitch, the

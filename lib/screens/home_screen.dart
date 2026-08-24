@@ -5,19 +5,26 @@ import '../data/auth_state.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
-import '../widgets/app_hero.dart';
-import '../widgets/enquire_cta.dart';
+import '../widgets/eyebrow.dart';
+import '../widgets/reveal.dart';
+import 'chat_screen.dart';
 
-/// Home is personalized now, not a menu of four doors — every account is
-/// exactly one type (see AccountTypeConfig), so by the time someone reaches
-/// this screen the app already knows which one thing they're here to do.
-/// Tapping the primary action switches to that tab (index 1) rather than
-/// pushing a new route, same IndexedStack-preserves-state reasoning the
-/// bottom nav already relies on.
+const _roleLabels = {
+  'brand': 'Brand',
+  'franchisee': 'Franchisee',
+  'landlord': 'Landlord',
+  'developer': 'Mall / Developer',
+  'investor': 'Investor',
+  'vendor': 'Vendor',
+  'consultant': 'Consultant',
+};
+
+/// Home leads with who's signed in and what they can do — no banner, no app
+/// bar branding, both removed per feedback that they were empty ceremony
+/// ahead of anything useful. Just a profile row (who you are), a chat
+/// entry point, and the action cards that matter for this account type.
 class HomeScreen extends StatelessWidget {
-  final VoidCallback onOpenPrimaryAction;
-
-  const HomeScreen({super.key, required this.onOpenPrimaryAction});
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,31 +32,92 @@ class HomeScreen extends StatelessWidget {
       valueListenable: Auth.session,
       builder: (context, session, _) {
         final config = configFor(session?.orgType);
-        final nameParts = session?.name.trim().split(' ') ?? const [];
-        final firstName = nameParts.isNotEmpty ? nameParts.first : 'there';
+        final roleLabel = session?.isAdmin == true
+            ? 'Connectors team'
+            : (_roleLabels[session?.orgType] ?? 'Member');
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 110),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.md,
+            AppSpacing.page,
+            110,
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppHero(
-                eyebrow: session?.orgName ?? 'Connectors',
-                title: 'Welcome back, $firstName.',
-                body: 'Everything about your expansion, in one place.',
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: AppColors.violet600,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      (session?.name.trim().isNotEmpty ?? false)
+                          ? session!.name.trim()[0].toUpperCase()
+                          : '?',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(color: AppColors.white),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          session?.name ?? '',
+                          style: Theme.of(context).textTheme.titleLarge,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          roleLabel,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: AppColors.grey500),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Material(
+                    color: AppColors.violet50,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => Navigator.of(context).push(ChatScreen.route()),
+                      child: const Padding(
+                        padding: EdgeInsets.all(11),
+                        child: Icon(
+                          Icons.auto_awesome_rounded,
+                          color: AppColors.violet600,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.section),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _PrimaryActionCard(config: config, onTap: onOpenPrimaryAction),
-                    const SizedBox(height: AppSpacing.xl),
-                    const EnquireCta(message: "Need something else? Email our team."),
-                  ],
-                ),
+              const Eyebrow('Get started'),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                config.homeActions.length > 1
+                    ? 'What would you like to do?'
+                    : config.homeActions.first.title,
+                style: Theme.of(context).textTheme.displaySmall,
               ),
+              const SizedBox(height: AppSpacing.heading),
+              for (var i = 0; i < config.homeActions.length; i++) ...[
+                if (i > 0) const SizedBox(height: AppSpacing.md),
+                Reveal(index: i, child: _ActionRow(action: config.homeActions[i])),
+              ],
             ],
           ),
         );
@@ -58,69 +126,62 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _PrimaryActionCard extends StatelessWidget {
-  final AccountTypeConfig config;
-  final VoidCallback onTap;
+class _ActionRow extends StatelessWidget {
+  final HomeAction action;
 
-  const _PrimaryActionCard({required this.config, required this.onTap});
+  const _ActionRow({required this.action});
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.violet600,
-      borderRadius: BorderRadius.circular(22),
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(18),
       child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => Scaffold(
+              appBar: AppBar(title: Text(action.title)),
+              body: SafeArea(child: SingleChildScrollView(child: action.buildScreen())),
+            ),
+          ),
+        ),
         child: Container(
-          padding: const EdgeInsets.all(22),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: cardShadow(opacity: 0.16),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: cardShadow(),
           ),
           child: Row(
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.violet50,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(config.homeIcon, color: AppColors.white, size: 24),
+                child: Icon(action.icon, color: AppColors.violet600, size: 21),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(action.title, style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 2),
                     Text(
-                      config.homeTitle,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(color: AppColors.white),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      config.homeBody,
+                      action.body,
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
-                          ?.copyWith(color: AppColors.white.withValues(alpha: 0.78)),
+                          ?.copyWith(color: AppColors.grey500),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.16),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.white),
-              ),
+              const SizedBox(width: AppSpacing.sm),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.grey300),
             ],
           ),
         ),

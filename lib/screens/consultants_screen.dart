@@ -39,22 +39,6 @@ const _steps = [
   ),
 ];
 
-/// Thin Scaffold wrapper for when this is reached by pushing from the Menu.
-/// A signed-in consultant reaches the same content directly as
-/// ConsultantsBody — their nav tab — with no second AppBar nested under the
-/// app shell's own.
-class ConsultantsScreen extends StatelessWidget {
-  const ConsultantsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Consultants')),
-      body: const SafeArea(child: SingleChildScrollView(child: ConsultantsBody())),
-    );
-  }
-}
-
 /// Connectors' own in-house consultancy — not the Partners Program. This
 /// screen is deliberately static (no live roster): browsing individual
 /// consultant profiles needs a public API the website doesn't expose yet,
