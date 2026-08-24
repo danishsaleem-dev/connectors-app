@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../screens/audience_screen.dart';
 import '../screens/consultants_screen.dart';
+import '../screens/locations_screen.dart';
 import '../screens/partners_screen.dart';
 
 /// One card in Home's action list — title, a one-line description, an icon,
@@ -12,11 +13,21 @@ class HomeAction {
   final IconData icon;
   final Widget Function() buildScreen;
 
+  /// False (the default) means buildScreen returns chrome-less body content
+  /// — Home wraps it in a generic Scaffold + SingleChildScrollView, same as
+  /// buildAudienceScreen's own static content. Set true when buildScreen
+  /// already provides its own Scaffold with independent scrolling state
+  /// (e.g. a FutureBuilder-backed list) — nesting a ListView inside the
+  /// generic wrapper's SingleChildScrollView would be a layout error, not
+  /// just redundant chrome.
+  final bool hasOwnScaffold;
+
   const HomeAction({
     required this.title,
     required this.body,
     required this.icon,
     required this.buildScreen,
+    this.hasOwnScaffold = false,
   });
 }
 
@@ -73,6 +84,13 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         body: "Connect with potential investors to accelerate your brand's future growth.",
         icon: Icons.trending_up_rounded,
         buildScreen: () => buildAudienceScreen('for-investors'),
+      ),
+      HomeAction(
+        title: 'Browse Available Locations',
+        body: 'See retail and commercial space currently listed with Connectors.',
+        icon: Icons.location_city_rounded,
+        buildScreen: () => const LocationsScreen(),
+        hasOwnScaffold: true,
       ),
     ],
   ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'auth_result.dart';
 import 'auth_state.dart';
+import 'location.dart';
 
 export 'auth_result.dart' show AuthResult, apiBaseUrl;
 
@@ -79,6 +80,14 @@ class ApiClient {
   /// database's enum values itself.
   static Future<void> submitEnquiry(String source, Map<String, dynamic> fields) {
     return _post('/api/mobile/enquiries', {'source': source, ...fields});
+  }
+
+  /// Brand-only — the endpoint itself enforces this (403s otherwise), same
+  /// access rule the website's /available-locations page already has.
+  static Future<List<Location>> fetchLocations() async {
+    final json = await _get('/api/mobile/opportunities/locations');
+    final list = (json['locations'] as List).cast<Map<String, dynamic>>();
+    return list.map(Location.fromJson).toList();
   }
 
   /// `token` pins an explicit bearer value (checkSession, called with a

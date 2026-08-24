@@ -91,7 +91,7 @@ void main() {
     expect(find.text('What are you looking to open, and where?'), findsOneWidget);
   });
 
-  testWidgets("A brand's Home offers all three of its action cards", (
+  testWidgets("A brand's Home offers all four of its action cards", (
     WidgetTester tester,
   ) async {
     Auth.session.value = _fakeBrandSession;
@@ -102,6 +102,7 @@ void main() {
     expect(find.text('Request a Location'), findsOneWidget);
     expect(find.text('More Franchises?'), findsOneWidget);
     expect(find.text('Looking for Investors?'), findsOneWidget);
+    expect(find.text('Browse Available Locations'), findsOneWidget);
 
     // Tapping the second card opens the franchise form specifically, not
     // the brand's own — each card is wired to a different existing form.

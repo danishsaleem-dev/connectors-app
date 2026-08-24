@@ -140,10 +140,12 @@ class _ActionRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => Scaffold(
-              appBar: AppBar(title: Text(action.title)),
-              body: SafeArea(child: SingleChildScrollView(child: action.buildScreen())),
-            ),
+            builder: (_) => action.hasOwnScaffold
+                ? action.buildScreen()
+                : Scaffold(
+                    appBar: AppBar(title: Text(action.title)),
+                    body: SafeArea(child: SingleChildScrollView(child: action.buildScreen())),
+                  ),
           ),
         ),
         child: Container(
