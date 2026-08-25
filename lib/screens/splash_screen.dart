@@ -5,12 +5,11 @@ import '../widgets/orbit_field.dart';
 
 /// The very first thing shown, while AppRoot checks a stored session
 /// against the server. Same violet gradient as WelcomeScreen — this is a
-/// continuation of that one branded moment, not a second one — but the
-/// orbit mark is centered and much more visible here (it's the entire
-/// point of the screen), and static rather than animated: its rotation is
-/// a deliberate 90 seconds per turn, so over a 1-2 second splash it
-/// wouldn't read as motion anyway. The small spinner below is what
-/// actually signals "loading."
+/// continuation of that one branded moment, not a second one. The orbit
+/// mark is centered and much more visible here (it's the entire point of
+/// the screen) and spins fast enough — 12s a turn, versus the 90s ambient
+/// drift used everywhere else it appears — to actually read as motion over
+/// a splash-length view. The small spinner below is what signals "loading."
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
@@ -34,14 +33,19 @@ class SplashScreen extends StatelessWidget {
               const SizedBox(
                 width: 120,
                 height: 120,
-                child: OrbitField(color: AppColors.white, count: 22, animate: false),
+                child: OrbitField(
+                  color: AppColors.white,
+                  count: 22,
+                  duration: Duration(seconds: 12),
+                ),
               ),
               const SizedBox(height: 28),
               Text(
                 SiteData.name.toUpperCase(),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
                       color: AppColors.white,
-                      letterSpacing: 4,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
                     ),
               ),
               const SizedBox(height: 10),

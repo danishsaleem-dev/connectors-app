@@ -54,8 +54,8 @@ void main() {
     await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const WelcomeScreen()));
     await tester.pump();
 
-    expect(find.text('Sign in'), findsOneWidget);
-    expect(find.text('Create an account'), findsOneWidget);
+    expect(find.text('Sign In'), findsOneWidget);
+    expect(find.textContaining('Sign up now'), findsOneWidget);
   });
 
   testWidgets('Signed in, the app shell renders with bottom nav and Home active', (
@@ -91,7 +91,7 @@ void main() {
     expect(find.text('What are you looking to open, and where?'), findsOneWidget);
   });
 
-  testWidgets("A brand's Home offers all four of its action cards", (
+  testWidgets("A brand's Home offers all four of its actions as a tile grid", (
     WidgetTester tester,
   ) async {
     Auth.session.value = _fakeBrandSession;
@@ -99,14 +99,18 @@ void main() {
     await tester.pump();
     await _settle(tester);
 
-    expect(find.text('Request a Location'), findsOneWidget);
-    expect(find.text('More Franchises?'), findsOneWidget);
-    expect(find.text('Looking for Investors?'), findsOneWidget);
-    expect(find.text('Browse Available Locations'), findsOneWidget);
+    // The multi-action grid shows each tile's short label, not its full
+    // title — the full titles only ever appear as onTap-target content on
+    // the screens the tiles push to.
+    expect(find.text('Request'), findsOneWidget);
+    expect(find.text('Franchise'), findsOneWidget);
+    expect(find.text('Investors'), findsOneWidget);
+    expect(find.text('Browse'), findsOneWidget);
 
-    // Tapping the second card opens the franchise form specifically, not
-    // the brand's own — each card is wired to a different existing form.
-    await tester.tap(find.text('More Franchises?'));
+    // Tapping the franchise tile opens the franchise form specifically,
+    // not the brand's own — each tile is wired to a different existing
+    // form.
+    await tester.tap(find.text('Franchise'));
     await tester.pump();
     await _settle(tester);
     expect(find.text('Your budget, territory and industry interest.'), findsOneWidget);

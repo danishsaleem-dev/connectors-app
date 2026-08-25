@@ -12,6 +12,7 @@ class OrbitField extends StatefulWidget {
   final double strokeWidth;
   final bool animate;
   final bool accent;
+  final Duration duration;
 
   const OrbitField({
     super.key,
@@ -20,6 +21,11 @@ class OrbitField extends StatefulWidget {
     this.strokeWidth = 0.35,
     this.animate = true,
     this.accent = true,
+    // 90s per full turn by default — the same very-slow drift as the
+    // site's .animate-orbit, deliberately subtle rather than a spinner.
+    // Callers that want the revolve to actually read as motion over a
+    // short-lived screen (e.g. the splash) can pass a shorter duration.
+    this.duration = const Duration(seconds: 90),
   });
 
   @override
@@ -32,10 +38,7 @@ class _OrbitFieldState extends State<OrbitField> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    // 90s per full turn — the same very-slow drift as the site's
-    // .animate-orbit, deliberately subtle rather than a spinner.
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 90))
-      ..repeat();
+    _controller = AnimationController(vsync: this, duration: widget.duration)..repeat();
   }
 
   @override

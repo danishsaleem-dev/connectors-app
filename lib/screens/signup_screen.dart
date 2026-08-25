@@ -3,6 +3,7 @@ import '../data/account_types.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
 import '../theme/colors.dart';
+import '../widgets/auth_shell.dart';
 import '../widgets/form_controls.dart';
 import 'login_screen.dart';
 
@@ -25,8 +26,10 @@ class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _loading = false;
   bool _obscure = true;
+  bool _obscureConfirm = true;
   String? _error;
 
   @override
@@ -35,6 +38,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -51,6 +55,10 @@ class _SignupScreenState extends State<SignupScreen> {
     }
     if (_type == 'vendor' && _discipline == null) {
       setState(() => _error = 'Choose what you do.');
+      return;
+    }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() => _error = 'Passwords do not match.');
       return;
     }
 
@@ -84,120 +92,176 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Create an account')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Join the network.', style: Theme.of(context).textTheme.displaySmall),
-              const SizedBox(height: 8),
-              Text(
-                'Brands, franchisees, landlords, investors and vendors all '
-                'start here. Takes about a minute.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
-              ),
-              const SizedBox(height: 24),
-              const FieldLabel('I am a…'),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: accountTypes.map((option) {
-                  final selected = option.value == _type;
-                  return InkWell(
-                    onTap: () => setState(() {
-                      _type = option.value;
-                      if (_type != 'vendor') _discipline = null;
-                    }),
-                    borderRadius: BorderRadius.circular(999),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                      decoration: BoxDecoration(
-                        color: selected ? AppColors.violet50 : AppColors.white,
-                        border: Border.all(color: selected ? AppColors.violet600 : AppColors.grey200),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        option.label,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: selected ? AppColors.violet600 : AppColors.ink,
-                              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                            ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 18),
-              FieldLabel(_activeType.orgLabel),
-              TextField(controller: _orgController, decoration: formInputDecoration()),
-              if (_type == 'vendor') ...[
-                const SizedBox(height: 16),
-                const FieldLabel('What do you do?'),
-                DropdownButtonFormField<String>(
-                  initialValue: _discipline,
-                  decoration: formInputDecoration(hintText: 'Choose your discipline…'),
-                  items: vendorDisciplines.entries
-                      .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-                      .toList(),
-                  onChanged: (value) => setState(() => _discipline = value),
+    return AuthShell(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Create an\nAccount',
+            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w800,
                 ),
-              ],
-              const SizedBox(height: 16),
-              const FieldLabel('Your name'),
-              TextField(controller: _nameController, decoration: formInputDecoration()),
-              const SizedBox(height: 16),
-              const FieldLabel('Email'),
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: formInputDecoration(),
-              ),
-              const SizedBox(height: 16),
-              FieldLabel('Password'),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscure,
-                decoration: formInputDecoration(hintText: 'At least 8 characters').copyWith(
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                    onPressed: () => setState(() => _obscure = !_obscure),
-                  ),
-                ),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 14),
-                Text(_error!, style: TextStyle(color: Colors.red.shade700)),
-              ],
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
-                        )
-                      : const Text('Create account'),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Center(
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  ),
-                  child: const Text('Already have an account? Sign in'),
-                ),
-              ),
-            ],
           ),
-        ),
+          const SizedBox(height: 28),
+          Text(
+            'I AM A…',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: AppColors.white.withValues(alpha: 0.6),
+                  letterSpacing: 1.2,
+                ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: accountTypes.map((option) {
+              final selected = option.value == _type;
+              return InkWell(
+                onTap: () => setState(() {
+                  _type = option.value;
+                  if (_type != 'vendor') _discipline = null;
+                }),
+                borderRadius: BorderRadius.circular(999),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.white : AppColors.white.withValues(alpha: 0.08),
+                    border: Border.all(
+                      color: selected ? AppColors.white : AppColors.white.withValues(alpha: 0.28),
+                    ),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    option.label,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: selected ? AppColors.violet700 : AppColors.white,
+                          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 18),
+          TextField(
+            controller: _orgController,
+            style: const TextStyle(color: AppColors.ink),
+            decoration: authInputDecoration(
+              icon: Icons.apartment_rounded,
+              hintText: _activeType.orgLabel,
+            ),
+          ),
+          if (_type == 'vendor') ...[
+            const SizedBox(height: 14),
+            DropdownButtonFormField<String>(
+              initialValue: _discipline,
+              style: const TextStyle(color: AppColors.ink),
+              decoration: authInputDecoration(
+                icon: Icons.build_outlined,
+                hintText: 'Choose your discipline…',
+              ),
+              items: vendorDisciplines.entries
+                  .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                  .toList(),
+              onChanged: (value) => setState(() => _discipline = value),
+            ),
+          ],
+          const SizedBox(height: 14),
+          TextField(
+            controller: _nameController,
+            style: const TextStyle(color: AppColors.ink),
+            decoration: authInputDecoration(icon: Icons.person_outline_rounded, hintText: 'Your name'),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            style: const TextStyle(color: AppColors.ink),
+            decoration: authInputDecoration(icon: Icons.mail_outline_rounded, hintText: 'Email address'),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _passwordController,
+            obscureText: _obscure,
+            style: const TextStyle(color: AppColors.ink),
+            decoration: authInputDecoration(
+              icon: Icons.lock_outline_rounded,
+              hintText: 'Password (min. 8 characters)',
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  color: AppColors.grey300,
+                ),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _confirmPasswordController,
+            obscureText: _obscureConfirm,
+            style: const TextStyle(color: AppColors.ink),
+            decoration: authInputDecoration(
+              icon: Icons.lock_outline_rounded,
+              hintText: 'Confirm password',
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  color: AppColors.grey300,
+                ),
+                onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+              ),
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 16),
+            Text(_error!, style: const TextStyle(color: Color(0xFFFF9E9E))),
+          ],
+          const SizedBox(height: 26),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.ink,
+                foregroundColor: AppColors.white,
+              ),
+              onPressed: _loading ? null : _submit,
+              child: _loading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                    )
+                  : const Text('SIGN UP'),
+            ),
+          ),
+          const SizedBox(height: 28),
+          Center(
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              ),
+              child: Text.rich(
+                TextSpan(
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: AppColors.white.withValues(alpha: 0.68)),
+                  children: const [
+                    TextSpan(text: 'Already have an account?  '),
+                    TextSpan(
+                      text: 'Sign in',
+                      style: TextStyle(color: AppColors.white, fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -22,13 +22,23 @@ class HomeAction {
   /// just redundant chrome.
   final bool hasOwnScaffold;
 
+  /// A one-word label for the compact icon-grid tile used when an account
+  /// type has more than one action (only brand, today) — `title` alone is
+  /// too long to fit a small square tile. Falls back to `title` when unset,
+  /// so single-action types (which render a full row, not the grid) never
+  /// need to bother setting it.
+  final String? shortLabel;
+
   const HomeAction({
     required this.title,
     required this.body,
     required this.icon,
     required this.buildScreen,
     this.hasOwnScaffold = false,
+    this.shortLabel,
   });
+
+  String get tileLabel => shortLabel ?? title;
 }
 
 /// What a signed-in account of a given type sees: which nav tab replaces
@@ -72,18 +82,21 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         body: "Submit your preferred expansion location and let opportunities find you.",
         icon: Icons.search_rounded,
         buildScreen: () => buildAudienceScreen('for-brands'),
+        shortLabel: 'Request',
       ),
       HomeAction(
         title: 'More Franchises?',
         body: 'Explore franchise opportunities and connect with brands ready for expansion.',
         icon: Icons.handshake_rounded,
         buildScreen: () => buildAudienceScreen('for-franchise'),
+        shortLabel: 'Franchise',
       ),
       HomeAction(
         title: 'Looking for Investors?',
         body: "Connect with potential investors to accelerate your brand's future growth.",
         icon: Icons.trending_up_rounded,
         buildScreen: () => buildAudienceScreen('for-investors'),
+        shortLabel: 'Investors',
       ),
       HomeAction(
         title: 'Browse Available Locations',
@@ -91,6 +104,7 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         icon: Icons.location_city_rounded,
         buildScreen: () => const LocationsScreen(),
         hasOwnScaffold: true,
+        shortLabel: 'Browse',
       ),
     ],
   ),

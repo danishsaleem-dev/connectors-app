@@ -45,9 +45,22 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ),
             SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(28, 24, 28, 32),
-                child: Column(
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(28, 24, 28, 32),
+                  // Content is pinned top/bottom with Spacers between on any
+                  // screen tall enough to fit it (matching every design
+                  // reference); ConstrainedBox + IntrinsicHeight lets it
+                  // fall back to scrolling instead of overflowing on a
+                  // short device now that the CTA block has grown (search +
+                  // alt sign-in row + sign-up link, versus just two
+                  // buttons before).
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 56,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -59,9 +72,10 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                     const Spacer(flex: 3),
                     Text(
-                      SiteData.tagline,
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      "Let's Get Started",
+                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
                             color: AppColors.white,
+                            fontWeight: FontWeight.w800,
                           ),
                     ),
                     const SizedBox(height: 12),
@@ -76,34 +90,108 @@ class WelcomeScreen extends StatelessWidget {
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.white,
-                          foregroundColor: AppColors.violet700,
+                          backgroundColor: AppColors.ink,
+                          foregroundColor: AppColors.white,
                         ),
                         onPressed: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const LoginScreen()),
                         ),
-                        child: const Text('Sign in'),
+                        child: const Text('Sign In'),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.white,
-                          side: const BorderSide(color: AppColors.white, width: 1.4),
+                    const SizedBox(height: 22),
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: AppColors.white.withValues(alpha: 0.24))),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'OR SIGN IN WITH',
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: AppColors.white.withValues(alpha: 0.55),
+                                  letterSpacing: 1.2,
+                                ),
+                          ),
                         ),
-                        onPressed: () => Navigator.of(context).push(
+                        Expanded(child: Divider(color: AppColors.white.withValues(alpha: 0.24))),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _AltSignInButton(icon: Icons.mail_outline_rounded, context: context),
+                        const SizedBox(width: 16),
+                        _AltSignInButton(icon: Icons.smartphone_rounded, context: context),
+                      ],
+                    ),
+                    const SizedBox(height: 26),
+                    Center(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const SignupScreen()),
                         ),
-                        child: const Text('Create an account'),
+                        child: Text.rich(
+                          TextSpan(
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.white.withValues(alpha: 0.68),
+                                ),
+                            children: [
+                              const TextSpan(text: "Didn't have an account?  "),
+                              TextSpan(
+                                text: 'Sign up now',
+                                style: const TextStyle(
+                                  color: AppColors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// UI-only for now — the app has one sign-in method (email + password), so
+/// these don't gate any real alt-auth flow yet. A tap says so rather than
+/// doing nothing, so it reads as "not built yet" instead of "broken."
+class _AltSignInButton extends StatelessWidget {
+  final IconData icon;
+  final BuildContext context;
+
+  const _AltSignInButton({required this.icon, required this.context});
+
+  @override
+  Widget build(BuildContext _) {
+    return Material(
+      color: AppColors.white.withValues(alpha: 0.08),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Coming soon')),
+        ),
+        child: Container(
+          width: 52,
+          height: 52,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.3)),
+          ),
+          child: Icon(icon, color: AppColors.white, size: 22),
         ),
       ),
     );
