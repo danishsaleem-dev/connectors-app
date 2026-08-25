@@ -83,8 +83,8 @@ void main() {
     await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
     await tester.pump();
 
-    // A brand account's second tab is "Locations" — storefront icon, same
-    // as the old fixed Brands tab used.
+    // A brand account's second tab is "Opportunities" — storefront icon,
+    // same as the old fixed Brands tab used.
     await tester.tap(find.byIcon(Icons.storefront_outlined));
     await _settle(tester);
 

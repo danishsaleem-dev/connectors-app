@@ -130,6 +130,15 @@ class HomeScreen extends StatelessWidget {
                 Reveal(index: 2, child: _HighlightRow()),
                 const SizedBox(height: AppSpacing.lg),
                 const Reveal(index: 3, child: _MarketingBanner()),
+                const SizedBox(height: AppSpacing.section),
+                const Eyebrow('All actions'),
+                const SizedBox(height: AppSpacing.sm),
+                Text('Everything in one place.', style: Theme.of(context).textTheme.displaySmall),
+                const SizedBox(height: AppSpacing.heading),
+                for (var i = 0; i < config.homeActions.length; i++) ...[
+                  if (i > 0) const SizedBox(height: AppSpacing.sm),
+                  Reveal(index: i + 4, child: _DetailedActionCard(action: config.homeActions[i])),
+                ],
               ] else ...[
                 const Eyebrow('Get started'),
                 const SizedBox(height: AppSpacing.sm),
@@ -238,8 +247,9 @@ class _ActionTile extends StatelessWidget {
               Container(
                 width: 38,
                 height: 38,
-                decoration: const BoxDecoration(
-                  color: AppColors.violet50,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.violet600.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(action.icon, color: AppColors.violet600, size: 18),
@@ -263,32 +273,38 @@ class _ActionTile extends StatelessWidget {
 /// Two informational highlight cards — deliberately not tappable. Neither
 /// "franchise legends" nor "royalty tracking" has a real feature behind it
 /// yet, so this is presented as a visual only, not a button that would
-/// promise something that isn't built.
+/// promise something that isn't built. IntrinsicHeight + stretch keeps both
+/// cards the same height regardless of which title wraps to two lines.
 class _HighlightRow extends StatelessWidget {
   const _HighlightRow();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: const [
-        Expanded(
-          child: _HighlightCard(
-            icon: Icons.workspace_premium_rounded,
-            title: 'Franchise Legends',
-            subtitle: '100% Franchisor Support',
-            color: AppColors.violet600,
+    return const IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _HighlightCard(
+              icon: Icons.workspace_premium_rounded,
+              title: 'Franchise Legends',
+              statHeadline: '100%',
+              statSubtitle: 'Franchisor Support',
+              accentColor: AppColors.violet600,
+            ),
           ),
-        ),
-        SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: _HighlightCard(
-            icon: Icons.verified_user_rounded,
-            title: 'Franchise Royalties',
-            subtitle: 'Secure Platform Services',
-            color: AppColors.ink,
+          SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: _HighlightCard(
+              icon: Icons.verified_user_rounded,
+              title: 'Franchise Royalties',
+              statHeadline: 'Secure',
+              statSubtitle: 'Platform Services',
+              accentColor: AppColors.ink,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -296,45 +312,104 @@ class _HighlightRow extends StatelessWidget {
 class _HighlightCard extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String subtitle;
-  final Color color;
+  final String statHeadline;
+  final String statSubtitle;
+  final Color accentColor;
 
   const _HighlightCard({
     required this.icon,
     required this.title,
-    required this.subtitle,
-    required this.color,
+    required this.statHeadline,
+    required this.statSubtitle,
+    required this.accentColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: AppColors.white, size: 22),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(color: AppColors.white),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: AppColors.white.withValues(alpha: 0.75), fontSize: 12.5),
-          ),
-        ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        color: AppColors.white,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(painter: _DotPatternPainter(color: accentColor)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: accentColor, shape: BoxShape.circle),
+                    child: Icon(icon, color: AppColors.white, size: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.ink,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          statHeadline,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(color: AppColors.white),
+                        ),
+                        Text(
+                          statSubtitle,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.white.withValues(alpha: 0.65),
+                                fontSize: 11.5,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+/// A faint dot grid instead of a flat fill — texture rather than a solid
+/// colour block, staying inside the accent colour passed in so it reads as
+/// a deliberate surface, not decoration for its own sake.
+class _DotPatternPainter extends CustomPainter {
+  final Color color;
+
+  const _DotPatternPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color.withValues(alpha: 0.05);
+    const spacing = 14.0;
+    const radius = 1.3;
+    for (var y = spacing / 2; y < size.height; y += spacing) {
+      for (var x = spacing / 2; x < size.width; x += spacing) {
+        canvas.drawCircle(Offset(x, y), radius, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DotPatternPainter oldDelegate) => oldDelegate.color != color;
 }
 
 /// Closing banner — its one action is real (opens the existing chat
@@ -367,6 +442,66 @@ class _MarketingBanner extends StatelessWidget {
             child: const Text('Ask us'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The full descriptive version of the same actions the icon grid already
+/// shows compactly — title, body copy and a double-chevron badge instead
+/// of icon-left/chevron-right, matching the reference's row-card layout.
+class _DetailedActionCard extends StatelessWidget {
+  final HomeAction action;
+
+  const _DetailedActionCard({required this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _openAction(context, action),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: cardShadow(opacity: 0.05),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(action.title, style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 3),
+                    Text(
+                      action.body,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: AppColors.grey500),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.violet200),
+                ),
+                child: const Icon(Icons.keyboard_double_arrow_right_rounded,
+                    color: AppColors.violet600, size: 20),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -111,9 +111,12 @@ class _NavButton extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               style: Theme.of(context).textTheme.labelMedium!.copyWith(
                     color: selected ? AppColors.violet600 : AppColors.grey300,
-                    fontSize: 10.5,
+                    fontSize: 9.5,
                   ),
-              child: Text(item.label),
+              // Longer labels (Notifications, Opportunities) get tight at 5
+              // tabs — clip rather than wrap, since a wrapped second line
+              // would overflow this bar's fixed height.
+              child: Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
             ),
           ],
         ),

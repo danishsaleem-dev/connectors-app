@@ -6,6 +6,8 @@ import 'data/session_storage.dart';
 import 'data/site_data.dart';
 import 'screens/account_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/messages_screen.dart';
+import 'screens/notifications_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'theme/app_theme.dart';
@@ -97,12 +99,13 @@ class _AppRootState extends State<AppRoot> {
   }
 }
 
-/// The signed-in app — Home, the account type's one primary action, and
-/// Account. Every account is exactly one type (AccountTypeConfig), so the
-/// second tab is the only thing that actually varies between users; the
-/// shape of the bar (3 tabs, this order) stays fixed. No app bar — nothing
-/// left to put in one once the logo and the old Menu/Account icons moved
-/// into the tabs and Home's own profile row.
+/// The signed-in app — 5 tabs per the business-logic doc's bottom-nav spec:
+/// Home, Opportunities (the account type's one primary action — content
+/// varies by type, same as before, just under a consistent label now),
+/// Messages and Notifications (both UI-only placeholders, no backend yet),
+/// and Profile. No app bar — nothing left to put in one once the logo and
+/// the old Menu/Account icons moved into the tabs and Home's own profile
+/// row.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -121,17 +124,29 @@ class _AppShellState extends State<AppShell> {
 
     final navItems = [
       const NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
-      NavItem(icon: config.tabIcon, activeIcon: config.tabActiveIcon, label: config.tabLabel),
+      NavItem(icon: config.tabIcon, activeIcon: config.tabActiveIcon, label: 'Opportunities'),
+      const NavItem(
+        icon: Icons.chat_bubble_outline_rounded,
+        activeIcon: Icons.chat_bubble_rounded,
+        label: 'Messages',
+      ),
+      const NavItem(
+        icon: Icons.notifications_outlined,
+        activeIcon: Icons.notifications_rounded,
+        label: 'Notifications',
+      ),
       const NavItem(
         icon: Icons.person_outline_rounded,
         activeIcon: Icons.person_rounded,
-        label: 'Account',
+        label: 'Profile',
       ),
     ];
 
     final pages = [
       const HomeScreen(),
       config.buildPrimaryScreen(),
+      const MessagesBody(),
+      const NotificationsBody(),
       const AccountBody(),
     ];
 

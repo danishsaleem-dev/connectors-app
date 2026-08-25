@@ -48,7 +48,6 @@ class HomeAction {
 /// audience doors because it didn't yet know who they were — the app can
 /// now show exactly what this account actually needs.
 class AccountTypeConfig {
-  final String tabLabel;
   final IconData tabIcon;
   final IconData tabActiveIcon;
   final List<HomeAction> homeActions;
@@ -59,7 +58,6 @@ class AccountTypeConfig {
   final Widget Function() buildPrimaryScreen;
 
   const AccountTypeConfig({
-    required this.tabLabel,
     required this.tabIcon,
     required this.tabActiveIcon,
     required this.homeActions,
@@ -72,7 +70,6 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
   // brand's three real asks (a location, more franchisees, investors) each
   // land on an existing form rather than needing new ones.
   'brand': AccountTypeConfig(
-    tabLabel: 'Locations',
     tabIcon: Icons.storefront_outlined,
     tabActiveIcon: Icons.storefront_rounded,
     buildPrimaryScreen: () => buildAudienceScreen('for-brands'),
@@ -109,7 +106,6 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
     ],
   ),
   'franchisee': AccountTypeConfig(
-    tabLabel: 'Franchise',
     tabIcon: Icons.handshake_outlined,
     tabActiveIcon: Icons.handshake_rounded,
     buildPrimaryScreen: () => buildAudienceScreen('for-franchise'),
@@ -123,7 +119,6 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
     ],
   ),
   'landlord': AccountTypeConfig(
-    tabLabel: 'List Space',
     tabIcon: Icons.apartment_outlined,
     tabActiveIcon: Icons.apartment_rounded,
     buildPrimaryScreen: () => buildAudienceScreen('for-landlords'),
@@ -139,7 +134,6 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
   // Shares the landlord form — the website's own "for-landlords" audience
   // is already titled "Landlords & Developers" and covers both.
   'developer': AccountTypeConfig(
-    tabLabel: 'List Space',
     tabIcon: Icons.apartment_outlined,
     tabActiveIcon: Icons.apartment_rounded,
     buildPrimaryScreen: () => buildAudienceScreen('for-landlords'),
@@ -153,7 +147,6 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
     ],
   ),
   'investor': AccountTypeConfig(
-    tabLabel: 'Invest',
     tabIcon: Icons.trending_up_outlined,
     tabActiveIcon: Icons.trending_up_rounded,
     buildPrimaryScreen: () => buildAudienceScreen('for-investors'),
@@ -167,7 +160,6 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
     ],
   ),
   'vendor': AccountTypeConfig(
-    tabLabel: 'Partners',
     tabIcon: Icons.diversity_3_outlined,
     tabActiveIcon: Icons.diversity_3_rounded,
     buildPrimaryScreen: () => const PartnersBody(),
@@ -181,7 +173,6 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
     ],
   ),
   'consultant': AccountTypeConfig(
-    tabLabel: 'Consultants',
     tabIcon: Icons.groups_outlined,
     tabActiveIcon: Icons.groups_rounded,
     buildPrimaryScreen: () => const ConsultantsBody(),
