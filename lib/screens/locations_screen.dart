@@ -286,7 +286,7 @@ class _FilterBar extends StatelessWidget {
               label: const Text('Clear'),
               onPressed: onClear,
               avatar: const Icon(Icons.close_rounded, size: 16),
-              backgroundColor: AppColors.grey50,
+              backgroundColor: AppColors.white,
             ),
           ],
         ],

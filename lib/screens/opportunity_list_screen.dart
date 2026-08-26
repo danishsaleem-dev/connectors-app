@@ -135,7 +135,7 @@ class _SearchField extends StatelessWidget {
                 },
               ),
         filled: true,
-        fillColor: AppColors.grey50,
+        fillColor: AppColors.white,
         contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -178,7 +178,7 @@ class _FilterBar extends StatelessWidget {
               label: const Text('Clear'),
               onPressed: onClear,
               avatar: const Icon(Icons.close_rounded, size: 16),
-              backgroundColor: AppColors.grey50,
+              backgroundColor: AppColors.white,
             ),
         ],
       ),

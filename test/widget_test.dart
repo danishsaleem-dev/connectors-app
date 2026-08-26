@@ -100,7 +100,9 @@ void main() {
     // the signed-in account shows up.
     expect(find.byType(FloatingNavBar), findsOneWidget);
     expect(find.text('Jamie Test'), findsOneWidget);
-    expect(find.text('Brand'), findsOneWidget);
+    // Role now shares a line with a time-of-day greeting ("Good evening ·
+    // Brand"), so match the role within it rather than as its own string.
+    expect(find.textContaining('Brand'), findsWidgets);
   });
 
   testWidgets('Tapping the Opportunities tab shows the role-appropriate categories', (

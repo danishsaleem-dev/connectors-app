@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import 'messages_screen.dart';
@@ -89,7 +90,8 @@ class _Bubble extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: fromMe ? AppColors.violet600 : AppColors.grey50,
+                  color: fromMe ? AppColors.violet600 : AppColors.white,
+                  boxShadow: fromMe ? null : cardShadow(opacity: 0.05),
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(16),
                     topRight: const Radius.circular(16),
@@ -130,6 +132,7 @@ class _ComposeBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(AppSpacing.page, 10, AppSpacing.page, 14),
       decoration: const BoxDecoration(
+        color: AppColors.white,
         border: Border(top: BorderSide(color: AppColors.grey100)),
       ),
       child: Row(

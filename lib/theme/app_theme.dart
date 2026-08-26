@@ -20,16 +20,26 @@ TextStyle _font({double? size, FontWeight? weight, double? height, double? spaci
       letterSpacing: spacing,
     );
 
-/// Soft, deep shadow for elevated cards — a real sense of lift rather than a
-/// hairline border, which is most of what separated the first pass from
-/// reading as a native, considered app rather than a form filled in with
-/// Material defaults.
-List<BoxShadow> cardShadow({double opacity = 0.06}) => [
+/// Two-layer elevation: a tight contact shadow that draws the card's edge,
+/// plus a wider ambient one for depth.
+///
+/// This replaced a single very wide, heavily negative-spread shadow which —
+/// on the white canvas the app used to have — rendered as essentially
+/// nothing: white cards on a white page read as floating loose content, not
+/// as boxes. The canvas is grey50 now (see scaffoldBackgroundColor) and
+/// cards are white, so the surface itself carries most of the separation;
+/// this shadow is what makes them lift off it.
+List<BoxShadow> cardShadow({double opacity = 0.07}) => [
       BoxShadow(
-        color: AppColors.ink.withValues(alpha: opacity),
-        blurRadius: 28,
-        offset: const Offset(0, 12),
-        spreadRadius: -8,
+        color: AppColors.ink.withValues(alpha: opacity * 0.9),
+        blurRadius: 2,
+        offset: const Offset(0, 1),
+      ),
+      BoxShadow(
+        color: AppColors.ink.withValues(alpha: opacity * 1.5),
+        blurRadius: 16,
+        offset: const Offset(0, 6),
+        spreadRadius: -4,
       ),
     ];
 
@@ -44,7 +54,11 @@ ThemeData buildAppTheme() {
       onSurface: AppColors.ink,
       brightness: Brightness.light,
     ),
-    scaffoldBackgroundColor: AppColors.white,
+    // A light grey canvas, not white — this is what lets white cards read
+    // as cards. With a white canvas, every white surface in the app
+    // (action tiles, list cards, banners) had no edge to speak of and the
+    // whole thing looked like loose floating content.
+    scaffoldBackgroundColor: AppColors.grey50,
   );
 
   return base.copyWith(
@@ -66,12 +80,14 @@ ThemeData buildAppTheme() {
           labelMedium: _font(size: 11, weight: FontWeight.w700, height: 1.2),
         )
         .apply(bodyColor: AppColors.ink, displayColor: AppColors.ink),
+    // Matches the canvas so there's no seam between the bar and the page
+    // below it — the page's own content provides the structure instead.
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.grey50,
       foregroundColor: AppColors.ink,
       elevation: 0,
-      scrolledUnderElevation: 0.5,
-      surfaceTintColor: AppColors.white,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
     ),
     dividerTheme: const DividerThemeData(color: AppColors.grey200, thickness: 1, space: 1),
     elevatedButtonTheme: ElevatedButtonThemeData(

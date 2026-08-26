@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/opportunity.dart';
+import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
@@ -90,8 +91,9 @@ class OpportunityDetailScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.grey50,
+                          color: AppColors.white,
                           borderRadius: BorderRadius.circular(16),
+                          boxShadow: cardShadow(),
                         ),
                         child: Column(
                           children: [

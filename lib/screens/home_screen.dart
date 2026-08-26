@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../data/account_type_config.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
@@ -12,6 +13,16 @@ import '../widgets/reveal.dart';
 import 'chat_screen.dart';
 import 'contact_screen.dart';
 
+/// Real clock, not a canned string — the one bit of the header that
+/// changes on its own, which is what keeps it from reading as a static
+/// template.
+String get _greeting {
+  final hour = DateTime.now().hour;
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 const _roleLabels = {
   'brand': 'Brand',
   'franchisee': 'Franchisee',
@@ -23,6 +34,7 @@ const _roleLabels = {
 };
 
 void _openAction(BuildContext context, HomeAction action) {
+  HapticFeedback.selectionClick();
   Navigator.of(context).push(
     MaterialPageRoute(
       builder: (_) => action.hasOwnScaffold
@@ -105,16 +117,18 @@ class HomeScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      session?.name ?? '',
-                                      style: Theme.of(context).textTheme.titleLarge,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      roleLabel,
+                                      '$_greeting · $roleLabel',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
                                           ?.copyWith(color: AppColors.grey500),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      session?.name ?? '',
+                                      style: Theme.of(context).textTheme.titleLarge,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
@@ -155,12 +169,14 @@ class HomeScreen extends StatelessWidget {
                     subtitle: config.promoSubtitle!,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.heading),
+                const SizedBox(height: AppSpacing.xl),
+                Text('Quick actions', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: AppSpacing.md),
                 Reveal(
                   index: 1,
                   child: _ActionGrid(actions: config.homeActions),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.xl),
                 Reveal(
                   index: 2,
                   child: _HighlightRow(
@@ -177,7 +193,7 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.section),
                 const Eyebrow('All actions'),
                 const SizedBox(height: AppSpacing.sm),
-                Text('Everything in one place.', style: Theme.of(context).textTheme.displaySmall),
+                Text('Everything in one place.', style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: AppSpacing.heading),
                 for (var i = 0; i < config.homeActions.length; i++) ...[
                   if (i > 0) const SizedBox(height: AppSpacing.sm),
@@ -311,34 +327,40 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
+    return DecoratedBox(
+      // Shadow on a DecoratedBox behind the Material, rather than on a
+      // Container inside it: same result, but it keeps the elevation and
+      // the ink-splash clipping as separate concerns instead of one
+      // Container trying to do both.
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        onTap: () => _openAction(context, action),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: cardShadow(opacity: 0.06),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(action.icon, color: AppColors.violet600, size: 34),
-              const SizedBox(height: 12),
-              Text(
-                action.tileLabel,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontSize: 13.5),
-              ),
-            ],
+        boxShadow: cardShadow(),
+      ),
+      child: Material(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _openAction(context, action),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(action.icon, color: AppColors.violet600, size: 30),
+                const SizedBox(height: 14),
+                Text(
+                  action.tileLabel,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -445,65 +467,72 @@ class _HighlightCard extends StatelessWidget {
     final statSubtitle = data.statSubtitle;
     final accentColor = data.accentColor;
 
-    final content = ClipRRect(
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        // A light tint of the card's own accent, not plain white — enough
-        // to read as "coloured" without going back to the heavy solid
-        // fill this replaced.
-        color: accentColor.withValues(alpha: 0.06),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: CustomPaint(painter: _DotPatternPainter(color: accentColor)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: accentColor, shape: BoxShape.circle),
-                    child: Icon(icon, color: AppColors.white, size: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(title, style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.ink,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          statHeadline,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(color: AppColors.white),
-                        ),
-                        Text(
-                          statSubtitle,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.white.withValues(alpha: 0.65),
-                                fontSize: 11.5,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+    final content = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: cardShadow(),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          // White like every other card now that the page canvas is grey —
+          // the accent shows up in the icon badge and the faint dot
+          // texture instead of tinting the whole surface, which went
+          // muddy against a grey background.
+          color: AppColors.white,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: CustomPaint(painter: _DotPatternPainter(color: accentColor)),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(color: accentColor, shape: BoxShape.circle),
+                      child: Icon(icon, color: AppColors.white, size: 17),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 14),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: AppColors.ink,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            statHeadline,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(color: AppColors.white),
+                          ),
+                          Text(
+                            statSubtitle,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.white.withValues(alpha: 0.65),
+                                  fontSize: 11.5,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -532,7 +561,7 @@ class _DotPatternPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color.withValues(alpha: 0.14);
+    final paint = Paint()..color = color.withValues(alpha: 0.10);
     const spacing = 14.0;
     const radius = 1.3;
     for (var y = spacing / 2; y < size.height; y += spacing) {
@@ -558,8 +587,9 @@ class _MarketingBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: cardShadow(),
       ),
       child: Row(
         children: [

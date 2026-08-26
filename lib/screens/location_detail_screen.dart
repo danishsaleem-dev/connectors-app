@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/location.dart';
+import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
@@ -135,8 +136,9 @@ class _DetailGrid extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.grey50,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(14),
+                boxShadow: cardShadow(),
               ),
               child: Row(
                 children: [

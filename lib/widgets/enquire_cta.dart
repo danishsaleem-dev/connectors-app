@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/site_data.dart';
+import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 
 /// A single-line fallback prompt, not a repeated marketing CTA card — the
@@ -22,8 +23,13 @@ class EnquireCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.grey50,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: cardShadow(),
+      ),
+      child: Material(
+      color: AppColors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: _openEmail,
@@ -46,6 +52,7 @@ class EnquireCta extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
