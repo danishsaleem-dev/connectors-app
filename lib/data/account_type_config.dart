@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../screens/audience_screen.dart';
+import '../screens/coming_soon_screen.dart';
 import '../screens/consultants_screen.dart';
-import '../screens/locations_screen.dart';
+import '../screens/messages_screen.dart';
+import '../screens/opportunity_list_screen.dart';
 import '../screens/partners_screen.dart';
+import '../screens/service_info_screen.dart';
+import 'opportunity.dart';
 
 /// One card in Home's action list — title, a one-line description, an icon,
 /// and what it opens (pushed, since Home isn't tied to any one bottom-nav
@@ -23,10 +27,10 @@ class HomeAction {
   final bool hasOwnScaffold;
 
   /// A one-word label for the compact icon-grid tile used when an account
-  /// type has more than one action (only brand, today) — `title` alone is
-  /// too long to fit a small square tile. Falls back to `title` when unset,
-  /// so single-action types (which render a full row, not the grid) never
-  /// need to bother setting it.
+  /// type has more than one action — `title` alone is too long to fit a
+  /// small square tile. Falls back to `title` when unset, so single-action
+  /// types (which render a full row, not the grid) never need to bother
+  /// setting it.
   final String? shortLabel;
 
   const HomeAction({
@@ -41,128 +45,213 @@ class HomeAction {
   String get tileLabel => shortLabel ?? title;
 }
 
-/// What a signed-in account of a given type sees: which nav tab replaces
-/// the old generic "Brands/Franchise/Landlords/Investors" set, and which
-/// action cards Home leads with. Every org is exactly one of these seven
-/// types, so — unlike the old app, which showed every visitor all four
-/// audience doors because it didn't yet know who they were — the app can
-/// now show exactly what this account actually needs.
+/// What a signed-in account of a given type sees on Home. Every org is
+/// exactly one of these seven types, so — unlike the old app, which showed
+/// every visitor all four audience doors because it didn't yet know who
+/// they were — the app can now show exactly what this account actually
+/// needs. (The bottom nav's second tab used to be per-type too; it's now
+/// the shared Opportunities hub for everyone — see OpportunitiesScreen.)
 class AccountTypeConfig {
-  final IconData tabIcon;
-  final IconData tabActiveIcon;
   final List<HomeAction> homeActions;
 
-  /// Builds the tab's body content — no Scaffold/AppBar of its own, since
-  /// it's dropped straight into the app shell's IndexedStack, same as the
-  /// four audience screens already are.
-  final Widget Function() buildPrimaryScreen;
+  /// Only meaningful when homeActions.length > 1 — Home derives the promo
+  /// banner/CTA copy from the one action directly for single-action types,
+  /// so these stay null there.
+  final String? promoHeadline;
+  final String? promoSubtitle;
+  final String? marketingBannerText;
 
   const AccountTypeConfig({
-    required this.tabIcon,
-    required this.tabActiveIcon,
     required this.homeActions,
-    required this.buildPrimaryScreen,
+    this.promoHeadline,
+    this.promoSubtitle,
+    this.marketingBannerText,
   });
 }
 
 final Map<String, AccountTypeConfig> accountTypeConfigs = {
-  // The only type with more than one Home action, by explicit request — a
-  // brand's three real asks (a location, more franchisees, investors) each
-  // land on an existing form rather than needing new ones.
   'brand': AccountTypeConfig(
-    tabIcon: Icons.storefront_outlined,
-    tabActiveIcon: Icons.storefront_rounded,
-    buildPrimaryScreen: () => buildAudienceScreen('for-brands'),
+    promoHeadline: 'Expand Smarter,\nGrow Faster.',
+    promoSubtitle: 'Your complete platform for brand growth.',
+    marketingBannerText: 'We scale local marketing for multi-location brands.',
     homeActions: [
       HomeAction(
         title: 'Request a Location',
         body: "Submit your preferred expansion location and let opportunities find you.",
         icon: Icons.search_rounded,
         buildScreen: () => buildAudienceScreen('for-brands'),
-        shortLabel: 'Request',
+        shortLabel: 'Location',
       ),
       HomeAction(
-        title: 'More Franchises?',
-        body: 'Explore franchise opportunities and connect with brands ready for expansion.',
+        title: 'Find Franchisees',
+        body: 'Connect with franchisees ready to open your brand in a new territory.',
         icon: Icons.handshake_rounded,
         buildScreen: () => buildAudienceScreen('for-franchise'),
-        shortLabel: 'Franchise',
+        shortLabel: 'Franchisees',
       ),
       HomeAction(
-        title: 'Looking for Investors?',
+        title: 'Find Investors',
         body: "Connect with potential investors to accelerate your brand's future growth.",
         icon: Icons.trending_up_rounded,
         buildScreen: () => buildAudienceScreen('for-investors'),
         shortLabel: 'Investors',
       ),
       HomeAction(
-        title: 'Browse Available Locations',
-        body: 'See retail and commercial space currently listed with Connectors.',
-        icon: Icons.location_city_rounded,
-        buildScreen: () => const LocationsScreen(),
+        title: 'Marketing Services',
+        body: 'Local marketing support built for multi-location brands.',
+        icon: Icons.campaign_rounded,
+        buildScreen: () => const ServiceInfoScreen(
+          title: 'Marketing Services',
+          icon: Icons.campaign_rounded,
+          lead: 'We scale local marketing for multi-location brands.',
+          body: 'Every location has its own local audience — marketing support that '
+              'works market-by-market, not one campaign stretched across all of '
+              'them. Get in touch and our team will walk you through what fits '
+              'your brand.',
+          enquireMessage: 'Ask about marketing support for your brand.',
+        ),
         hasOwnScaffold: true,
-        shortLabel: 'Browse',
+        shortLabel: 'Marketing',
+      ),
+      HomeAction(
+        title: 'IT Solutions',
+        body: 'Technology built for running a multi-location franchise operation.',
+        icon: Icons.memory_rounded,
+        buildScreen: () => const ServiceInfoScreen(
+          title: 'IT Solutions',
+          icon: Icons.memory_rounded,
+          lead: 'Technology built for franchise operations.',
+          body: 'From day-to-day systems to the tools your franchisees use — get '
+              'in touch and our team will talk through what your brand actually '
+              'needs.',
+          enquireMessage: 'Ask about technology support for your brand.',
+        ),
+        hasOwnScaffold: true,
+        shortLabel: 'IT',
       ),
     ],
   ),
   'franchisee': AccountTypeConfig(
-    tabIcon: Icons.handshake_outlined,
-    tabActiveIcon: Icons.handshake_rounded,
-    buildPrimaryScreen: () => buildAudienceScreen('for-franchise'),
+    promoHeadline: 'Find Your Franchise,\nFaster.',
+    promoSubtitle: 'Browse live opportunities or apply directly — whichever gets you moving.',
+    marketingBannerText: "Questions before you apply? We're here to help.",
     homeActions: [
       HomeAction(
-        title: 'Find your franchise',
+        title: 'Explore Brands',
+        body: 'Browse brands actively looking for franchise partners.',
+        icon: Icons.storefront_rounded,
+        buildScreen: () =>
+            OpportunityListScreen(category: categoryFor('brands')),
+        hasOwnScaffold: true,
+        shortLabel: 'Brands',
+      ),
+      HomeAction(
+        title: 'Apply for Franchise',
         body: 'Your budget, territory and industry interest.',
-        icon: Icons.handshake_rounded,
+        icon: Icons.assignment_turned_in_rounded,
         buildScreen: () => buildAudienceScreen('for-franchise'),
+        shortLabel: 'Apply',
+      ),
+      HomeAction(
+        title: 'Contact Brand',
+        body: "Message the brands you're talking to, in one place.",
+        icon: Icons.forum_rounded,
+        buildScreen: () => const MessagesBody(),
+        shortLabel: 'Messages',
       ),
     ],
   ),
   'landlord': AccountTypeConfig(
-    tabIcon: Icons.apartment_outlined,
-    tabActiveIcon: Icons.apartment_rounded,
-    buildPrimaryScreen: () => buildAudienceScreen('for-landlords'),
+    promoHeadline: 'Fill Your Space,\nFaster.',
+    promoSubtitle: 'Submit your property and see who wants it.',
+    marketingBannerText: "Questions about listing your space? We're here to help.",
     homeActions: [
       HomeAction(
-        title: 'Submit your space',
+        title: 'Submit Property',
         body: 'We bring the brands to it.',
         icon: Icons.apartment_rounded,
         buildScreen: () => buildAudienceScreen('for-landlords'),
+        shortLabel: 'Submit',
+      ),
+      HomeAction(
+        title: 'View Interested Brands',
+        body: 'See which brands have shown interest in your property.',
+        icon: Icons.visibility_rounded,
+        buildScreen: () => const ComingSoonScreen(
+          title: 'Interested Brands',
+          icon: Icons.visibility_rounded,
+          message: "Once brands express interest in a property you've submitted, "
+              "they'll show up here.",
+        ),
+        hasOwnScaffold: true,
+        shortLabel: 'Interested',
       ),
     ],
   ),
   // Shares the landlord form — the website's own "for-landlords" audience
   // is already titled "Landlords & Developers" and covers both.
   'developer': AccountTypeConfig(
-    tabIcon: Icons.apartment_outlined,
-    tabActiveIcon: Icons.apartment_rounded,
-    buildPrimaryScreen: () => buildAudienceScreen('for-landlords'),
+    promoHeadline: 'Fill Your Mall,\nFaster.',
+    promoSubtitle: 'Tell us what you need, or browse brands actively expanding.',
+    marketingBannerText: "Questions about your development? We're here to help.",
     homeActions: [
       HomeAction(
-        title: 'Submit your space',
-        body: 'We bring the brands to it.',
-        icon: Icons.apartment_rounded,
+        title: 'Request Brand Placement',
+        body: 'Tell us the brands you want in your mall or development.',
+        icon: Icons.add_business_rounded,
         buildScreen: () => buildAudienceScreen('for-landlords'),
+        shortLabel: 'Placement',
+      ),
+      HomeAction(
+        title: 'View Brand Categories',
+        body: 'Browse brands actively expanding, by category.',
+        icon: Icons.category_rounded,
+        buildScreen: () =>
+            OpportunityListScreen(category: categoryFor('brands')),
+        hasOwnScaffold: true,
+        shortLabel: 'Categories',
       ),
     ],
   ),
   'investor': AccountTypeConfig(
-    tabIcon: Icons.trending_up_outlined,
-    tabActiveIcon: Icons.trending_up_rounded,
-    buildPrimaryScreen: () => buildAudienceScreen('for-investors'),
+    promoHeadline: 'Invest Smarter,\nGrow Together.',
+    promoSubtitle: 'Real opportunities, vetted brands, one platform.',
+    marketingBannerText: "Questions before you invest? We're here to help.",
     homeActions: [
       HomeAction(
-        title: 'Share your interest',
-        body: 'Your ticket size, sectors and horizon.',
-        icon: Icons.trending_up_rounded,
-        buildScreen: () => buildAudienceScreen('for-investors'),
+        title: 'Explore Investment Opportunities',
+        body: 'Franchise concepts open for new territories and capital.',
+        icon: Icons.insights_rounded,
+        buildScreen: () =>
+            OpportunityListScreen(category: categoryFor('franchise')),
+        hasOwnScaffold: true,
+        shortLabel: 'Explore',
+      ),
+      HomeAction(
+        title: 'Connect With Brands',
+        body: 'Brands actively expanding and open to new partners.',
+        icon: Icons.handshake_rounded,
+        buildScreen: () =>
+            OpportunityListScreen(category: categoryFor('brands')),
+        hasOwnScaffold: true,
+        shortLabel: 'Brands',
+      ),
+      HomeAction(
+        title: 'Investment Portfolio',
+        body: 'Track the opportunities you back through Connectors.',
+        icon: Icons.account_balance_wallet_rounded,
+        buildScreen: () => const ComingSoonScreen(
+          title: 'Investment Portfolio',
+          icon: Icons.account_balance_wallet_rounded,
+          message: "Once you back an opportunity through Connectors, it'll show "
+              'up here.',
+        ),
+        hasOwnScaffold: true,
+        shortLabel: 'Portfolio',
       ),
     ],
   ),
   'vendor': AccountTypeConfig(
-    tabIcon: Icons.diversity_3_outlined,
-    tabActiveIcon: Icons.diversity_3_rounded,
-    buildPrimaryScreen: () => const PartnersBody(),
     homeActions: [
       HomeAction(
         title: 'The Partners Program',
@@ -173,9 +262,6 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
     ],
   ),
   'consultant': AccountTypeConfig(
-    tabIcon: Icons.groups_outlined,
-    tabActiveIcon: Icons.groups_rounded,
-    buildPrimaryScreen: () => const ConsultantsBody(),
     homeActions: [
       HomeAction(
         title: 'The consultants roster',

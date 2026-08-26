@@ -76,22 +76,25 @@ void main() {
     expect(find.text('Brand'), findsOneWidget);
   });
 
-  testWidgets('Tapping the primary tab shows the account type\'s own form', (
+  testWidgets('Tapping the Opportunities tab shows the role-appropriate categories', (
     WidgetTester tester,
   ) async {
     Auth.session.value = _fakeBrandSession;
     await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
     await tester.pump();
 
-    // A brand account's second tab is "Opportunities" — storefront icon,
-    // same as the old fixed Brands tab used.
-    await tester.tap(find.byIcon(Icons.storefront_outlined));
+    // The second tab is now a shared hub (Opportunities) rather than the
+    // account type's own form — every account type gets the same icon.
+    await tester.tap(find.byIcon(Icons.travel_explore_outlined));
     await _settle(tester);
 
-    expect(find.text('What are you looking to open, and where?'), findsOneWidget);
+    // A brand sees Investors/Locations/Retail/Commercial, not Brands or
+    // Franchise Opportunities (those are for franchisees/investors).
+    expect(find.text('Retail Spaces'), findsOneWidget);
+    expect(find.text('Commercial Projects'), findsOneWidget);
   });
 
-  testWidgets("A brand's Home offers all four of its actions as a tile grid", (
+  testWidgets("A brand's Home offers all five of its actions as a tile grid", (
     WidgetTester tester,
   ) async {
     Auth.session.value = _fakeBrandSession;
@@ -102,15 +105,16 @@ void main() {
     // The multi-action grid shows each tile's short label, not its full
     // title — the full titles only ever appear as onTap-target content on
     // the screens the tiles push to.
-    expect(find.text('Request'), findsOneWidget);
-    expect(find.text('Franchise'), findsOneWidget);
+    expect(find.text('Location'), findsOneWidget);
+    expect(find.text('Franchisees'), findsOneWidget);
     expect(find.text('Investors'), findsOneWidget);
-    expect(find.text('Browse'), findsOneWidget);
+    expect(find.text('Marketing'), findsOneWidget);
+    expect(find.text('IT'), findsOneWidget);
 
-    // Tapping the franchise tile opens the franchise form specifically,
+    // Tapping the franchisees tile opens the franchise form specifically,
     // not the brand's own — each tile is wired to a different existing
     // form.
-    await tester.tap(find.text('Franchise'));
+    await tester.tap(find.text('Franchisees'));
     await tester.pump();
     await _settle(tester);
     expect(find.text('Your budget, territory and industry interest.'), findsOneWidget);
@@ -137,8 +141,11 @@ void main() {
       Auth.session.value = _fakeBrandSession;
       await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
       await tester.pump();
+      await _settle(tester);
 
-      await tester.tap(find.byIcon(Icons.storefront_outlined));
+      // Reaches the brand's request form via its Home tile now — the
+      // second tab is the shared Opportunities hub, not a per-type form.
+      await tester.tap(find.text('Location'));
       await _settle(tester);
 
       // The form sits directly under the page header now, but the screen

@@ -126,8 +126,8 @@ class HomeScreen extends StatelessWidget {
                 Reveal(
                   index: 0,
                   child: _PromoBanner(
-                    headline: 'Expand Smarter,\nGrow Faster.',
-                    subtitle: 'Your complete platform for brand growth.',
+                    headline: config.promoHeadline!,
+                    subtitle: config.promoSubtitle!,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.heading),
@@ -136,13 +136,18 @@ class HomeScreen extends StatelessWidget {
                   child: _ActionGrid(actions: config.homeActions),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Reveal(index: 2, child: _HighlightRow(cards: _franchiseHighlights)),
+                Reveal(
+                  index: 2,
+                  child: _HighlightRow(
+                    cards: session?.orgType == 'brand'
+                        ? _franchiseHighlights
+                        : _trustHighlights(context),
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 Reveal(
                   index: 3,
-                  child: _MarketingBanner(
-                    text: 'We scale local marketing for multi-location brands.',
-                  ),
+                  child: _MarketingBanner(text: config.marketingBannerText!),
                 ),
                 const SizedBox(height: AppSpacing.section),
                 const Eyebrow('All actions'),
@@ -247,9 +252,12 @@ class _PromoBanner extends StatelessWidget {
   }
 }
 
-/// The compact icon-tile row — one square per action, all four visible at
-/// once rather than a full-width scrollable list, for accounts with
-/// several things to do from Home (only brand, today).
+/// The compact icon-tile grid — one square per action, all visible at once
+/// rather than a full-width scrollable list, for accounts with several
+/// things to do from Home. Fixed-width tiles wrapped into rows (rather
+/// than always stretching to fill one row) so a 2-action type doesn't get
+/// two oversized tiles and a 5-action type doesn't get five cramped ones —
+/// account types now range from 2 to 5 actions.
 class _ActionGrid extends StatelessWidget {
   final List<HomeAction> actions;
 
@@ -257,13 +265,20 @@ class _ActionGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (var i = 0; i < actions.length; i++) ...[
-          if (i > 0) const SizedBox(width: AppSpacing.sm),
-          Expanded(child: _ActionTile(action: actions[i])),
-        ],
-      ],
+    final columns = actions.length <= 4 ? actions.length : 3;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tileWidth = (constraints.maxWidth - AppSpacing.sm * (columns - 1)) / columns;
+        return Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            for (final action in actions)
+              SizedBox(width: tileWidth, child: _ActionTile(action: action)),
+          ],
+        );
+      },
     );
   }
 }

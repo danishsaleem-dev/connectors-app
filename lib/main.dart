@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'data/account_type_config.dart';
 import 'data/api_client.dart';
 import 'data/auth_state.dart';
 import 'data/session_storage.dart';
@@ -8,6 +7,7 @@ import 'screens/account_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/messages_screen.dart';
 import 'screens/notifications_screen.dart';
+import 'screens/opportunities_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'theme/app_theme.dart';
@@ -100,8 +100,8 @@ class _AppRootState extends State<AppRoot> {
 }
 
 /// The signed-in app — 5 tabs per the business-logic doc's bottom-nav spec:
-/// Home, Opportunities (the account type's one primary action — content
-/// varies by type, same as before, just under a consistent label now),
+/// Home, Opportunities (a shared category-browsing hub now — see
+/// OpportunitiesScreen — rather than the old per-type primary form),
 /// Messages and Notifications (both UI-only placeholders, no backend yet),
 /// and Profile. No app bar — nothing left to put in one once the logo and
 /// the old Menu/Account icons moved into the tabs and Home's own profile
@@ -120,11 +120,15 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final config = configFor(Auth.session.value?.orgType);
+    final orgType = Auth.session.value?.orgType;
 
     final navItems = [
       const NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
-      NavItem(icon: config.tabIcon, activeIcon: config.tabActiveIcon, label: 'Opportunities'),
+      const NavItem(
+        icon: Icons.travel_explore_outlined,
+        activeIcon: Icons.travel_explore_rounded,
+        label: 'Opportunities',
+      ),
       const NavItem(
         icon: Icons.chat_bubble_outline_rounded,
         activeIcon: Icons.chat_bubble_rounded,
@@ -144,7 +148,7 @@ class _AppShellState extends State<AppShell> {
 
     final pages = [
       const HomeScreen(),
-      config.buildPrimaryScreen(),
+      OpportunitiesScreen(orgType: orgType),
       const MessagesBody(),
       const NotificationsBody(),
       const AccountBody(),
