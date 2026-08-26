@@ -277,10 +277,11 @@ class _PromoBanner extends StatelessWidget {
   }
 }
 
-/// The compact icon-tile row — one square per action, all visible on a
-/// single line (account types now range from 2 to 5 actions; tiles just
-/// get narrower as the count goes up, rather than wrapping to a second
-/// row).
+/// A 3-per-row grid of action tiles — bigger cards, no icon badge circle,
+/// bold label underneath (matching a reference the app should follow:
+/// plain white cards with a soft shadow, icon and text floating directly
+/// on the card). Wraps to further rows past 3, rather than the old
+/// always-one-line squeeze.
 class _ActionGrid extends StatelessWidget {
   final List<HomeAction> actions;
 
@@ -288,13 +289,17 @@ class _ActionGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (var i = 0; i < actions.length; i++) ...[
-          if (i > 0) const SizedBox(width: AppSpacing.sm),
-          Expanded(child: _ActionTile(action: actions[i])),
-        ],
-      ],
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: AppSpacing.sm,
+        crossAxisSpacing: AppSpacing.sm,
+        childAspectRatio: 0.92,
+      ),
+      itemCount: actions.length,
+      itemBuilder: (context, i) => _ActionTile(action: actions[i]),
     );
   }
 }
@@ -308,36 +313,30 @@ class _ActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.white,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         onTap: () => _openAction(context, action),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: cardShadow(opacity: 0.05),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: cardShadow(opacity: 0.06),
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.violet600.withValues(alpha: 0.10),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(action.icon, color: AppColors.violet600, size: 18),
-              ),
-              const SizedBox(height: 8),
+              Icon(action.icon, color: AppColors.violet600, size: 34),
+              const SizedBox(height: 12),
               Text(
                 action.tileLabel,
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 12),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontSize: 13.5),
               ),
             ],
           ),
