@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/site_data.dart';
+import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import 'eyebrow.dart';
 import 'reveal.dart';
@@ -45,14 +46,23 @@ class _OfficeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.grey200),
+        boxShadow: cardShadow(opacity: 0.05),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(color: AppColors.violet50, shape: BoxShape.circle),
+            child: const Icon(Icons.location_on_rounded, color: AppColors.violet600, size: 19),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
