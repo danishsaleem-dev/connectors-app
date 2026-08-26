@@ -4,6 +4,7 @@ import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
 import '../widgets/info_list.dart';
+import '../widgets/page_header.dart';
 import '../widgets/reveal.dart';
 import '../widgets/section_intro.dart';
 
@@ -25,45 +26,49 @@ class PartnersBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.page,
-        AppSpacing.sm,
-        AppSpacing.page,
-        AppSpacing.section,
-      ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 110),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'The people who actually build the openings we broker.',
-            style: Theme.of(context).textTheme.headlineMedium,
+          const PageHeader(
+            icon: Icons.diversity_3_rounded,
+            title: 'Partners',
+            lead: 'The people who actually build the openings we broker.',
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'A vetted bench of designers, architects, interior '
-            'specialists, agencies, consultants and contractors we can '
-            'put in front of a brand the day the lease is signed.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'A vetted bench of designers, architects, interior '
+                  'specialists, agencies, consultants and contractors we can '
+                  'put in front of a brand the day the lease is signed.',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+                ),
+                const SizedBox(height: AppSpacing.section),
+                const SectionIntro(eyebrow: 'Six disciplines', title: 'One bench, every trade.'),
+                const SizedBox(height: AppSpacing.sm),
+                InfoList(
+                  items: [
+                    for (final d in PartnersData.disciplines)
+                      InfoItem(icon: _icons[d.key] ?? Icons.circle, title: d.title, body: d.body),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.section),
+                const SectionIntro(eyebrow: 'What you get', title: 'Why vendors stay on the bench.'),
+                const SizedBox(height: AppSpacing.heading),
+                for (var i = 0; i < PartnersData.benefits.length; i++) ...[
+                  if (i > 0) const SizedBox(height: AppSpacing.lg),
+                  Reveal(index: i, child: _BenefitRow(benefit: PartnersData.benefits[i])),
+                ],
+                const SizedBox(height: AppSpacing.section),
+                const EnquireCta(message: 'Questions before you apply? Email our team.'),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.section),
-          const SectionIntro(eyebrow: 'Six disciplines', title: 'One bench, every trade.'),
-          const SizedBox(height: AppSpacing.sm),
-          InfoList(
-            items: [
-              for (final d in PartnersData.disciplines)
-                InfoItem(icon: _icons[d.key] ?? Icons.circle, title: d.title, body: d.body),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.section),
-          const SectionIntro(eyebrow: 'What you get', title: 'Why vendors stay on the bench.'),
-          const SizedBox(height: AppSpacing.heading),
-          for (var i = 0; i < PartnersData.benefits.length; i++) ...[
-            if (i > 0) const SizedBox(height: AppSpacing.lg),
-            Reveal(index: i, child: _BenefitRow(benefit: PartnersData.benefits[i])),
-          ],
-          const SizedBox(height: AppSpacing.section),
-          const EnquireCta(message: 'Questions before you apply? Email our team.'),
         ],
       ),
     );

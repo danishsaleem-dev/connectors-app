@@ -3,6 +3,7 @@ import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
 import '../widgets/info_list.dart';
+import '../widgets/page_header.dart';
 import '../widgets/process_steps.dart';
 import '../widgets/section_intro.dart';
 
@@ -49,37 +50,41 @@ class ConsultantsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.page,
-        AppSpacing.sm,
-        AppSpacing.page,
-        AppSpacing.section,
-      ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 110),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Advice from people who do this for a living.',
-            style: Theme.of(context).textTheme.headlineMedium,
+          const PageHeader(
+            icon: Icons.groups_rounded,
+            title: 'Consultants',
+            lead: 'Advice from people who do this for a living.',
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Site selection, feasibility and franchise structuring — '
-            "Connectors' own consultancy, available whether or not "
-            "you're already working with us on an expansion.",
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Site selection, feasibility and franchise structuring — '
+                  "Connectors' own consultancy, available whether or not "
+                  "you're already working with us on an expansion.",
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+                ),
+                const SizedBox(height: AppSpacing.section),
+                const SectionIntro(eyebrow: 'Who we help', title: 'Wherever you sit in the deal.'),
+                const SizedBox(height: AppSpacing.sm),
+                const InfoList(items: _audiences),
+                const SizedBox(height: AppSpacing.section),
+                const SectionIntro(eyebrow: 'How it works', title: 'Three steps to an engagement.'),
+                const SizedBox(height: AppSpacing.heading),
+                const ProcessSteps(steps: _steps),
+                const SizedBox(height: AppSpacing.section),
+                const EnquireCta(message: 'Need a consultant? Email our team.'),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.section),
-          const SectionIntro(eyebrow: 'Who we help', title: 'Wherever you sit in the deal.'),
-          const SizedBox(height: AppSpacing.sm),
-          const InfoList(items: _audiences),
-          const SizedBox(height: AppSpacing.section),
-          const SectionIntro(eyebrow: 'How it works', title: 'Three steps to an engagement.'),
-          const SizedBox(height: AppSpacing.heading),
-          const ProcessSteps(steps: _steps),
-          const SizedBox(height: AppSpacing.section),
-          const EnquireCta(message: 'Need a consultant? Email our team.'),
         ],
       ),
     );
