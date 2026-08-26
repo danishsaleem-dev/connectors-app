@@ -42,6 +42,11 @@ class MessagesBody extends StatelessWidget {
   }
 }
 
+/// Read by the bottom nav to show an unread badge — same sample data the
+/// screen itself renders, so the badge count and what you see on opening
+/// the tab never disagree.
+int get unreadMessagesCount => _sampleThreads.where((t) => t.unread).length;
+
 class _Thread {
   final String name;
   final String preview;

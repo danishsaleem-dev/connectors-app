@@ -129,15 +129,17 @@ class _AppShellState extends State<AppShell> {
         activeIcon: Icons.travel_explore_rounded,
         label: 'Opportunities',
       ),
-      const NavItem(
+      NavItem(
         icon: Icons.chat_bubble_outline_rounded,
         activeIcon: Icons.chat_bubble_rounded,
         label: 'Messages',
+        badgeCount: unreadMessagesCount,
       ),
-      const NavItem(
+      NavItem(
         icon: Icons.notifications_outlined,
         activeIcon: Icons.notifications_rounded,
         label: 'Notifications',
+        badgeCount: unreadNotificationsCount,
       ),
       const NavItem(
         icon: Icons.person_outline_rounded,

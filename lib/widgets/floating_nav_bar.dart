@@ -6,7 +6,16 @@ class NavItem {
   final IconData activeIcon;
   final String label;
 
-  const NavItem({required this.icon, required this.activeIcon, required this.label});
+  /// 0 (the default) shows no badge. A count > 0 shows a small red dot —
+  /// or the number itself, once it's more than a glance can convey.
+  final int badgeCount;
+
+  const NavItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    this.badgeCount = 0,
+  });
 }
 
 /// A floating, rounded nav bar inset from the screen edges with a sliding
@@ -97,7 +106,7 @@ class _NavButton extends StatelessWidget {
     // semantics announcement so screen readers get it even though sighted
     // users don't see it.
     return Semantics(
-      label: item.label,
+      label: item.badgeCount > 0 ? '${item.label}, ${item.badgeCount} unread' : item.label,
       button: true,
       selected: selected,
       child: Material(
@@ -106,12 +115,66 @@ class _NavButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           onTap: onTap,
           child: Center(
-            child: Icon(
-              selected ? item.activeIcon : item.icon,
-              color: selected ? AppColors.violet600 : AppColors.grey300,
-              size: 24,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  selected ? item.activeIcon : item.icon,
+                  color: selected ? AppColors.violet600 : AppColors.grey300,
+                  size: 24,
+                ),
+                if (item.badgeCount > 0)
+                  Positioned(
+                    right: -6,
+                    top: -4,
+                    child: _Badge(count: item.badgeCount),
+                  ),
+              ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final int count;
+
+  const _Badge({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    // A plain dot up to a couple of unread items; beyond that a glance at
+    // a dot doesn't tell you much, so switch to a number.
+    if (count <= 2) {
+      return Container(
+        width: 9,
+        height: 9,
+        decoration: BoxDecoration(
+          color: const Color(0xFFE5484D),
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.white, width: 1.5),
+        ),
+      );
+    }
+    return Container(
+      constraints: const BoxConstraints(minWidth: 16),
+      height: 16,
+      padding: const EdgeInsets.symmetric(horizontal: 3),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE5484D),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.white, width: 1.5),
+      ),
+      child: Text(
+        count > 99 ? '99+' : '$count',
+        style: const TextStyle(
+          color: AppColors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          height: 1,
         ),
       ),
     );

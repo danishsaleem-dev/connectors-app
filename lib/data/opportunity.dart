@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+import '../theme/colors.dart';
+
+const _coverPalette = [
+  [AppColors.violet700, AppColors.violet600],
+  [AppColors.violet600, AppColors.violet400],
+  [AppColors.ink, AppColors.violet900],
+  [AppColors.violet900, AppColors.violet700],
+];
 
 /// One listing shown under the Opportunities tab. **Mock data throughout —
 /// nothing here is fetched from a backend.** The real property browsing
@@ -47,6 +55,13 @@ class OpportunityListing {
   }
 
   String? get feeDisplay => franchiseFee == null ? null : '${_money(franchiseFee!)} fee';
+
+  /// No real photos behind this mock data, so each card/detail page gets a
+  /// deterministic gradient cover instead of plain text running straight
+  /// into the page background — stable per listing (keyed off `id`, not
+  /// random) so it doesn't flicker between a different pair on rebuild.
+  /// Stays inside the brand's existing violet/ink palette.
+  List<Color> get coverColors => _coverPalette[id.hashCode.abs() % _coverPalette.length];
 
   String? get sizeDisplay => sizeSqft == null ? null : '$sizeSqft sq ft';
 }

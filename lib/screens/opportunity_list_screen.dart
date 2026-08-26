@@ -4,6 +4,7 @@ import '../data/opportunity_filters.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/opportunity_cover.dart';
 import '../widgets/reveal.dart';
 import 'opportunity_detail_screen.dart';
 
@@ -370,81 +371,101 @@ class _OpportunityCard extends StatelessWidget {
           MaterialPageRoute(builder: (_) => OpportunityDetailScreen(listing: listing)),
         ),
         child: Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             boxShadow: cardShadow(opacity: 0.05),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(listing.title, style: Theme.of(context).textTheme.titleLarge),
-                  ),
-                  if (listing.featured) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.violet50,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        'Featured',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelMedium
-                            ?.copyWith(color: AppColors.violet600),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 3),
-              Row(
-                children: [
-                  const Icon(Icons.place_outlined, size: 14, color: AppColors.grey300),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${listing.city}, ${listing.country}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                listing.description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
-              ),
-              if (meta.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
                   children: [
-                    for (final m in meta)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: AppColors.grey50,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          m,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
-                              ?.copyWith(color: AppColors.grey500, fontWeight: FontWeight.w500),
+                    OpportunityCover(listing: listing),
+                    if (listing.featured)
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            'Featured',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(color: AppColors.violet600),
+                          ),
                         ),
                       ),
                   ],
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(listing.title, style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          const Icon(Icons.place_outlined, size: 14, color: AppColors.grey300),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${listing.city}, ${listing.country}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(color: AppColors.grey500),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        listing.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: AppColors.grey500),
+                      ),
+                      if (meta.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final m in meta)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: AppColors.grey50,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  m,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium
+                                      ?.copyWith(
+                                        color: AppColors.grey500,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
-            ],
+            ),
           ),
         ),
       ),
