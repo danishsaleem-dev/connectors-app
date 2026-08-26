@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/eyebrow.dart';
+import '../widgets/feature_card.dart';
 import '../widgets/reveal.dart';
 import 'chat_screen.dart';
 import 'contact_screen.dart';
@@ -150,7 +151,14 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.heading),
                 for (var i = 0; i < config.homeActions.length; i++) ...[
                   if (i > 0) const SizedBox(height: AppSpacing.sm),
-                  Reveal(index: i + 4, child: _DetailedActionCard(action: config.homeActions[i])),
+                  Reveal(
+                    index: i + 4,
+                    child: FeatureCard(
+                      title: config.homeActions[i].title,
+                      body: config.homeActions[i].body,
+                      onTap: () => _openAction(context, config.homeActions[i]),
+                    ),
+                  ),
                 ],
               ] else ...[
                 // Single-action types (everyone but brand) get the same
@@ -167,7 +175,14 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.heading),
-                Reveal(index: 1, child: _DetailedActionCard(action: config.homeActions.first)),
+                Reveal(
+                  index: 1,
+                  child: FeatureCard(
+                    title: config.homeActions.first.title,
+                    body: config.homeActions.first.body,
+                    onTap: () => _openAction(context, config.homeActions.first),
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 Reveal(index: 2, child: _HighlightRow(cards: _trustHighlights(context))),
                 const SizedBox(height: AppSpacing.lg),
@@ -538,63 +553,4 @@ class _MarketingBanner extends StatelessWidget {
   }
 }
 
-/// The full descriptive version of the same actions the icon grid already
-/// shows compactly — title, body copy and a double-chevron badge instead
-/// of icon-left/chevron-right, matching the reference's row-card layout.
-class _DetailedActionCard extends StatelessWidget {
-  final HomeAction action;
-
-  const _DetailedActionCard({required this.action});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => _openAction(context, action),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: cardShadow(opacity: 0.05),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(action.title, style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 3),
-                    Text(
-                      action.body,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AppColors.grey500),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.violet200),
-                ),
-                child: const Icon(Icons.keyboard_double_arrow_right_rounded,
-                    color: AppColors.violet600, size: 20),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 

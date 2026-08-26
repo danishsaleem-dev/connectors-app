@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
+import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/feature_card.dart';
 import '../widgets/info_list.dart';
+import '../widgets/reveal.dart';
 import 'contact_screen.dart';
 
 /// The account tab — no session param, unlike a pushed screen would need:
@@ -47,89 +50,126 @@ class AccountBody extends StatelessWidget {
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
-            AppSpacing.sm,
+            AppSpacing.md,
             AppSpacing.page,
             AppSpacing.section,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      color: AppColors.violet600,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      session.name.trim().isEmpty ? '?' : session.name.trim()[0].toUpperCase(),
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(color: AppColors.white),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(session.name, style: Theme.of(context).textTheme.headlineMedium),
-                        const SizedBox(height: 2),
-                        Text(
-                          session.orgName ??
-                              (session.isAdmin ? 'Connectors team' : 'Signed in'),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: AppColors.grey500),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Text(
-                'Your dashboard, documents and requests live on the '
-                'Connectors portal — this opens it in your browser, already '
-                'signed in.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _openPortal(context),
-                  child: const Text('Open the portal'),
+              Reveal(index: 0, child: _ProfileCard(session: session)),
+              const SizedBox(height: AppSpacing.lg),
+              Reveal(
+                index: 1,
+                child: FeatureCard(
+                  title: 'Open the Portal',
+                  body: 'Your dashboard, documents and requests, already signed in.',
+                  onTap: () => _openPortal(context),
                 ),
               ),
               const SizedBox(height: AppSpacing.section),
-              InfoList(
-                items: [
-                  InfoItem(
-                    icon: Icons.call_outlined,
-                    title: 'Contact',
-                    body: 'Our three offices, and how to reach them.',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ContactScreen()),
-                    ),
+              Reveal(
+                index: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: cardShadow(opacity: 0.05),
                   ),
-                  InfoItem(
-                    icon: Icons.logout_rounded,
-                    title: 'Sign out',
-                    body: "You'll need to sign in again next time.",
-                    onTap: Auth.signOut,
+                  child: InfoList(
+                    items: [
+                      InfoItem(
+                        icon: Icons.call_outlined,
+                        title: 'Contact',
+                        body: 'Our three offices, and how to reach them.',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const ContactScreen()),
+                        ),
+                      ),
+                      InfoItem(
+                        icon: Icons.logout_rounded,
+                        title: 'Sign out',
+                        body: "You'll need to sign in again next time.",
+                        onTap: Auth.signOut,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+/// A premium identity moment for a screen that's otherwise all utility —
+/// the same violet-gradient language as Home's promo banner, but built
+/// around who's signed in rather than what they can do.
+class _ProfileCard extends StatelessWidget {
+  final AuthResult session;
+
+  const _ProfileCard({required this.session});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.violet700, AppColors.violet600],
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(color: AppColors.white, shape: BoxShape.circle),
+            child: Text(
+              session.name.trim().isEmpty ? '?' : session.name.trim()[0].toUpperCase(),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineMedium
+                  ?.copyWith(color: AppColors.violet600),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  session.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(color: AppColors.white),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  session.orgName ?? (session.isAdmin ? 'Connectors team' : 'Signed in'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: AppColors.white.withValues(alpha: 0.78)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
