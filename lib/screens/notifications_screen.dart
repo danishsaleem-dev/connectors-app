@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/app_card.dart';
 import '../widgets/page_header.dart';
 import '../widgets/reveal.dart';
 import 'notification_detail_screen.dart';
@@ -93,25 +93,18 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: item.unread ? AppColors.violet600.withValues(alpha: 0.08) : AppColors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => NotificationDetailScreen(item: item)),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            // Unread gets a clearly-primary-tinted card, not just a shade
-            // off white — the icon badge inverts to a solid fill too, so
-            // an unread notification reads as highlighted at a glance, not
-            // just faintly different.
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: cardShadow(opacity: 0.05),
-          ),
-          child: Row(
+    // Unread gets a clearly-primary-tinted card, not just a shade off
+    // white — the icon badge inverts to a solid fill too, so an unread
+    // notification reads as highlighted at a glance, not just faintly
+    // different.
+    return AppCard(
+      radius: 16,
+      padding: const EdgeInsets.all(14),
+      color: item.unread ? const Color(0xFFF0EBF9) : AppColors.white,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => NotificationDetailScreen(item: item)),
+      ),
+      child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
@@ -155,8 +148,6 @@ class _NotificationCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/opportunity.dart';
-import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/app_card.dart';
 import '../widgets/page_header.dart';
 import '../widgets/reveal.dart';
 import 'locations_screen.dart';
@@ -73,71 +73,53 @@ class _CategoryCard extends StatelessWidget {
     // instead of shadowing it with the mock category list.
     final useRealLocations = category.key == 'locations' && orgType == 'brand';
 
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => useRealLocations
-                ? const LocationsScreen()
-                : OpportunityListScreen(category: category),
-          ),
+    return AppCard(
+      padding: const EdgeInsets.all(16),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => useRealLocations
+              ? const LocationsScreen()
+              : OpportunityListScreen(category: category),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: cardShadow(),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.violet600.withValues(alpha: 0.08),
-                          AppColors.violet600.withValues(alpha: 0.16),
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(category.icon, color: AppColors.violet600, size: 21),
-                  ),
-                  Icon(Icons.arrow_outward_rounded, size: 16, color: AppColors.grey200),
-                ],
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: AppColors.violet50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(category.icon, color: AppColors.violet600, size: 21),
               ),
-              const SizedBox(height: 14),
-              Text(
-                category.label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                category.description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AppColors.grey500, fontSize: 12.5),
-              ),
+              const Icon(Icons.arrow_outward_rounded, size: 16, color: AppColors.grey300),
             ],
           ),
-        ),
+          const SizedBox(height: 14),
+          Text(
+            category.label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            category.description,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppColors.grey500, fontSize: 12.5),
+          ),
+        ],
       ),
     );
   }

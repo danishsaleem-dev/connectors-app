@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../data/opportunity.dart';
 import '../data/opportunity_filters.dart';
-import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/app_card.dart';
 import '../widgets/opportunity_cover.dart';
 import '../widgets/reveal.dart';
 import 'opportunity_detail_screen.dart';
@@ -362,22 +362,11 @@ class _OpportunityCard extends StatelessWidget {
       listing.sizeDisplay,
     ].whereType<String>().toList();
 
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => OpportunityDetailScreen(listing: listing)),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: cardShadow(opacity: 0.05),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: Column(
+    return AppCard(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => OpportunityDetailScreen(listing: listing)),
+      ),
+      child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Stack(
@@ -466,9 +455,6 @@ class _OpportunityCard extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
     );
   }
 }

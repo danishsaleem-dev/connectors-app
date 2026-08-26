@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../data/api_client.dart';
 import '../data/location.dart';
 import '../data/location_filters.dart';
-import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/app_card.dart';
 import '../widgets/reveal.dart';
 import 'location_detail_screen.dart';
 
@@ -440,20 +440,11 @@ class _LocationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cover = location.photoUrls.isNotEmpty ? location.photoUrls.first : null;
 
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => LocationDetailScreen(location: location)),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: cardShadow(),
-          ),
-          child: Column(
+    return AppCard(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => LocationDetailScreen(location: location)),
+      ),
+      child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
@@ -546,8 +537,6 @@ class _LocationCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }

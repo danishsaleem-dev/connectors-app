@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/app_card.dart';
 import '../widgets/page_header.dart';
 import '../widgets/reveal.dart';
 import 'message_thread_screen.dart';
@@ -88,21 +88,13 @@ class _ThreadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => MessageThreadScreen(thread: thread)),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: cardShadow(opacity: 0.05),
-          ),
-          child: Row(
+    return AppCard(
+      radius: 16,
+      padding: const EdgeInsets.all(14),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => MessageThreadScreen(thread: thread)),
+      ),
+      child: Row(
             children: [
               Container(
                 width: 44,
@@ -161,8 +153,6 @@ class _ThreadCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }

@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "connectors-app",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "C:\\Users\\Danish\\Downloads\\flutter\\bin\\flutter.bat run -d web-server --web-port 3005 --web-hostname localhost"
+      ],
+      "port": 3005
+    }
+  ]
+}
