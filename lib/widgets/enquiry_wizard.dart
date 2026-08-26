@@ -184,7 +184,7 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
           _StepProgress(total: widget.steps.length, current: _stepIndex, title: step.title),
           const SizedBox(height: 20),
           for (var i = 0; i < step.fields.length; i++) ...[
-            if (i > 0) const SizedBox(height: 18),
+            if (i > 0) const SizedBox(height: 14),
             _FieldRenderer(
               field: step.fields[i],
               values: _values,
@@ -240,6 +240,11 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
   }
 }
 
+/// A slim segmented bar rather than the numbered-circles-and-connectors
+/// stepper this replaced — that pattern reads as a website wizard ported
+/// to a phone; a segmented progress bar (the same shape as a story
+/// progress indicator) is the mobile-native equivalent and costs a lot
+/// less vertical space.
 class _StepProgress extends StatelessWidget {
   final int total;
   final int current;
@@ -255,47 +260,38 @@ class _StepProgress extends StatelessWidget {
         Row(
           children: [
             for (var i = 0; i < total; i++) ...[
-              Container(
-                width: 24,
-                height: 24,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: i == current
-                      ? AppColors.violet600
-                      : i < current
-                          ? AppColors.violet50
-                          : AppColors.grey100,
-                ),
-                child: i < current
-                    ? const Icon(Icons.check, size: 13, color: AppColors.violet600)
-                    : Text(
-                        '${i + 1}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: i == current ? AppColors.white : AppColors.grey300,
-                        ),
-                      ),
-              ),
-              if (i < total - 1)
-                Expanded(
-                  child: Container(
-                    height: 1,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    color: i < current ? AppColors.violet200 : AppColors.grey200,
+              if (i > 0) const SizedBox(width: 4),
+              Expanded(
+                child: Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: i <= current ? AppColors.violet600 : AppColors.grey100,
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
+              ),
             ],
           ],
         ),
-        const SizedBox(height: 10),
-        Text(
-          'STEP ${current + 1} OF $total — ${title.toUpperCase()}',
-          style: Theme.of(context)
-              .textTheme
-              .labelMedium
-              ?.copyWith(color: AppColors.violet600, letterSpacing: 1.2),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Text(
+              'Step ${current + 1} of $total',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppColors.violet600),
+            ),
+            Expanded(
+              child: Text(
+                '  ·  $title',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context)
+                    .textTheme
+                    .labelLarge
+                    ?.copyWith(color: AppColors.grey500, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -367,6 +363,50 @@ class _FieldRenderer extends StatelessWidget {
     );
   }
 
+  Widget _floatingLabel(BuildContext context, {String? text}) {
+    return RichText(
+      text: TextSpan(
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+        children: [
+          TextSpan(text: text ?? field.label),
+          if (field.required)
+            const TextSpan(text: ' *', style: TextStyle(color: AppColors.violet400)),
+        ],
+      ),
+    );
+  }
+
+  /// Used by single-line text/date fields — a floating label inside the
+  /// field itself instead of a separate label row above it. That
+  /// above-the-field pattern is a desktop-form convention; collapsing
+  /// label + input into one compact control is the mobile-native
+  /// equivalent, and shaves real vertical space off a 5-field-per-step
+  /// form.
+  InputDecoration _floatingDecoration(BuildContext context, {String? hintText, Widget? label}) {
+    return InputDecoration(
+      label: label ?? _floatingLabel(context),
+      hintText: hintText,
+      filled: true,
+      fillColor: AppColors.grey50,
+      contentPadding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.grey200),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.grey200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.violet600, width: 1.5),
+      ),
+    );
+  }
+
+  /// Used by grouped fields (range, checkboxes, radios, file) where a
+  /// persistent label above makes sense — they aren't a single value a
+  /// floating label could collapse into.
   InputDecoration _decoration(BuildContext context, {String? hintText}) {
     return InputDecoration(
       hintText: hintText,
@@ -392,19 +432,12 @@ class _FieldRenderer extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (field) {
       case TextFieldSpec(:final name, :final keyboardType, :final maxLines, :final hint):
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _label(context),
-            const SizedBox(height: 8),
-            TextField(
-              controller: controllerFor(name),
-              keyboardType: keyboardType,
-              maxLines: maxLines,
-              decoration: _decoration(context, hintText: hint),
-              onChanged: (_) => onChanged(),
-            ),
-          ],
+        return TextField(
+          controller: controllerFor(name),
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          decoration: _floatingDecoration(context, hintText: hint),
+          onChanged: (_) => onChanged(),
         );
 
       case RangeFieldSpec(:final minName, :final maxName):
@@ -439,37 +472,38 @@ class _FieldRenderer extends StatelessWidget {
 
       case DateFieldSpec(:final name):
         final selected = values[name] as DateTime?;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _label(context),
-            const SizedBox(height: 8),
-            InkWell(
+        return InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: selected ?? DateTime.now(),
+              firstDate: DateTime.now().subtract(const Duration(days: 1)),
+              lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+            );
+            if (picked != null) {
+              values[name] = picked;
+              onChanged();
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+            decoration: BoxDecoration(
+              color: AppColors.grey50,
+              border: Border.all(color: AppColors.grey200),
               borderRadius: BorderRadius.circular(12),
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: selected ?? DateTime.now(),
-                  firstDate: DateTime.now().subtract(const Duration(days: 1)),
-                  lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
-                );
-                if (picked != null) {
-                  values[name] = picked;
-                  onChanged();
-                }
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.grey50,
-                  border: Border.all(color: AppColors.grey200),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _floatingLabel(context),
+                const SizedBox(height: 3),
+                Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.grey500),
-                    const SizedBox(width: 10),
+                    const Icon(Icons.calendar_today_outlined, size: 15, color: AppColors.grey500),
+                    const SizedBox(width: 8),
                     Text(
                       selected == null
                           ? 'Select a date'
@@ -478,9 +512,9 @@ class _FieldRenderer extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         );
 
       case CheckboxGroupSpec(:final name, :final options, :final hint, :final otherFieldName):

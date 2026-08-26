@@ -93,32 +93,25 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
+    // Icon only, no label underneath — the label still exists as a
+    // semantics announcement so screen readers get it even though sighted
+    // users don't see it.
+    return Semantics(
+      label: item.label,
+      button: true,
+      selected: selected,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Center(
+            child: Icon(
               selected ? item.activeIcon : item.icon,
               color: selected ? AppColors.violet600 : AppColors.grey300,
-              size: 22,
+              size: 24,
             ),
-            const SizedBox(height: 3),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                    color: selected ? AppColors.violet600 : AppColors.grey300,
-                    fontSize: 9.5,
-                  ),
-              // Longer labels (Notifications, Opportunities) get tight at 5
-              // tabs — clip rather than wrap, since a wrapped second line
-              // would overflow this bar's fixed height.
-              child: Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
-            ),
-          ],
+          ),
         ),
       ),
     );

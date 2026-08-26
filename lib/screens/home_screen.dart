@@ -329,7 +329,10 @@ class _HighlightCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        color: AppColors.white,
+        // A light tint of the card's own accent, not plain white — enough
+        // to read as "coloured" without going back to the heavy solid
+        // fill this replaced.
+        color: accentColor.withValues(alpha: 0.06),
         child: Stack(
           children: [
             Positioned.fill(
@@ -398,7 +401,7 @@ class _DotPatternPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color.withValues(alpha: 0.05);
+    final paint = Paint()..color = color.withValues(alpha: 0.14);
     const spacing = 14.0;
     const radius = 1.3;
     for (var y = spacing / 2; y < size.height; y += spacing) {

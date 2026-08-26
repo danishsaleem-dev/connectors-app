@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/site_data.dart';
 import '../theme/colors.dart';
+import '../widgets/gradient_background.dart';
 import '../widgets/orbit_field.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
@@ -17,16 +18,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.violet900, AppColors.violet700, AppColors.ink],
-          ),
-        ),
+      body: GradientBackground(
         child: Stack(
           children: [
             Positioned(

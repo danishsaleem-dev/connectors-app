@@ -90,7 +90,11 @@ class _NotificationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: item.unread ? AppColors.violet50 : AppColors.white,
+        // Unread gets a clearly-primary-tinted card, not just a shade off
+        // white — the icon badge inverts to a solid fill too, so an unread
+        // notification reads as highlighted at a glance, not just faintly
+        // different.
+        color: item.unread ? AppColors.violet600.withValues(alpha: 0.08) : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: cardShadow(opacity: 0.05),
       ),
@@ -101,8 +105,15 @@ class _NotificationCard extends StatelessWidget {
             width: 40,
             height: 40,
             alignment: Alignment.center,
-            decoration: const BoxDecoration(color: AppColors.white, shape: BoxShape.circle),
-            child: Icon(item.icon, color: AppColors.violet600, size: 19),
+            decoration: BoxDecoration(
+              color: item.unread ? AppColors.violet600 : AppColors.violet50,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              item.icon,
+              color: item.unread ? AppColors.white : AppColors.violet600,
+              size: 19,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

@@ -1,31 +1,24 @@
 import 'package:flutter/material.dart';
 import '../data/site_data.dart';
 import '../theme/colors.dart';
+import '../widgets/gradient_background.dart';
 import '../widgets/orbit_field.dart';
 
 /// The very first thing shown, while AppRoot checks a stored session
-/// against the server. Same violet gradient as WelcomeScreen — this is a
-/// continuation of that one branded moment, not a second one. The orbit
-/// mark is centered and much more visible here (it's the entire point of
-/// the screen) and spins fast enough — 12s a turn, versus the 90s ambient
-/// drift used everywhere else it appears — to actually read as motion over
-/// a splash-length view. The small spinner below is what signals "loading."
+/// against the server. Same layered gradient as WelcomeScreen/AuthShell —
+/// this is a continuation of that one branded moment, not a second one.
+/// The orbit mark is centered and much more visible here (it's the entire
+/// point of the screen) and spins fast enough — 12s a turn, versus the 90s
+/// ambient drift used everywhere else it appears — to actually read as
+/// motion over a splash-length view. The small spinner below is what
+/// signals "loading."
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.violet900, AppColors.violet700, AppColors.ink],
-          ),
-        ),
+      body: GradientBackground(
         child: SafeArea(
           child: Column(
             children: [

@@ -149,14 +149,15 @@ void main() {
       await tester.scrollUntilVisible(find.text('Next'), 400, scrollable: find.byType(Scrollable).first);
       await _settle(tester);
 
-      expect(find.text('STEP 1 OF 5 — COMPANY INFORMATION'), findsOneWidget);
+      expect(find.text('Step 1 of 5'), findsOneWidget);
+      expect(find.textContaining('Company Information'), findsOneWidget);
 
       // Tapping Next with every field empty should surface the step error
       // and keep step 1 on screen.
       await tester.tap(find.text('Next'));
       await _settle(tester);
       expect(find.textContaining('Fill in'), findsOneWidget);
-      expect(find.text('STEP 1 OF 5 — COMPANY INFORMATION'), findsOneWidget);
+      expect(find.text('Step 1 of 5'), findsOneWidget);
 
       // Fill in every required field on step 1.
       final textFields = find.byType(TextField);
@@ -176,7 +177,8 @@ void main() {
       await tester.tap(find.text('Next'));
       await _settle(tester);
 
-      expect(find.text('STEP 2 OF 5 — EXPANSION REQUIREMENT'), findsOneWidget);
+      expect(find.text('Step 2 of 5'), findsOneWidget);
+      expect(find.textContaining('Expansion Requirement'), findsOneWidget);
     },
   );
 }
