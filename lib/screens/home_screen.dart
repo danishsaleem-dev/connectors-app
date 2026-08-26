@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import '../data/account_type_config.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
+import '../data/site_data.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/eyebrow.dart';
 import '../widgets/reveal.dart';
 import 'chat_screen.dart';
+import 'contact_screen.dart';
 
 const _roleLabels = {
   'brand': 'Brand',
@@ -120,16 +122,27 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.section),
               if (hasMultipleActions) ...[
-                const Reveal(index: 0, child: _PromoBanner()),
+                Reveal(
+                  index: 0,
+                  child: _PromoBanner(
+                    headline: 'Expand Smarter,\nGrow Faster.',
+                    subtitle: 'Your complete platform for brand growth.',
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.heading),
                 Reveal(
                   index: 1,
                   child: _ActionGrid(actions: config.homeActions),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Reveal(index: 2, child: _HighlightRow()),
+                Reveal(index: 2, child: _HighlightRow(cards: _franchiseHighlights)),
                 const SizedBox(height: AppSpacing.lg),
-                const Reveal(index: 3, child: _MarketingBanner()),
+                Reveal(
+                  index: 3,
+                  child: _MarketingBanner(
+                    text: 'We scale local marketing for multi-location brands.',
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.section),
                 const Eyebrow('All actions'),
                 const SizedBox(height: AppSpacing.sm),
@@ -140,14 +153,28 @@ class HomeScreen extends StatelessWidget {
                   Reveal(index: i + 4, child: _DetailedActionCard(action: config.homeActions[i])),
                 ],
               ] else ...[
-                const Eyebrow('Get started'),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  config.homeActions.first.title,
-                  style: Theme.of(context).textTheme.displaySmall,
+                // Single-action types (everyone but brand) get the same
+                // visual language — banner, feature card, trust cards,
+                // closing CTA — just built around their one real action
+                // instead of four. Banner copy is the action's own
+                // title/body, not new marketing copy, so nothing here
+                // promises anything the account type doesn't already have.
+                Reveal(
+                  index: 0,
+                  child: _PromoBanner(
+                    headline: '${config.homeActions.first.title}.',
+                    subtitle: config.homeActions.first.body,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.heading),
-                Reveal(index: 0, child: _ActionRow(action: config.homeActions.first)),
+                Reveal(index: 1, child: _DetailedActionCard(action: config.homeActions.first)),
+                const SizedBox(height: AppSpacing.lg),
+                Reveal(index: 2, child: _HighlightRow(cards: _trustHighlights(context))),
+                const SizedBox(height: AppSpacing.lg),
+                const Reveal(
+                  index: 3,
+                  child: _MarketingBanner(text: "Questions before you start? We're here to help."),
+                ),
               ],
             ],
           ),
@@ -160,9 +187,13 @@ class HomeScreen extends StatelessWidget {
 /// Replaces the plain "Get started" eyebrow for account types with more
 /// than one action (brand, today) — a compact violet banner rather than a
 /// second big marketing moment, since Home was deliberately cut down to
-/// stay dense-free.
+/// stay dense-free. Also used by every single-action type now, with the
+/// headline/subtitle built from that type's own action copy.
 class _PromoBanner extends StatelessWidget {
-  const _PromoBanner();
+  final String headline;
+  final String subtitle;
+
+  const _PromoBanner({required this.headline, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +212,7 @@ class _PromoBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Expand Smarter,\nGrow Faster.',
+            headline,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: AppColors.white,
                   fontWeight: FontWeight.w700,
@@ -189,7 +220,7 @@ class _PromoBanner extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Your complete platform for brand growth.',
+            subtitle,
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
@@ -270,39 +301,86 @@ class _ActionTile extends StatelessWidget {
   }
 }
 
-/// Two informational highlight cards — deliberately not tappable. Neither
-/// "franchise legends" nor "royalty tracking" has a real feature behind it
-/// yet, so this is presented as a visual only, not a button that would
-/// promise something that isn't built. IntrinsicHeight + stretch keeps both
-/// cards the same height regardless of which title wraps to two lines.
+/// One highlight card's content — deliberately not always tappable.
+/// `onTap` is null for purely informational cards (like the franchise
+/// program badges, which have no real feature behind them yet); pass one
+/// when the card is fronting something real (like Contact).
+class _HighlightData {
+  final IconData icon;
+  final String title;
+  final String statHeadline;
+  final String statSubtitle;
+  final Color accentColor;
+  final VoidCallback? onTap;
+
+  const _HighlightData({
+    required this.icon,
+    required this.title,
+    required this.statHeadline,
+    required this.statSubtitle,
+    required this.accentColor,
+    this.onTap,
+  });
+}
+
+const _franchiseHighlights = [
+  _HighlightData(
+    icon: Icons.workspace_premium_rounded,
+    title: 'Franchise Legends',
+    statHeadline: '100%',
+    statSubtitle: 'Franchisor Support',
+    accentColor: AppColors.violet600,
+  ),
+  _HighlightData(
+    icon: Icons.verified_user_rounded,
+    title: 'Franchise Royalties',
+    statHeadline: 'Secure',
+    statSubtitle: 'Platform Services',
+    accentColor: AppColors.ink,
+  ),
+];
+
+/// Shared by every single-action account type — real, established facts
+/// (office count, response-time promise already used across the enquiry
+/// forms) rather than invented features, since these types don't have a
+/// franchise-program equivalent to show off.
+List<_HighlightData> _trustHighlights(BuildContext context) => [
+      _HighlightData(
+        icon: Icons.public_rounded,
+        title: '${SiteData.offices.length} Offices, One Team',
+        statHeadline: 'Global',
+        statSubtitle: 'UK, US & Pakistan',
+        accentColor: AppColors.violet600,
+        onTap: () =>
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ContactScreen())),
+      ),
+      const _HighlightData(
+        icon: Icons.bolt_rounded,
+        title: 'Fast Response',
+        statHeadline: '1 Day',
+        statSubtitle: 'Typical review time',
+        accentColor: AppColors.ink,
+      ),
+    ];
+
+/// A pair of informational highlight cards. IntrinsicHeight + stretch
+/// keeps both the same height regardless of which title wraps to two
+/// lines.
 class _HighlightRow extends StatelessWidget {
-  const _HighlightRow();
+  final List<_HighlightData> cards;
+
+  const _HighlightRow({required this.cards});
 
   @override
   Widget build(BuildContext context) {
-    return const IntrinsicHeight(
+    return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: _HighlightCard(
-              icon: Icons.workspace_premium_rounded,
-              title: 'Franchise Legends',
-              statHeadline: '100%',
-              statSubtitle: 'Franchisor Support',
-              accentColor: AppColors.violet600,
-            ),
-          ),
-          SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: _HighlightCard(
-              icon: Icons.verified_user_rounded,
-              title: 'Franchise Royalties',
-              statHeadline: 'Secure',
-              statSubtitle: 'Platform Services',
-              accentColor: AppColors.ink,
-            ),
-          ),
+          for (var i = 0; i < cards.length; i++) ...[
+            if (i > 0) const SizedBox(width: AppSpacing.sm),
+            Expanded(child: _HighlightCard(data: cards[i])),
+          ],
         ],
       ),
     );
@@ -310,23 +388,19 @@ class _HighlightRow extends StatelessWidget {
 }
 
 class _HighlightCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String statHeadline;
-  final String statSubtitle;
-  final Color accentColor;
+  final _HighlightData data;
 
-  const _HighlightCard({
-    required this.icon,
-    required this.title,
-    required this.statHeadline,
-    required this.statSubtitle,
-    required this.accentColor,
-  });
+  const _HighlightCard({required this.data});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
+    final icon = data.icon;
+    final title = data.title;
+    final statHeadline = data.statHeadline;
+    final statSubtitle = data.statSubtitle;
+    final accentColor = data.accentColor;
+
+    final content = ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: Container(
         // A light tint of the card's own accent, not plain white — enough
@@ -388,6 +462,18 @@ class _HighlightCard extends StatelessWidget {
         ),
       ),
     );
+
+    if (data.onTap == null) return content;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: data.onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: content,
+      ),
+    );
   }
 }
 
@@ -418,7 +504,9 @@ class _DotPatternPainter extends CustomPainter {
 /// Closing banner — its one action is real (opens the existing chat
 /// screen), unlike the two highlight cards above it.
 class _MarketingBanner extends StatelessWidget {
-  const _MarketingBanner();
+  final String text;
+
+  const _MarketingBanner({required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -432,7 +520,7 @@ class _MarketingBanner extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'We scale local marketing for multi-location brands.',
+              text,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -510,59 +598,3 @@ class _DetailedActionCard extends StatelessWidget {
   }
 }
 
-class _ActionRow extends StatelessWidget {
-  final HomeAction action;
-
-  const _ActionRow({required this.action});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => _openAction(context, action),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: cardShadow(),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: AppColors.violet50,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(action.icon, color: AppColors.violet600, size: 21),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(action.title, style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 2),
-                    Text(
-                      action.body,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AppColors.grey500),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.grey300),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
