@@ -4,6 +4,7 @@ import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/page_header.dart';
 import '../widgets/reveal.dart';
+import 'message_thread_screen.dart';
 
 /// UI-only for now — there's no messaging backend yet (real threads with
 /// the Connectors team, or between accounts). The doc's bottom-nav spec
@@ -29,9 +30,9 @@ class MessagesBody extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
             child: Column(
               children: [
-                for (var i = 0; i < _sampleThreads.length; i++) ...[
+                for (var i = 0; i < sampleThreads.length; i++) ...[
                   if (i > 0) const SizedBox(height: AppSpacing.sm),
-                  Reveal(index: i, child: _ThreadCard(thread: _sampleThreads[i])),
+                  Reveal(index: i, child: _ThreadCard(thread: sampleThreads[i])),
                 ],
               ],
             ),
@@ -45,15 +46,15 @@ class MessagesBody extends StatelessWidget {
 /// Read by the bottom nav to show an unread badge — same sample data the
 /// screen itself renders, so the badge count and what you see on opening
 /// the tab never disagree.
-int get unreadMessagesCount => _sampleThreads.where((t) => t.unread).length;
+int get unreadMessagesCount => sampleThreads.where((t) => t.unread).length;
 
-class _Thread {
+class MessageThread {
   final String name;
   final String preview;
   final String time;
   final bool unread;
 
-  const _Thread({
+  const MessageThread({
     required this.name,
     required this.preview,
     required this.time,
@@ -61,19 +62,19 @@ class _Thread {
   });
 }
 
-const _sampleThreads = [
-  _Thread(
+const sampleThreads = [
+  MessageThread(
     name: 'Connectors — Brand Expansion',
     preview: "We've shortlisted two locations that match your brief.",
     time: '9:40 AM',
     unread: true,
   ),
-  _Thread(
+  MessageThread(
     name: 'Connectors — Franchise Team',
     preview: 'Thanks for the application — reviewing this week.',
     time: 'Yesterday',
   ),
-  _Thread(
+  MessageThread(
     name: 'Connectors Support',
     preview: 'Let us know if you have any questions in the meantime.',
     time: 'Mon',
@@ -81,77 +82,86 @@ const _sampleThreads = [
 ];
 
 class _ThreadCard extends StatelessWidget {
-  final _Thread thread;
+  final MessageThread thread;
 
   const _ThreadCard({required this.thread});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: cardShadow(opacity: 0.05),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(color: AppColors.violet50, shape: BoxShape.circle),
-            child: const Icon(Icons.forum_outlined, color: AppColors.violet600, size: 20),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => MessageThreadScreen(thread: thread)),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: cardShadow(opacity: 0.05),
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  thread.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  thread.preview,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: AppColors.grey500),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Row(
             children: [
-              Text(
-                thread.time,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelMedium
-                    ?.copyWith(color: AppColors.grey300, fontWeight: FontWeight.w500),
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(color: AppColors.violet50, shape: BoxShape.circle),
+                child: const Icon(Icons.forum_outlined, color: AppColors.violet600, size: 20),
               ),
-              if (thread.unread) ...[
-                const SizedBox(height: 6),
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.violet600,
-                    shape: BoxShape.circle,
-                  ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      thread.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      thread.preview,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: AppColors.grey500),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    thread.time,
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelMedium
+                        ?.copyWith(color: AppColors.grey300, fontWeight: FontWeight.w500),
+                  ),
+                  if (thread.unread) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.violet600,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

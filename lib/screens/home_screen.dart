@@ -40,7 +40,12 @@ void _openAction(BuildContext context, HomeAction action) {
 /// ahead of anything useful. Just a profile row (who you are), a chat
 /// entry point, and the action cards that matter for this account type.
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  /// Lets the profile row hand off to the real Profile tab (AppShell owns
+  /// tab switching, not Home) instead of Home pushing its own duplicate
+  /// profile screen.
+  final VoidCallback? onOpenProfile;
+
+  const HomeScreen({super.key, this.onOpenProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -65,44 +70,64 @@ class HomeScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      color: AppColors.violet600,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      (session?.name.trim().isNotEmpty ?? false)
-                          ? session!.name.trim()[0].toUpperCase()
-                          : '?',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(color: AppColors.white),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          session?.name ?? '',
-                          style: Theme.of(context).textTheme.titleLarge,
-                          overflow: TextOverflow.ellipsis,
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: onOpenProfile,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                alignment: Alignment.center,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.violet600,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  (session?.name.trim().isNotEmpty ?? false)
+                                      ? session!.name.trim()[0].toUpperCase()
+                                      : '?',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(color: AppColors.white),
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      session?.name ?? '',
+                                      style: Theme.of(context).textTheme.titleLarge,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      roleLabel,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(color: AppColors.grey500),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (onOpenProfile != null)
+                                const Icon(Icons.chevron_right_rounded, color: AppColors.grey300),
+                            ],
+                          ),
                         ),
-                        Text(
-                          roleLabel,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: AppColors.grey500),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
+                  const SizedBox(width: AppSpacing.sm),
                   Material(
                     color: AppColors.violet50,
                     shape: const CircleBorder(),
@@ -252,12 +277,10 @@ class _PromoBanner extends StatelessWidget {
   }
 }
 
-/// The compact icon-tile grid — one square per action, all visible at once
-/// rather than a full-width scrollable list, for accounts with several
-/// things to do from Home. Fixed-width tiles wrapped into rows (rather
-/// than always stretching to fill one row) so a 2-action type doesn't get
-/// two oversized tiles and a 5-action type doesn't get five cramped ones —
-/// account types now range from 2 to 5 actions.
+/// The compact icon-tile row — one square per action, all visible on a
+/// single line (account types now range from 2 to 5 actions; tiles just
+/// get narrower as the count goes up, rather than wrapping to a second
+/// row).
 class _ActionGrid extends StatelessWidget {
   final List<HomeAction> actions;
 
@@ -265,20 +288,13 @@ class _ActionGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final columns = actions.length <= 4 ? actions.length : 3;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final tileWidth = (constraints.maxWidth - AppSpacing.sm * (columns - 1)) / columns;
-        return Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            for (final action in actions)
-              SizedBox(width: tileWidth, child: _ActionTile(action: action)),
-          ],
-        );
-      },
+    return Row(
+      children: [
+        for (var i = 0; i < actions.length; i++) ...[
+          if (i > 0) const SizedBox(width: AppSpacing.sm),
+          Expanded(child: _ActionTile(action: actions[i])),
+        ],
+      ],
     );
   }
 }

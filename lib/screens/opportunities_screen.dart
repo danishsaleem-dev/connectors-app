@@ -34,20 +34,24 @@ class OpportunitiesScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.xl),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-            child: GridView.count(
-              crossAxisCount: 2,
+            child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: AppSpacing.sm,
-              crossAxisSpacing: AppSpacing.sm,
-              childAspectRatio: 0.98,
-              children: [
-                for (var i = 0; i < categories.length; i++)
-                  Reveal(
-                    index: i,
-                    child: _CategoryCard(category: categories[i], orgType: orgType),
-                  ),
-              ],
+              // A fixed height per cell (not an aspect ratio) — that's what
+              // guarantees every card is actually the same size regardless
+              // of how much its title/description wrap, and gives content
+              // enough room that it doesn't get clipped.
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: AppSpacing.sm,
+                crossAxisSpacing: AppSpacing.sm,
+                mainAxisExtent: 176,
+              ),
+              itemCount: categories.length,
+              itemBuilder: (context, i) => Reveal(
+                index: i,
+                child: _CategoryCard(category: categories[i], orgType: orgType),
+              ),
             ),
           ),
         ],
@@ -85,31 +89,52 @@ class _CategoryCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.violet50),
             boxShadow: cardShadow(opacity: 0.05),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(color: AppColors.violet50, shape: BoxShape.circle),
-                child: Icon(category.icon, color: AppColors.violet600, size: 19),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.violet600.withValues(alpha: 0.08),
+                          AppColors.violet600.withValues(alpha: 0.16),
+                        ],
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(category.icon, color: AppColors.violet600, size: 21),
+                  ),
+                  Icon(Icons.arrow_outward_rounded, size: 16, color: AppColors.grey200),
+                ],
               ),
-              const Spacer(),
-              Text(category.label, style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 14),
+              Text(
+                category.label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 4),
-              Expanded(
-                child: Text(
-                  category.description,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: AppColors.grey500, fontSize: 12.5),
-                ),
+              Text(
+                category.description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.grey500, fontSize: 12.5),
               ),
             ],
           ),

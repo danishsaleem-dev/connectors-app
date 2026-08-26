@@ -149,7 +149,7 @@ class _AppShellState extends State<AppShell> {
     ];
 
     final pages = [
-      const HomeScreen(),
+      HomeScreen(onOpenProfile: () => _goTo(4)),
       OpportunitiesScreen(orgType: orgType),
       const MessagesBody(),
       const NotificationsBody(),
