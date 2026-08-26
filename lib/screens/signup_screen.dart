@@ -5,7 +5,7 @@ import '../data/auth_state.dart';
 import '../theme/colors.dart';
 import '../widgets/auth_shell.dart';
 import '../widgets/form_controls.dart';
-import 'login_screen.dart';
+import 'role_picker_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   /// Preselects the "I am a…" chip — used by screens like Consultants and
@@ -242,7 +242,7 @@ class _SignupScreenState extends State<SignupScreen> {
           Center(
             child: GestureDetector(
               onTap: () => Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const RolePickerScreen()),
               ),
               child: Text.rich(
                 TextSpan(

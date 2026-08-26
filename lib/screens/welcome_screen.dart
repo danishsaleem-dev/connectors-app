@@ -3,7 +3,7 @@ import '../data/site_data.dart';
 import '../theme/colors.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/orbit_field.dart';
-import 'login_screen.dart';
+import 'role_picker_screen.dart';
 import 'signup_screen.dart';
 
 /// The app's front door — shown whenever there's no signed-in session
@@ -86,7 +86,7 @@ class WelcomeScreen extends StatelessWidget {
                           foregroundColor: AppColors.white,
                         ),
                         onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          MaterialPageRoute(builder: (_) => const RolePickerScreen()),
                         ),
                         child: const Text('Sign In'),
                       ),

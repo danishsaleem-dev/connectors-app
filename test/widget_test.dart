@@ -58,6 +58,33 @@ void main() {
     expect(find.textContaining('Sign up now'), findsOneWidget);
   });
 
+  testWidgets('Sign In opens the role picker, and picking a role signs in as that role', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const WelcomeScreen()));
+    await tester.pump();
+
+    await tester.tap(find.text('Sign In'));
+    await tester.pump();
+    await _settle(tester);
+
+    expect(find.text('Preview as...'), findsOneWidget);
+    expect(find.text('Investor'), findsOneWidget);
+
+    // Seven role cards don't all fit the test viewport at once.
+    await tester.scrollUntilVisible(find.text('Investor'), 300, scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('Investor'));
+    await tester.pump();
+
+    // Signing in via the picker doesn't persist a token, but the
+    // in-memory session flips over immediately, same as a real login
+    // would — checked directly here since this test pumps WelcomeScreen
+    // in isolation rather than the full AppRoot boot flow (which would
+    // pull in flutter_secure_storage, unreliable under the test runner —
+    // see the SplashScreen test's comment for why).
+    expect(Auth.session.value?.orgType, 'investor');
+  });
+
   testWidgets('Signed in, the app shell renders with bottom nav and Home active', (
     WidgetTester tester,
   ) async {
