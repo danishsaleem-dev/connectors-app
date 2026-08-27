@@ -8,13 +8,18 @@ const _coverPalette = [
   [AppColors.violet900, AppColors.violet700],
 ];
 
-/// One listing shown under the Opportunities tab. **Mock data throughout —
-/// nothing here is fetched from a backend.** The real property browsing
-/// feature (search/filter over live `properties` rows) already exists as
-/// `LocationsScreen`, brand-only; this is a separate, UI-only preview of
-/// the fuller catalogue the business-logic doc describes across all seven
-/// account types, deliberately kept mock rather than quietly exposing new
-/// real data or new access rules no one has signed off on.
+/// One listing shown under the Opportunities tab for the categories that
+/// are still mock: brands, franchise opportunities and investors. Locations,
+/// Retail Spaces and Commercial Projects moved to real data — they're all
+/// the same live `properties` rows LocationsScreen already serves brand
+/// accounts, just grouped by property type (see opportunities_screen.dart
+/// and location.dart's retailPropertyTypes/commercialPropertyTypes).
+///
+/// The three categories still here would mean exposing *other*
+/// organizations' data (which brands, which franchise opportunities, whose
+/// investor profile) across account types that have no existing access
+/// rule for it — a real product decision, not something to invent
+/// unilaterally. Kept mock until that's actually decided.
 class OpportunityListing {
   final String id;
   final String category;
@@ -328,94 +333,6 @@ const mockOpportunities = [
     description: 'Regional investor group focused on master franchise deals in South Asia.',
   ),
 
-  // Locations
-  OpportunityListing(
-    id: 'l1',
-    category: 'locations',
-    title: 'Riverside Walk Unit 4',
-    city: 'Bristol',
-    country: 'United Kingdom',
-    sizeSqft: 1800,
-    description: 'Ground-floor retail unit on a high-footfall pedestrian route.',
-  ),
-  OpportunityListing(
-    id: 'l2',
-    category: 'locations',
-    title: 'Midtown Plaza Suite 210',
-    city: 'Dallas',
-    country: 'United States',
-    sizeSqft: 3200,
-    description: 'Second-floor commercial suite in a mixed-use development.',
-  ),
-  OpportunityListing(
-    id: 'l3',
-    category: 'locations',
-    title: 'Gulberg Corner Plot',
-    city: 'Lahore',
-    country: 'Pakistan',
-    sizeSqft: 2600,
-    description: 'Corner-facing plot in an established commercial district.',
-    featured: true,
-  ),
-
-  // Retail Spaces
-  OpportunityListing(
-    id: 'r1',
-    category: 'retail',
-    title: 'Harborview Mall Kiosk 12',
-    city: 'Liverpool',
-    country: 'United Kingdom',
-    sizeSqft: 220,
-    description: 'High-traffic kiosk near the food court entrance.',
-  ),
-  OpportunityListing(
-    id: 'r2',
-    category: 'retail',
-    title: 'Sunset Boulevard Showroom',
-    city: 'Los Angeles',
-    country: 'United States',
-    sizeSqft: 4100,
-    description: 'Flagship-scale showroom on a major retail strip.',
-  ),
-  OpportunityListing(
-    id: 'r3',
-    category: 'retail',
-    title: 'DHA Phase 6 Shop 3B',
-    city: 'Karachi',
-    country: 'Pakistan',
-    sizeSqft: 950,
-    description: 'Shop unit in an established residential-commercial district.',
-  ),
-
-  // Commercial Projects
-  OpportunityListing(
-    id: 'c1',
-    category: 'commercial',
-    title: 'The Anchorage Development',
-    city: 'Leeds',
-    country: 'United Kingdom',
-    sizeSqft: 12000,
-    description: 'New-build mixed-use development, pre-leasing office and retail floors.',
-    featured: true,
-  ),
-  OpportunityListing(
-    id: 'c2',
-    category: 'commercial',
-    title: 'Summit Business Park, Block C',
-    city: 'Houston',
-    country: 'United States',
-    sizeSqft: 8600,
-    description: 'Standalone commercial building suited to a flagship or HQ tenant.',
-  ),
-  OpportunityListing(
-    id: 'c3',
-    category: 'commercial',
-    title: 'Bahria Town Commercial Tower',
-    city: 'Islamabad',
-    country: 'Pakistan',
-    sizeSqft: 15000,
-    description: 'Multi-floor commercial tower with office and retail podium.',
-  ),
 ];
 
 List<OpportunityListing> opportunitiesFor(String category) =>

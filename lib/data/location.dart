@@ -93,6 +93,14 @@ const propertyTypeLabels = {
   'mixed_use': 'Mixed use',
 };
 
+/// Which propertyType values back the Opportunities tab's "Retail Spaces"
+/// and "Commercial Projects" category cards — a grouping of the 8 real
+/// property types into the two marketing-facing buckets those cards
+/// promise, not a distinction the backend itself makes. Worth confirming
+/// with the business if any of these feel misplaced.
+const retailPropertyTypes = {'retail_shop', 'kiosk', 'showroom', 'food_court'};
+const commercialPropertyTypes = {'commercial_unit', 'standalone_building', 'office', 'mixed_use'};
+
 /// Same labels as the website's PROPERTY_STATUS_LABEL.
 const propertyStatusLabels = {
   'available': 'Available',

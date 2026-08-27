@@ -14,8 +14,21 @@ import 'location_detail_screen.dart';
 /// "not withdrawn" filter, already applied server-side. Search and filters
 /// below mirror that page's own LocationFilters logic, applied in-memory
 /// over the one fetched list rather than as repeat network requests.
+///
+/// [propertyTypes], when set, pre-restricts the list to that subset of
+/// property types before anything else runs — the Opportunities tab's
+/// "Retail Spaces" and "Commercial Projects" categories are this same real
+/// data, just grouped (see retailPropertyTypes/commercialPropertyTypes),
+/// rather than separate mock content pretending to be a different feature.
 class LocationsScreen extends StatefulWidget {
-  const LocationsScreen({super.key});
+  final String appBarTitle;
+  final Set<String>? propertyTypes;
+
+  const LocationsScreen({
+    super.key,
+    this.appBarTitle = 'Available Locations',
+    this.propertyTypes,
+  });
 
   @override
   State<LocationsScreen> createState() => _LocationsScreenState();
@@ -25,6 +38,12 @@ class _LocationsScreenState extends State<LocationsScreen> {
   late Future<List<Location>> _future;
   final _searchController = TextEditingController();
   LocationFilters _filters = const LocationFilters();
+
+  List<Location> _scoped(List<Location> locations) {
+    final types = widget.propertyTypes;
+    if (types == null) return locations;
+    return locations.where((l) => types.contains(l.propertyType)).toList();
+  }
 
   @override
   void initState() {
@@ -52,7 +71,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Available Locations')),
+      appBar: AppBar(title: Text(widget.appBarTitle)),
       body: SafeArea(
         child: FutureBuilder<List<Location>>(
           future: _future,
@@ -69,7 +88,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
                 onRetry: _retry,
               );
             }
-            final locations = snapshot.data ?? const [];
+            final locations = _scoped(snapshot.data ?? const []);
             if (locations.isEmpty) {
               return const _StatusMessage(
                 icon: Icons.location_off_outlined,
@@ -78,6 +97,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
             }
 
             final cities = locations.map((l) => l.city).toSet().toList()..sort();
+            final availableTypes = widget.propertyTypes ?? propertyTypeLabels.keys.toSet();
             final filtered = locations.where(_filters.matches).toList();
 
             return Column(
@@ -104,6 +124,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
                   child: _FilterBar(
                     filters: _filters,
                     cities: cities,
+                    availableTypes: availableTypes,
                     onStatusChanged: (v) => _updateFilters((f) => f.copyWith(status: () => v)),
                     onTypeChanged: (v) => _updateFilters((f) => f.copyWith(propertyType: () => v)),
                     onSizeChanged: (v) => _updateFilters((f) => f.copyWith(sizeBucket: () => v)),
@@ -207,6 +228,7 @@ String? _sizeBucketLabel(String? value) {
 class _FilterBar extends StatelessWidget {
   final LocationFilters filters;
   final List<String> cities;
+  final Set<String> availableTypes;
   final ValueChanged<String?> onStatusChanged;
   final ValueChanged<String?> onTypeChanged;
   final ValueChanged<String?> onSizeChanged;
@@ -216,6 +238,7 @@ class _FilterBar extends StatelessWidget {
   const _FilterBar({
     required this.filters,
     required this.cities,
+    required this.availableTypes,
     required this.onStatusChanged,
     required this.onTypeChanged,
     required this.onSizeChanged,
@@ -252,7 +275,10 @@ class _FilterBar extends StatelessWidget {
               context,
               title: 'Property type',
               value: filters.propertyType,
-              options: propertyTypeLabels.entries.map((e) => (e.key, e.value)).toList(),
+              options: propertyTypeLabels.entries
+                  .where((e) => availableTypes.contains(e.key))
+                  .map((e) => (e.key, e.value))
+                  .toList(),
               onSelect: onTypeChanged,
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/location.dart';
 import '../data/opportunity.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
@@ -60,6 +61,19 @@ class OpportunitiesScreen extends StatelessWidget {
   }
 }
 
+// Categories backed by real, live property data for brand accounts —
+// "locations" is the unrestricted browse view (LocationsScreen's own Home
+// action), "retail" and "commercial" are that exact same data, just
+// grouped by property type (null means no grouping filter). "brands",
+// "franchise" and "investors" stay mock: showing them for real would mean
+// exposing other organizations' data across account types, which needs a
+// real access-control decision nobody's made yet — see opportunity.dart.
+const _realPropertyCategories = <String, Set<String>?>{
+  'locations': null,
+  'retail': retailPropertyTypes,
+  'commercial': commercialPropertyTypes,
+};
+
 class _CategoryCard extends StatelessWidget {
   final OpportunityCategoryConfig category;
   final String? orgType;
@@ -68,17 +82,18 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // "Locations" already has a real, working browse screen (search +
-    // filters over live property data) for brand accounts — reuse it
-    // instead of shadowing it with the mock category list.
-    final useRealLocations = category.key == 'locations' && orgType == 'brand';
+    final isRealProperty =
+        orgType == 'brand' && _realPropertyCategories.containsKey(category.key);
 
     return AppCard(
       padding: const EdgeInsets.all(16),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => useRealLocations
-              ? const LocationsScreen()
+          builder: (_) => isRealProperty
+              ? LocationsScreen(
+                  appBarTitle: category.key == 'locations' ? 'Available Locations' : category.label,
+                  propertyTypes: _realPropertyCategories[category.key],
+                )
               : OpportunityListScreen(category: category),
         ),
       ),
