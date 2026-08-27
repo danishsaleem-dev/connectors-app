@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'auth_result.dart';
 import 'auth_state.dart';
 import 'location.dart';
+import 'message.dart';
+import 'profile_data.dart';
 
 export 'auth_result.dart' show AuthResult, apiBaseUrl;
 
@@ -47,8 +49,12 @@ class ApiClient {
       orgType: json['orgType'] as String?,
       orgName: json['orgName'] as String?,
       handoffToken: json['handoffToken'] as String?,
+      onboardingCompletedAt: _parseDate(json['onboardingCompletedAt']),
     );
   }
+
+  static DateTime? _parseDate(Object? value) =>
+      value is String ? DateTime.tryParse(value) : null;
 
   /// Called once on app launch with whatever token SessionStorage has, to
   /// find out whether it's still good before deciding to show Welcome or
@@ -63,6 +69,7 @@ class ApiClient {
       sessionToken: storedToken,
       orgType: json['orgType'] as String?,
       orgName: json['orgName'] as String?,
+      onboardingCompletedAt: _parseDate(json['onboardingCompletedAt']),
     );
   }
 
@@ -80,6 +87,50 @@ class ApiClient {
   /// database's enum values itself.
   static Future<void> submitEnquiry(String source, Map<String, dynamic> fields) {
     return _post('/api/mobile/enquiries', {'source': source, ...fields});
+  }
+
+  /// The signed-in org's saved profile — organization core fields plus its
+  /// type-specific profile row. Whatever was saved from the website's own
+  /// onboarding wizard shows up here too; it's the same data.
+  static Future<ProfileData> fetchProfile() async {
+    final json = await _get('/api/mobile/profile');
+    return ProfileData.fromJson(json);
+  }
+
+  /// Saves whatever's currently filled in — every call is a partial save,
+  /// nothing here requires the whole form to be complete. `organizationName`
+  /// /`phone`/`country` are organization-level (not part of `fields`, which
+  /// is only the type-specific profile table's own columns — see
+  /// profile_fields.dart's _organizationStep doc comment for why those
+  /// three are split out). `complete: true` additionally flips
+  /// onboardingCompletedAt server-side, same as finishing the website's
+  /// onboarding wizard.
+  static Future<void> saveProfile({
+    String? organizationName,
+    String? phone,
+    String? country,
+    Map<String, Object?> fields = const {},
+    bool complete = false,
+  }) {
+    return _post('/api/mobile/profile', {
+      'organizationName': ?organizationName,
+      'phone': ?phone,
+      'country': ?country,
+      if (complete) 'complete': true,
+      'fields': fields,
+    });
+  }
+
+  /// The org's one thread with the Connectors team — see /api/mobile/
+  /// messages's doc comment. Oldest first, same order the website renders.
+  static Future<List<Message>> fetchMessages() async {
+    final json = await _get('/api/mobile/messages');
+    final list = (json['messages'] as List).cast<Map<String, dynamic>>();
+    return list.map(Message.fromJson).toList();
+  }
+
+  static Future<void> sendMessage(String body) {
+    return _post('/api/mobile/messages', {'body': body});
   }
 
   /// Brand-only — the endpoint itself enforces this (403s otherwise), same

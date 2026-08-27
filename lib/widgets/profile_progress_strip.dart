@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/auth_state.dart';
 import '../data/profile_fields.dart';
 import '../screens/profile_completion_screen.dart';
 import '../theme/colors.dart';
@@ -21,6 +22,13 @@ class ProfileProgressStrip extends StatelessWidget {
     return ValueListenableBuilder<Map<String, Object>>(
       valueListenable: ProfileDraft.values,
       builder: (context, _, _) {
+        // The server's own record of "done" wins once it exists — a saved
+        // completion shouldn't come back as an unfinished nudge just
+        // because this session's local draft doesn't have every field
+        // ProfileDraft.completion counts (e.g. a checkbox left off is
+        // "answered no", not "unfilled").
+        if (Auth.session.value?.onboardingCompletedAt != null) return const SizedBox.shrink();
+
         final progress = ProfileDraft.completion(orgType);
         if (progress >= 1) return const SizedBox.shrink();
 

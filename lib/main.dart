@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'data/api_client.dart';
 import 'data/auth_state.dart';
+import 'data/message.dart';
+import 'data/profile_fields.dart';
 import 'data/session_storage.dart';
 import 'data/site_data.dart';
 import 'screens/account_screen.dart';
@@ -148,7 +150,61 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _index = 0;
 
-  void _goTo(int index) => setState(() => _index = index);
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+    _loadMessages();
+  }
+
+  // Same fire-and-forget shape as _loadProfile — the nav badge just reads
+  // 0 until this lands, no loading state needed for a number in a corner.
+  Future<void> _loadMessages() async {
+    if (Auth.session.value?.orgType == null) return;
+    try {
+      await MessagesStore.refresh();
+      if (mounted) setState(() {});
+    } catch (_) {
+      // No connection — badge just stays at whatever it already was.
+    }
+  }
+
+  // Fire-and-forget: Home renders immediately either way, and the
+  // completion strip (a ValueListenableBuilder on ProfileDraft.values)
+  // just updates in place once this lands. Runs once per signed-in
+  // session — an admin has no organization/profile to load at all.
+  Future<void> _loadProfile() async {
+    if (Auth.session.value?.orgType == null) return;
+    try {
+      final data = await ApiClient.fetchProfile();
+      final seeded = <String, Object>{};
+      if (data.organizationName != null) seeded['organizationName'] = data.organizationName!;
+      if (data.phone != null) seeded['phone'] = data.phone!;
+      if (data.country != null) seeded['country'] = data.country!;
+      for (final field in profileFieldsFor(data.orgType)) {
+        final value = coerceProfileValue(field, data.profile[field.key]);
+        if (value != null) seeded[field.key] = value;
+      }
+      ProfileDraft.seed(seeded);
+      if (data.onboardingCompletedAt != null && Auth.session.value != null) {
+        Auth.session.value = Auth.session.value!.copyWith(
+          onboardingCompletedAt: data.onboardingCompletedAt,
+        );
+      }
+    } catch (_) {
+      // No connection, or nothing saved yet — the draft just stays empty,
+      // same as before this existed.
+    }
+  }
+
+  void _goTo(int index) {
+    // Messages tab is index 2 — mark whatever's currently loaded as seen
+    // the moment someone actually opens it, not at mount (every tab is
+    // mounted up front inside the IndexedStack below, so initState alone
+    // would mark it seen before it was ever looked at).
+    if (index == 2) MessagesStore.markSeen();
+    setState(() => _index = index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +221,7 @@ class _AppShellState extends State<AppShell> {
         icon: Icons.chat_bubble_outline_rounded,
         activeIcon: Icons.chat_bubble_rounded,
         label: 'Messages',
-        badgeCount: unreadMessagesCount,
+        badgeCount: MessagesStore.unreadCount,
       ),
       NavItem(
         icon: Icons.notifications_outlined,

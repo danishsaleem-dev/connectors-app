@@ -88,6 +88,17 @@ class _SignupScreenState extends State<SignupScreen> {
         discipline: _discipline,
       );
       Auth.signIn(result);
+      // The register endpoint doesn't take phone/country itself (see this
+      // file's own doc comment) — sent on afterward instead, best-effort,
+      // so a save failure here doesn't block getting into the app that was
+      // just successfully created.
+      final phone = _phoneController.text.trim();
+      if (phone.isNotEmpty || _country != null) {
+        ApiClient.saveProfile(
+          phone: phone.isEmpty ? null : phone,
+          country: _country,
+        ).catchError((_) {});
+      }
       if (!mounted) return;
       // AppRoot is listening to Auth.session and has already rebuilt to
       // the signed-in app shell underneath this screen — popping back to

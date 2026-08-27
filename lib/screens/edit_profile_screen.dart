@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import '../data/auth_result.dart';
+import '../data/api_client.dart';
 import '../data/profile_fields.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/app_card.dart';
 import '../widgets/profile_field_input.dart';
 
-/// Editing the account's own details.
-///
-/// UI only — the mobile API has no profile-update endpoint, so Save
-/// reports that rather than pretending to persist. Fields are prefilled
-/// from the live session so the screen shows real values where it has
-/// them; the rest are left genuinely empty rather than filled with
-/// plausible-looking invented details.
+/// Editing the account's own details — the same field definitions and the
+/// same [ProfileDraft] the completion flow uses, so whichever route
+/// someone takes to fill these in, it's one save path, not two that can
+/// drift apart. Organization name/phone/country are in here too (as the
+/// completion flow's own first step), not as a separate name field —
+/// there's no backend for renaming the *user* (display name comes from
+/// the account itself, not something either surface lets you change), so
+/// this only offers to edit what's actually saveable.
 class EditProfileScreen extends StatefulWidget {
   final AuthResult session;
 
@@ -23,22 +24,35 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  late final _name = TextEditingController(text: widget.session.name);
-  late final _org = TextEditingController(text: widget.session.orgName ?? '');
-  final _role = TextEditingController();
-  final _phone = TextEditingController();
-  final _website = TextEditingController();
-  final _bio = TextEditingController();
+  bool _saving = false;
 
-  @override
-  void dispose() {
-    _name.dispose();
-    _org.dispose();
-    _role.dispose();
-    _phone.dispose();
-    _website.dispose();
-    _bio.dispose();
-    super.dispose();
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    final values = Map<String, Object>.from(ProfileDraft.values.value);
+    final organizationName = values.remove('organizationName') as String?;
+    final phone = values.remove('phone') as String?;
+    final country = values.remove('country') as String?;
+    try {
+      await ApiClient.saveProfile(
+        organizationName: organizationName,
+        phone: phone,
+        country: country,
+        fields: values,
+      );
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saved.')),
+      );
+    } catch (err) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err is ApiException ? err.message : "Couldn't save. Please try again."),
+        ),
+      );
+    }
   }
 
   @override
@@ -57,84 +71,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Center(
               child: Column(
                 children: [
-                  Stack(
-                    children: [
-                      Container(
-                        width: 88,
-                        height: 88,
-                        alignment: Alignment.center,
-                        decoration: const BoxDecoration(
-                          color: AppColors.violet600,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          widget.session.name.trim().isEmpty
-                              ? '?'
-                              : widget.session.name.trim()[0].toUpperCase(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .displayMedium
-                              ?.copyWith(color: AppColors.white),
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Material(
-                          color: AppColors.white,
-                          shape: const CircleBorder(),
-                          elevation: 2,
-                          child: InkWell(
-                            customBorder: const CircleBorder(),
-                            onTap: _notWired,
-                            child: const Padding(
-                              padding: EdgeInsets.all(7),
-                              child: Icon(
-                                Icons.photo_camera_outlined,
-                                size: 17,
-                                color: AppColors.violet600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  Container(
+                    width: 88,
+                    height: 88,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: AppColors.violet600,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      widget.session.name.trim().isEmpty
+                          ? '?'
+                          : widget.session.name.trim()[0].toUpperCase(),
+                      style: Theme.of(context)
+                          .textTheme
+                          .displayMedium
+                          ?.copyWith(color: AppColors.white),
+                    ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            AppCard(
-              radius: 16,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _Field(label: 'Full name', controller: _name),
-                  const SizedBox(height: 14),
-                  _Field(label: 'Company', controller: _org),
-                  const SizedBox(height: 14),
-                  _Field(label: 'Your role', controller: _role, hint: 'e.g. Expansion Manager'),
-                  const SizedBox(height: 14),
-                  _Field(
-                    label: 'Phone',
-                    controller: _phone,
-                    hint: '+44 …',
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 14),
-                  _Field(
-                    label: 'Website',
-                    controller: _website,
-                    hint: 'https://',
-                    keyboardType: TextInputType.url,
-                  ),
-                  const SizedBox(height: 14),
-                  _Field(
-                    label: 'About',
-                    controller: _bio,
-                    hint: 'A short description of your business.',
-                    maxLines: 4,
-                  ),
+                  const SizedBox(height: 12),
+                  Text(widget.session.name, style: Theme.of(context).textTheme.titleLarge),
                 ],
               ),
             ),
@@ -163,59 +119,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _notWired,
-                child: const Text('Save changes'),
+                onPressed: _saving ? null : _save,
+                child: _saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                      )
+                    : const Text('Save changes'),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  void _notWired() => ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Coming soon')),
-      );
-}
-
-class _Field extends StatelessWidget {
-  final String label;
-  final TextEditingController controller;
-  final String? hint;
-  final int maxLines;
-  final TextInputType? keyboardType;
-
-  const _Field({
-    required this.label,
-    required this.controller,
-    this.hint,
-    this.maxLines = 1,
-    this.keyboardType,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        label: Text(label),
-        hintText: hint,
-        filled: true,
-        fillColor: AppColors.grey50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.grey200),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.grey200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.violet600, width: 1.5),
         ),
       ),
     );

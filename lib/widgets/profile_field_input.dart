@@ -53,6 +53,11 @@ class _ProfileFieldInputState extends State<ProfileFieldInput> {
 
   @override
   Widget build(BuildContext context) {
+    // A checkbox carries its own label inline (checkbox-style, not a
+    // heading over an input) — repeating it above would say the same
+    // sentence twice.
+    if (widget.field.kind == ProfileFieldKind.checkbox) return _input(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -92,9 +97,36 @@ class _ProfileFieldInputState extends State<ProfileFieldInput> {
           isExpanded: true,
           decoration: _decoration(hint: 'Choose…'),
           items: field.options
-              .map((o) => DropdownMenuItem(value: o, child: Text(o)))
+              .map((o) => DropdownMenuItem(value: o, child: Text(field.optionLabels[o] ?? o)))
               .toList(),
           onChanged: (v) => setState(() => ProfileDraft.set(field.key, v)),
+        );
+
+      case ProfileFieldKind.checkbox:
+        final checked = ProfileDraft.get(field.key) == true;
+        return InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => setState(() => ProfileDraft.set(field.key, !checked)),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.grey50,
+              border: Border.all(color: checked ? AppColors.violet600 : AppColors.grey200),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Checkbox(
+                  value: checked,
+                  activeColor: AppColors.violet600,
+                  onChanged: (v) => setState(() => ProfileDraft.set(field.key, v ?? false)),
+                ),
+                Expanded(
+                  child: Text(field.label, style: Theme.of(context).textTheme.bodyMedium),
+                ),
+              ],
+            ),
+          ),
         );
 
       case ProfileFieldKind.multiSelect:

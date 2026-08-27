@@ -15,6 +15,12 @@ class AuthResult {
   final String? orgType;
   final String? orgName;
 
+  /// Null until the org finishes the profile-completion flow (or the
+  /// website onboarding wizard) — null for admins too, who have no
+  /// organization to complete one for. Drives whether Home's completion
+  /// nudge shows at all, independent of ProfileDraft's local field count.
+  final DateTime? onboardingCompletedAt;
+
   /// Only ever set right after a fresh login/register response — a session
   /// restored from storage on a later launch has no still-valid one (they
   /// expire in 120 seconds by design). Request a fresh one via
@@ -29,17 +35,19 @@ class AuthResult {
     this.orgType,
     this.orgName,
     this.handoffToken,
+    this.onboardingCompletedAt,
   });
 
   String? get handoffUrl =>
       handoffToken == null ? null : '$apiBaseUrl/portal/handoff?token=$handoffToken';
 
-  AuthResult copyWith({String? handoffToken}) => AuthResult(
+  AuthResult copyWith({String? handoffToken, DateTime? onboardingCompletedAt}) => AuthResult(
         name: name,
         isAdmin: isAdmin,
         sessionToken: sessionToken,
         orgType: orgType,
         orgName: orgName,
         handoffToken: handoffToken ?? this.handoffToken,
+        onboardingCompletedAt: onboardingCompletedAt ?? this.onboardingCompletedAt,
       );
 }

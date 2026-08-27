@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../data/api_client.dart';
+import '../data/auth_state.dart';
 import '../data/profile_fields.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
@@ -10,9 +12,11 @@ import '../widgets/profile_field_input.dart';
 /// Every step is skippable and the whole thing is exitable — the account
 /// already works without this, and blocking someone out of the app until
 /// they've filled eleven fields is how a signup becomes an abandoned
-/// signup. Progress is kept in [ProfileDraft] (in memory), so leaving
-/// halfway and coming back from Home or Edit Profile keeps what was
-/// entered.
+/// signup. Progress is kept in [ProfileDraft] (in memory, seeded from the
+/// server on sign-in — see AppShell), and saved back to
+/// ApiClient.saveProfile on every step advance, on Skip, and on Finish —
+/// so leaving halfway and coming back keeps what was entered on the
+/// server, not just in this session.
 class ProfileCompletionScreen extends StatefulWidget {
   final String? orgType;
 
@@ -25,6 +29,7 @@ class ProfileCompletionScreen extends StatefulWidget {
 class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   final _pageController = PageController();
   int _index = 0;
+  bool _saving = false;
 
   late final List<ProfileStep> _steps = profileStepsFor(widget.orgType);
 
@@ -36,44 +41,72 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
 
   bool get _isLast => _index == _steps.length - 1;
 
-  void _next() {
+  /// organizationName/phone/country live on the organization itself, not
+  /// the per-type profile table — split out of the flat draft here rather
+  /// than in ProfileDraft, which stays a plain field-key map for every
+  /// other purpose (completion count, seeding, Edit Profile).
+  Future<void> _persist({required bool complete}) {
+    final values = Map<String, Object>.from(ProfileDraft.values.value);
+    final organizationName = values.remove('organizationName') as String?;
+    final phone = values.remove('phone') as String?;
+    final country = values.remove('country') as String?;
+    return ApiClient.saveProfile(
+      organizationName: organizationName,
+      phone: phone,
+      country: country,
+      fields: values,
+      complete: complete,
+    );
+  }
+
+  void _skip() {
+    _persist(complete: false).catchError((_) {});
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _next() async {
     if (_isLast) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Saved for this session — syncing is coming soon')),
-      );
+      await _finish();
       return;
     }
+    _persist(complete: false).catchError((_) {});
     _pageController.nextPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_steps.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Complete profile')),
-        body: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(40),
-            child: Text(
-              "There's nothing extra to collect for this account type yet.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.grey500),
-            ),
-          ),
+  Future<void> _finish() async {
+    setState(() => _saving = true);
+    try {
+      await _persist(complete: true);
+      if (!mounted) return;
+      if (Auth.session.value != null) {
+        Auth.session.value = Auth.session.value!.copyWith(onboardingCompletedAt: DateTime.now());
+      }
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile saved.')),
+      );
+    } catch (err) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err is ApiException ? err.message : "Couldn't save. Please try again."),
         ),
       );
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Step ${_index + 1} of ${_steps.length}'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _saving ? null : _skip,
             child: Text(
               'Skip',
               style: Theme.of(context)
@@ -137,8 +170,14 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                   ],
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _next,
-                      child: Text(_isLast ? 'Finish' : 'Continue'),
+                      onPressed: _saving ? null : _next,
+                      child: _saving
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                            )
+                          : Text(_isLast ? 'Finish' : 'Continue'),
                     ),
                   ),
                 ],
