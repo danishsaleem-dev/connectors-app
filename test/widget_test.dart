@@ -68,11 +68,17 @@ void main() {
     await tester.pump();
     await _settle(tester);
 
-    expect(find.text('Preview as...'), findsOneWidget);
-    expect(find.text('Investor'), findsOneWidget);
+    expect(find.textContaining('Preview as'), findsOneWidget);
 
-    // Seven role cards don't all fit the test viewport at once.
-    await tester.scrollUntilVisible(find.text('Investor'), 300, scrollable: find.byType(Scrollable).first);
+    // Seven role cards don't fit the test viewport, and the picker is a
+    // ListView — so off-screen roles aren't built yet and have to be
+    // scrolled to before they can be found at all, not just tapped.
+    await tester.scrollUntilVisible(
+      find.text('Investor'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Investor'), findsOneWidget);
     await tester.tap(find.text('Investor'));
     await tester.pump();
 
@@ -142,7 +148,13 @@ void main() {
 
     // Tapping the franchisees tile opens the franchise form specifically,
     // not the brand's own — each tile is wired to a different existing
-    // form.
+    // form. Scrolled into view first: the profile-completion strip now
+    // sits above the tile row and can push it past the test viewport.
+    await tester.scrollUntilVisible(
+      find.text('Franchisees'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Franchisees'));
     await tester.pump();
     await _settle(tester);
@@ -207,6 +219,11 @@ void main() {
 
       // Reaches the brand's request form via its Home tile now — the
       // second tab is the shared Opportunities hub, not a per-type form.
+      await tester.scrollUntilVisible(
+        find.text('Location'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text('Location'));
       await _settle(tester);
 

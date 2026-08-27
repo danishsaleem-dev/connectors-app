@@ -9,6 +9,7 @@ import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/eyebrow.dart';
 import '../widgets/feature_card.dart';
+import '../widgets/profile_progress_strip.dart';
 import '../widgets/reveal.dart';
 import 'chat_screen.dart';
 import 'contact_screen.dart';
@@ -161,6 +162,7 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.section),
+              ProfileProgressStrip(orgType: session?.orgType),
               if (hasMultipleActions) ...[
                 Reveal(
                   index: 0,

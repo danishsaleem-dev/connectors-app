@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../data/auth_result.dart';
+import '../data/profile_fields.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/app_card.dart';
+import '../widgets/profile_field_input.dart';
 
 /// Editing the account's own details.
 ///
@@ -136,6 +138,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
             ),
+            // The doc's per-role required information, rendered from the
+            // same definitions the completion flow uses — so whichever
+            // route someone takes to fill these in, it's one field list
+            // and one draft, not two that can drift apart.
+            for (final step in profileStepsFor(widget.session.orgType)) ...[
+              const SizedBox(height: AppSpacing.xl),
+              Text(step.title, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.md),
+              AppCard(
+                radius: 16,
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    for (var i = 0; i < step.fields.length; i++) ...[
+                      if (i > 0) const SizedBox(height: AppSpacing.lg),
+                      ProfileFieldInput(field: step.fields[i]),
+                    ],
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.xl),
             SizedBox(
               width: double.infinity,

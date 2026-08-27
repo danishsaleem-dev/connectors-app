@@ -4,9 +4,13 @@ import '../data/api_client.dart';
 import '../data/auth_state.dart';
 import '../theme/colors.dart';
 import '../widgets/auth_shell.dart';
-import '../widgets/form_controls.dart';
-import 'role_picker_screen.dart';
+import 'login_screen.dart';
 
+/// Signup, carrying the doc's field list: Full Name, Company Name, Email,
+/// Phone Number, Country, Password. Phone and Country are new here and are
+/// collected but not yet sent — the register endpoint doesn't accept them,
+/// so they're held for the profile-completion step rather than silently
+/// dropped into a request that would reject them.
 class SignupScreen extends StatefulWidget {
   /// Preselects the "I am a…" chip — used by screens like Consultants and
   /// Partners that already know which account type their CTA should land on,
@@ -25,24 +29,36 @@ class _SignupScreenState extends State<SignupScreen> {
   final _orgController = TextEditingController();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  String? _country;
   bool _loading = false;
   bool _obscure = true;
-  bool _obscureConfirm = true;
   String? _error;
+
+  static const _countries = [
+    'United Kingdom',
+    'United States',
+    'Pakistan',
+    'United Arab Emirates',
+    'Other',
+  ];
 
   @override
   void dispose() {
     _orgController.dispose();
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   AccountTypeOption get _activeType => accountTypes.firstWhere((t) => t.value == _type);
+
+  void _soon() => ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Coming soon')),
+      );
 
   Future<void> _submit() async {
     if (_orgController.text.trim().length < 2) {
@@ -55,10 +71,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
     if (_type == 'vendor' && _discipline == null) {
       setState(() => _error = 'Choose what you do.');
-      return;
-    }
-    if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() => _error = 'Passwords do not match.');
       return;
     }
 
@@ -93,23 +105,17 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return AuthShell(
+      title: 'Create your account',
+      subtitle: 'A minute to set up. You can finish your profile after.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Create an\nAccount',
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: 28),
-          Text(
             'I AM A…',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.white.withValues(alpha: 0.6),
-                  letterSpacing: 1.2,
-                ),
+            style: Theme.of(context)
+                .textTheme
+                .labelMedium
+                ?.copyWith(color: AppColors.grey500, letterSpacing: 1.1),
           ),
           const SizedBox(height: 10),
           Wrap(
@@ -127,16 +133,16 @@ class _SignupScreenState extends State<SignupScreen> {
                   duration: const Duration(milliseconds: 150),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                   decoration: BoxDecoration(
-                    color: selected ? AppColors.white : AppColors.white.withValues(alpha: 0.08),
+                    color: selected ? AppColors.violet600 : AppColors.grey50,
                     border: Border.all(
-                      color: selected ? AppColors.white : AppColors.white.withValues(alpha: 0.28),
+                      color: selected ? AppColors.violet600 : AppColors.grey200,
                     ),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     option.label,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: selected ? AppColors.violet700 : AppColors.white,
+                          color: selected ? AppColors.white : AppColors.ink,
                           fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                         ),
                   ),
@@ -144,24 +150,21 @@ class _SignupScreenState extends State<SignupScreen> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _nameController,
+            decoration: authInput(icon: Icons.person_outline_rounded, hint: 'Full name'),
+          ),
+          const SizedBox(height: 14),
           TextField(
             controller: _orgController,
-            style: const TextStyle(color: AppColors.ink),
-            decoration: authInputDecoration(
-              icon: Icons.apartment_rounded,
-              hintText: _activeType.orgLabel,
-            ),
+            decoration: authInput(icon: Icons.apartment_rounded, hint: _activeType.orgLabel),
           ),
           if (_type == 'vendor') ...[
             const SizedBox(height: 14),
             DropdownButtonFormField<String>(
               initialValue: _discipline,
-              style: const TextStyle(color: AppColors.ink),
-              decoration: authInputDecoration(
-                icon: Icons.build_outlined,
-                hintText: 'Choose your discipline…',
-              ),
+              decoration: authInput(icon: Icons.build_outlined, hint: 'Choose your discipline…'),
               items: vendorDisciplines.entries
                   .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
                   .toList(),
@@ -170,64 +173,51 @@ class _SignupScreenState extends State<SignupScreen> {
           ],
           const SizedBox(height: 14),
           TextField(
-            controller: _nameController,
-            style: const TextStyle(color: AppColors.ink),
-            decoration: authInputDecoration(icon: Icons.person_outline_rounded, hintText: 'Your name'),
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: authInput(icon: Icons.mail_outline_rounded, hint: 'Email address'),
           ),
           const SizedBox(height: 14),
           TextField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            style: const TextStyle(color: AppColors.ink),
-            decoration: authInputDecoration(icon: Icons.mail_outline_rounded, hintText: 'Email address'),
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            decoration: authInput(icon: Icons.smartphone_rounded, hint: 'Phone number'),
+          ),
+          const SizedBox(height: 14),
+          DropdownButtonFormField<String>(
+            initialValue: _country,
+            decoration: authInput(icon: Icons.public_rounded, hint: 'Country'),
+            items: _countries
+                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                .toList(),
+            onChanged: (value) => setState(() => _country = value),
           ),
           const SizedBox(height: 14),
           TextField(
             controller: _passwordController,
             obscureText: _obscure,
-            style: const TextStyle(color: AppColors.ink),
-            decoration: authInputDecoration(
+            decoration: authInput(
               icon: Icons.lock_outline_rounded,
-              hintText: 'Password (min. 8 characters)',
+              hint: 'Password (min. 8 characters)',
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                   color: AppColors.grey300,
+                  size: 20,
                 ),
                 onPressed: () => setState(() => _obscure = !_obscure),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          TextField(
-            controller: _confirmPasswordController,
-            obscureText: _obscureConfirm,
-            style: const TextStyle(color: AppColors.ink),
-            decoration: authInputDecoration(
-              icon: Icons.lock_outline_rounded,
-              hintText: 'Confirm password',
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                  color: AppColors.grey300,
-                ),
-                onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
               ),
             ),
             onSubmitted: (_) => _submit(),
           ),
           if (_error != null) ...[
-            const SizedBox(height: 16),
-            Text(_error!, style: const TextStyle(color: Color(0xFFFF9E9E))),
+            const SizedBox(height: 14),
+            Text(_error!, style: TextStyle(color: Colors.red.shade700)),
           ],
-          const SizedBox(height: 26),
+          const SizedBox(height: 22),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.ink,
-                foregroundColor: AppColors.white,
-              ),
               onPressed: _loading ? null : _submit,
               child: _loading
                   ? const SizedBox(
@@ -235,26 +225,33 @@ class _SignupScreenState extends State<SignupScreen> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
                     )
-                  : const Text('SIGN UP'),
+                  : const Text('Create account'),
             ),
+          ),
+          const SizedBox(height: 26),
+          AuthProviderRow(
+            providers: [
+              (icon: Icons.g_mobiledata_rounded, label: 'Google', onTap: _soon),
+              (icon: Icons.apple_rounded, label: 'Apple', onTap: _soon),
+            ],
           ),
           const SizedBox(height: 28),
           Center(
             child: GestureDetector(
               onTap: () => Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const RolePickerScreen()),
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
               ),
               child: Text.rich(
                 TextSpan(
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
-                      ?.copyWith(color: AppColors.white.withValues(alpha: 0.68)),
+                      ?.copyWith(color: AppColors.grey500),
                   children: const [
                     TextSpan(text: 'Already have an account?  '),
                     TextSpan(
                       text: 'Sign in',
-                      style: TextStyle(color: AppColors.white, fontWeight: FontWeight.w700),
+                      style: TextStyle(color: AppColors.violet600, fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
