@@ -6,7 +6,9 @@ import 'data/site_data.dart';
 import 'screens/account_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/messages_screen.dart';
+import 'screens/login_screen.dart';
 import 'screens/notifications_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'screens/opportunities_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/welcome_screen.dart';
@@ -31,11 +33,13 @@ class ConnectorsApp extends StatelessWidget {
   }
 }
 
-/// Decides Welcome vs. the signed-in app shell — the one thing every launch
-/// has to settle before showing anything else. Checks SessionStorage for a
-/// token, and if there is one, verifies it's still good with the server
-/// (never trusts a stored token's mere presence, since the account behind
-/// it could since have changed or been deactivated) before signing in.
+/// Decides Onboarding vs. Welcome vs. the signed-in app shell — the one
+/// thing every launch has to settle before showing anything else. Checks
+/// SessionStorage for a token, and if there is one, verifies it's still
+/// good with the server (never trusts a stored token's mere presence,
+/// since the account behind it could since have changed or been
+/// deactivated) before signing in. Onboarding shows once, on the very
+/// first launch, then never again regardless of sign-in state.
 class AppRoot extends StatefulWidget {
   const AppRoot({super.key});
 
@@ -45,6 +49,7 @@ class AppRoot extends StatefulWidget {
 
 class _AppRootState extends State<AppRoot> {
   bool _checking = true;
+  bool _showOnboarding = false;
 
   @override
   void initState() {
@@ -53,15 +58,24 @@ class _AppRootState extends State<AppRoot> {
   }
 
   Future<void> _restoreSession() async {
-    // Held to a minimum so the splash reads as a deliberate brand moment
+    // Started together so the onboarding-seen read overlaps the session
+    // check rather than adding to it, then all awaited below. The delay is
+    // held to a minimum so the splash reads as a deliberate brand moment
     // rather than a flash on the (common) fast path where there's no
     // stored token at all — while still actually waiting on the real
     // session check when that takes longer than the minimum.
-    await Future.wait([
-      _checkStoredSession(),
-      Future.delayed(const Duration(milliseconds: 1400)),
-    ]);
-    if (mounted) setState(() => _checking = false);
+    final sessionCheck = _checkStoredSession();
+    final onboardingSeen = SessionStorage.hasSeenOnboarding();
+    final minDelay = Future.delayed(const Duration(milliseconds: 1400));
+    await sessionCheck;
+    final seen = await onboardingSeen;
+    await minDelay;
+    if (mounted) {
+      setState(() {
+        _checking = false;
+        _showOnboarding = !seen;
+      });
+    }
   }
 
   // Wraps the whole thing, not just the network call: a platform storage
@@ -86,6 +100,11 @@ class _AppRootState extends State<AppRoot> {
     }
   }
 
+  void _dismissOnboarding() {
+    SessionStorage.markOnboardingSeen();
+    if (mounted) setState(() => _showOnboarding = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_checking) {
@@ -93,8 +112,21 @@ class _AppRootState extends State<AppRoot> {
     }
     return ValueListenableBuilder<AuthResult?>(
       valueListenable: Auth.session,
-      builder: (context, session, _) =>
-          session == null ? const WelcomeScreen() : const AppShell(),
+      builder: (context, session, _) {
+        if (session != null) return const AppShell();
+        if (_showOnboarding) {
+          return OnboardingScreen(
+            onGetStarted: _dismissOnboarding,
+            onLogin: () {
+              _dismissOnboarding();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+          );
+        }
+        return const WelcomeScreen();
+      },
     );
   }
 }

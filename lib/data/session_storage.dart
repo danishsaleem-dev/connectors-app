@@ -8,6 +8,7 @@ class SessionStorage {
   SessionStorage._();
 
   static const _key = 'session_token';
+  static const _onboardingKey = 'onboarding_seen';
   static const _storage = FlutterSecureStorage();
 
   static Future<void> saveToken(String token) => _storage.write(key: _key, value: token);
@@ -15,4 +16,14 @@ class SessionStorage {
   static Future<String?> readToken() => _storage.read(key: _key);
 
   static Future<void> clearToken() => _storage.delete(key: _key);
+
+  /// Whether the swipeable onboarding carousel has already been shown —
+  /// it's a first-launch introduction, not something to repeat every time
+  /// someone signs out.
+  static Future<bool> hasSeenOnboarding() async {
+    final value = await _storage.read(key: _onboardingKey);
+    return value == 'true';
+  }
+
+  static Future<void> markOnboardingSeen() => _storage.write(key: _onboardingKey, value: 'true');
 }

@@ -17,14 +17,9 @@ class Auth {
   /// platform storage issue) shouldn't block getting the user into the app
   /// they just signed into; worst case, the next launch just doesn't
   /// restore the session.
-  ///
-  /// `persist: false` is for RolePickerScreen's demo sessions only — their
-  /// token isn't real, so saving it would just make the next launch's
-  /// ApiClient.checkSession call fail against the live API instead of
-  /// landing cleanly on Welcome.
-  static void signIn(AuthResult result, {bool persist = true}) {
+  static void signIn(AuthResult result) {
     session.value = result;
-    if (persist) SessionStorage.saveToken(result.sessionToken);
+    SessionStorage.saveToken(result.sessionToken);
   }
 
   static void signOut() {

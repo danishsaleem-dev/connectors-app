@@ -5,6 +5,7 @@ import 'package:connectors_app/data/api_client.dart';
 import 'package:connectors_app/data/auth_state.dart';
 import 'package:connectors_app/data/site_data.dart';
 import 'package:connectors_app/main.dart';
+import 'package:connectors_app/screens/login_screen.dart';
 import 'package:connectors_app/screens/splash_screen.dart';
 import 'package:connectors_app/screens/welcome_screen.dart';
 import 'package:connectors_app/theme/app_theme.dart';
@@ -58,9 +59,7 @@ void main() {
     expect(find.textContaining('Sign up now'), findsOneWidget);
   });
 
-  testWidgets('Sign In opens the role picker, and picking a role signs in as that role', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('Sign In opens the real login screen', (WidgetTester tester) async {
     await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const WelcomeScreen()));
     await tester.pump();
 
@@ -68,27 +67,9 @@ void main() {
     await tester.pump();
     await _settle(tester);
 
-    expect(find.textContaining('Preview as'), findsOneWidget);
-
-    // Seven role cards don't fit the test viewport, and the picker is a
-    // ListView — so off-screen roles aren't built yet and have to be
-    // scrolled to before they can be found at all, not just tapped.
-    await tester.scrollUntilVisible(
-      find.text('Investor'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('Investor'), findsOneWidget);
-    await tester.tap(find.text('Investor'));
-    await tester.pump();
-
-    // Signing in via the picker doesn't persist a token, but the
-    // in-memory session flips over immediately, same as a real login
-    // would — checked directly here since this test pumps WelcomeScreen
-    // in isolation rather than the full AppRoot boot flow (which would
-    // pull in flutter_secure_storage, unreliable under the test runner —
-    // see the SplashScreen test's comment for why).
-    expect(Auth.session.value?.orgType, 'investor');
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Log in'), findsOneWidget);
   });
 
   testWidgets('Signed in, the app shell renders with bottom nav and Home active', (
