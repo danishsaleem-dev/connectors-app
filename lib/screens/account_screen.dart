@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
-import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/app_card.dart';
 import '../widgets/feature_card.dart';
 import '../widgets/info_list.dart';
 import '../widgets/reveal.dart';
+import 'analytics_screen.dart';
 import 'contact_screen.dart';
+import 'edit_profile_screen.dart';
+import 'saved_items_screen.dart';
+import 'settings_screen.dart';
+import 'subscription_screen.dart';
+import 'verification_screen.dart';
 
 /// The account tab — no session param, unlike a pushed screen would need:
 /// it's only ever shown once AppRoot has already confirmed someone's signed
@@ -68,39 +74,133 @@ class AccountBody extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.section),
+              const _GroupLabel('Your account'),
               Reveal(
                 index: 2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: cardShadow(opacity: 0.05),
-                  ),
-                  child: InfoList(
-                    items: [
-                      InfoItem(
-                        icon: Icons.call_outlined,
-                        title: 'Contact',
-                        body: 'Our three offices, and how to reach them.',
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const ContactScreen()),
-                        ),
+                child: _MenuCard(
+                  items: [
+                    InfoItem(
+                      icon: Icons.person_outline_rounded,
+                      title: 'Edit profile',
+                      body: 'Your name, company and contact details.',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => EditProfileScreen(session: session)),
                       ),
-                      InfoItem(
-                        icon: Icons.logout_rounded,
-                        title: 'Sign out',
-                        body: "You'll need to sign in again next time.",
-                        onTap: Auth.signOut,
+                    ),
+                    InfoItem(
+                      icon: Icons.bookmark_border_rounded,
+                      title: 'Saved',
+                      body: "Listings you've shortlisted.",
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SavedItemsScreen()),
                       ),
-                    ],
-                  ),
+                    ),
+                    InfoItem(
+                      icon: Icons.verified_user_outlined,
+                      title: 'Verification',
+                      body: 'Verify your business to build trust.',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const VerificationScreen()),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              const _GroupLabel('Growth'),
+              Reveal(
+                index: 3,
+                child: _MenuCard(
+                  items: [
+                    InfoItem(
+                      icon: Icons.insights_outlined,
+                      title: 'Analytics',
+                      body: 'Views, enquiries and where interest comes from.',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
+                      ),
+                    ),
+                    InfoItem(
+                      icon: Icons.workspace_premium_outlined,
+                      title: 'Membership',
+                      body: 'Compare plans and what each one unlocks.',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              const _GroupLabel('Support'),
+              Reveal(
+                index: 4,
+                child: _MenuCard(
+                  items: [
+                    InfoItem(
+                      icon: Icons.settings_outlined,
+                      title: 'Settings',
+                      body: 'Notifications and preferences.',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                      ),
+                    ),
+                    InfoItem(
+                      icon: Icons.call_outlined,
+                      title: 'Contact',
+                      body: 'Our three offices, and how to reach them.',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ContactScreen()),
+                      ),
+                    ),
+                    InfoItem(
+                      icon: Icons.logout_rounded,
+                      title: 'Sign out',
+                      body: "You'll need to sign in again next time.",
+                      onTap: Auth.signOut,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _GroupLabel extends StatelessWidget {
+  final String text;
+
+  const _GroupLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: AppSpacing.sm),
+      child: Text(
+        text.toUpperCase(),
+        style: Theme.of(context)
+            .textTheme
+            .labelMedium
+            ?.copyWith(color: AppColors.grey500, letterSpacing: 1.1),
+      ),
+    );
+  }
+}
+
+class _MenuCard extends StatelessWidget {
+  final List<InfoItem> items;
+
+  const _MenuCard({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      radius: 16,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: InfoList(items: items),
     );
   }
 }

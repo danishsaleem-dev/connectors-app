@@ -158,10 +158,43 @@ void main() {
     await _settle(tester);
     expect(find.text('Contact'), findsOneWidget);
 
+    // Profile now carries three grouped menu sections, so Contact (in the
+    // last one) sits below the fold in the test viewport.
+    await tester.scrollUntilVisible(
+      find.text('Contact'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Contact'));
     await tester.pump();
     await _settle(tester);
     expect(find.text('Three offices, one team.'), findsOneWidget);
+  });
+
+  testWidgets('Profile lists the account, growth and support menus', (
+    WidgetTester tester,
+  ) async {
+    Auth.session.value = _fakeBrandSession;
+    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
+    await _settle(tester);
+
+    expect(find.text('Edit profile'), findsOneWidget);
+    expect(find.text('Verification'), findsOneWidget);
+    expect(find.text('Membership'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Membership'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Membership'));
+    await tester.pump();
+    await _settle(tester);
+
+    expect(find.text('Choose your plan'), findsOneWidget);
   });
 
   testWidgets(
