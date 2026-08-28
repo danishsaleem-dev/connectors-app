@@ -8,26 +8,36 @@ import '../widgets/app_card.dart';
 import '../widgets/reveal.dart';
 import 'location_detail_screen.dart';
 
-/// Brand-only browse view — the endpoint itself enforces that (see its doc
-/// comment), so this screen is only ever reached from a brand account's own
-/// Home action card. Same data as the website's /available-locations, same
-/// "not withdrawn" filter, already applied server-side. Search and filters
-/// below mirror that page's own LocationFilters logic, applied in-memory
-/// over the one fetched list rather than as repeat network requests.
+/// Brand-only browse view by default — the endpoint itself enforces that
+/// (see its doc comment), so with the default [fetch] this is only ever
+/// reached from a brand account's own Home action card. Same data as the
+/// website's /available-locations, same "not withdrawn" filter, already
+/// applied server-side. Search and filters below mirror that page's own
+/// LocationFilters logic, applied in-memory over the one fetched list
+/// rather than as repeat network requests.
 ///
 /// [propertyTypes], when set, pre-restricts the list to that subset of
 /// property types before anything else runs — the Opportunities tab's
 /// "Retail Spaces" and "Commercial Projects" categories are this same real
 /// data, just grouped (see retailPropertyTypes/commercialPropertyTypes),
 /// rather than separate mock content pretending to be a different feature.
+///
+/// [fetch] swaps the data source without touching any of the search/filter/
+/// card rendering below it — a landlord/developer's "My Properties" (see
+/// ApiClient.fetchMyProperties) is the exact same list shape, just scoped
+/// to their own organizationId server-side instead of the whole market.
 class LocationsScreen extends StatefulWidget {
   final String appBarTitle;
   final Set<String>? propertyTypes;
+  final Future<List<Location>> Function() fetch;
+  final String emptyMessage;
 
   const LocationsScreen({
     super.key,
     this.appBarTitle = 'Available Locations',
     this.propertyTypes,
+    this.fetch = ApiClient.fetchLocations,
+    this.emptyMessage = 'Nothing available right now — check back soon.',
   });
 
   @override
@@ -48,7 +58,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
   @override
   void initState() {
     super.initState();
-    _future = ApiClient.fetchLocations();
+    _future = widget.fetch();
   }
 
   @override
@@ -57,7 +67,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
     super.dispose();
   }
 
-  void _retry() => setState(() => _future = ApiClient.fetchLocations());
+  void _retry() => setState(() => _future = widget.fetch());
 
   void _updateFilters(LocationFilters Function(LocationFilters) update) {
     setState(() => _filters = update(_filters));
@@ -90,9 +100,9 @@ class _LocationsScreenState extends State<LocationsScreen> {
             }
             final locations = _scoped(snapshot.data ?? const []);
             if (locations.isEmpty) {
-              return const _StatusMessage(
+              return _StatusMessage(
                 icon: Icons.location_off_outlined,
-                message: 'Nothing available right now — check back soon.',
+                message: widget.emptyMessage,
               );
             }
 

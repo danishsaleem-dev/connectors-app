@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import '../data/api_client.dart';
 import '../screens/audience_screen.dart';
+import '../screens/brands_screen.dart';
 import '../screens/coming_soon_screen.dart';
 import '../screens/consultants_screen.dart';
+import '../screens/locations_screen.dart';
 import '../screens/messages_screen.dart';
-import '../screens/opportunity_list_screen.dart';
 import '../screens/partners_screen.dart';
 import '../screens/service_info_screen.dart';
-import 'opportunity.dart';
 
 /// One card in Home's action list — title, a one-line description, an icon,
 /// and what it opens (pushed, since Home isn't tied to any one bottom-nav
@@ -140,8 +141,7 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         title: 'Explore Brands',
         body: 'Browse brands actively looking for franchise partners.',
         icon: Icons.storefront_rounded,
-        buildScreen: () =>
-            OpportunityListScreen(category: categoryFor('brands')),
+        buildScreen: () => const BrandsScreen(title: 'Explore Brands'),
         hasOwnScaffold: true,
         shortLabel: 'Brands',
       ),
@@ -175,6 +175,18 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         shortLabel: 'Submit',
       ),
       HomeAction(
+        title: 'My Properties',
+        body: 'Everything you\'ve listed, in one place.',
+        icon: Icons.list_alt_rounded,
+        buildScreen: () => LocationsScreen(
+          appBarTitle: 'My Properties',
+          fetch: ApiClient.fetchMyProperties,
+          emptyMessage: "You haven't listed any properties yet.",
+        ),
+        hasOwnScaffold: true,
+        shortLabel: 'My Properties',
+      ),
+      HomeAction(
         title: 'View Interested Brands',
         body: 'See which brands have shown interest in your property.',
         icon: Icons.visibility_rounded,
@@ -204,11 +216,22 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         shortLabel: 'Placement',
       ),
       HomeAction(
+        title: 'My Properties',
+        body: 'Everything you\'ve listed, in one place.',
+        icon: Icons.list_alt_rounded,
+        buildScreen: () => LocationsScreen(
+          appBarTitle: 'My Properties',
+          fetch: ApiClient.fetchMyProperties,
+          emptyMessage: "You haven't listed any properties yet.",
+        ),
+        hasOwnScaffold: true,
+        shortLabel: 'My Properties',
+      ),
+      HomeAction(
         title: 'View Brand Categories',
         body: 'Browse brands actively expanding, by category.',
         icon: Icons.category_rounded,
-        buildScreen: () =>
-            OpportunityListScreen(category: categoryFor('brands')),
+        buildScreen: () => const BrandsScreen(title: 'Brand Categories'),
         hasOwnScaffold: true,
         shortLabel: 'Categories',
       ),
@@ -223,8 +246,7 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         title: 'Explore Investment Opportunities',
         body: 'Franchise concepts open for new territories and capital.',
         icon: Icons.insights_rounded,
-        buildScreen: () =>
-            OpportunityListScreen(category: categoryFor('franchise')),
+        buildScreen: () => const BrandsScreen(title: 'Franchise Opportunities'),
         hasOwnScaffold: true,
         shortLabel: 'Explore',
       ),
@@ -232,8 +254,7 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         title: 'Connect With Brands',
         body: 'Brands actively expanding and open to new partners.',
         icon: Icons.handshake_rounded,
-        buildScreen: () =>
-            OpportunityListScreen(category: categoryFor('brands')),
+        buildScreen: () => const BrandsScreen(title: 'Connect With Brands'),
         hasOwnScaffold: true,
         shortLabel: 'Brands',
       ),

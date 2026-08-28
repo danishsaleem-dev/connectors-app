@@ -158,6 +158,14 @@ class ApiClient {
     return list.map(Location.fromJson).toList();
   }
 
+  /// A landlord/developer's own listed properties — 403s for any account
+  /// type that doesn't list properties (see the route's doc comment).
+  static Future<List<Location>> fetchMyProperties() async {
+    final json = await _get('/api/mobile/properties/mine');
+    final list = (json['locations'] as List).cast<Map<String, dynamic>>();
+    return list.map(Location.fromJson).toList();
+  }
+
   /// `token` pins an explicit bearer value (checkSession, called with a
   /// stored token before anything is signed in yet). Omitting it falls back
   /// to whatever's currently signed in — which is exactly nothing for
