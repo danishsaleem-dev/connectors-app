@@ -11,12 +11,18 @@ class Message {
   final String body;
   final DateTime createdAt;
 
+  /// Only ever set on an admin-authored message — the org's read state of
+  /// it (see the website's messages.readAt doc comment on schema.ts).
+  /// Never set on the org's own messages; there's no "unread to yourself".
+  final DateTime? readAt;
+
   const Message({
     required this.id,
     required this.authorName,
     required this.authorIsAdmin,
     required this.body,
     required this.createdAt,
+    this.readAt,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -26,29 +32,48 @@ class Message {
       authorIsAdmin: json['authorIsAdmin'] as bool,
       body: json['body'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      readAt: json['readAt'] == null ? null : DateTime.parse(json['readAt'] as String),
     );
   }
+
+  Message copyWith({DateTime? readAt}) => Message(
+        id: id,
+        authorName: authorName,
+        authorIsAdmin: authorIsAdmin,
+        body: body,
+        createdAt: createdAt,
+        readAt: readAt ?? this.readAt,
+      );
 }
 
-/// Process-wide cache of the org's thread, plus a crude local "seen"
-/// marker for the nav badge — there's no read-state on the server (the
-/// `messages` table doesn't track it), so this only counts messages that
-/// arrived since the Messages tab was last actually opened this session
-/// (see AppShell's _goTo), not a durable unread count.
+/// Process-wide cache of the org's thread. Also what backs the
+/// Notifications tab (see notifications_screen.dart) — an admin-authored
+/// message *is* a notification, filtered to a different view of the same
+/// data rather than a separate feed, since a message from Connectors is
+/// the only thing in the product that's actually real enough to notify on.
 class MessagesStore {
   MessagesStore._();
 
   static final thread = ValueNotifier<List<Message>>([]);
-  static int _lastSeenCount = 0;
 
   static Future<void> refresh() async {
     thread.value = await ApiClient.fetchMessages();
   }
 
-  static void markSeen() => _lastSeenCount = thread.value.length;
-
-  static int get unreadCount {
-    final total = thread.value.length;
-    return total > _lastSeenCount ? total - _lastSeenCount : 0;
+  /// Marks the whole thread read at once — same "open the conversation"
+  /// semantics as any chat app, not one message at a time. Updates local
+  /// state optimistically so the badge clears immediately rather than
+  /// waiting on a refetch; a failure just means it stays showing as
+  /// unread, which is the safe direction to be wrong in.
+  static Future<void> markRead() async {
+    final now = DateTime.now();
+    thread.value = [
+      for (final m in thread.value)
+        (m.authorIsAdmin && m.readAt == null) ? m.copyWith(readAt: now) : m,
+    ];
+    await ApiClient.markMessagesRead();
   }
+
+  static int get unreadCount =>
+      thread.value.where((m) => m.authorIsAdmin && m.readAt == null).length;
 }

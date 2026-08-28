@@ -198,11 +198,13 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _goTo(int index) {
-    // Messages tab is index 2 — mark whatever's currently loaded as seen
-    // the moment someone actually opens it, not at mount (every tab is
-    // mounted up front inside the IndexedStack below, so initState alone
-    // would mark it seen before it was ever looked at).
-    if (index == 2) MessagesStore.markSeen();
+    // Messages tab is index 2 — mark the thread read the moment someone
+    // actually opens it, not at mount (every tab is mounted up front
+    // inside the IndexedStack below, so initState alone would mark it
+    // read before it was ever looked at). Notifications is just a
+    // different view of the same admin messages (see MessagesStore's doc
+    // comment), so this is also what clears the Notifications badge.
+    if (index == 2) MessagesStore.markRead();
     setState(() => _index = index);
   }
 
@@ -227,7 +229,7 @@ class _AppShellState extends State<AppShell> {
         icon: Icons.notifications_outlined,
         activeIcon: Icons.notifications_rounded,
         label: 'Notifications',
-        badgeCount: unreadNotificationsCount,
+        badgeCount: MessagesStore.unreadCount,
       ),
       const NavItem(
         icon: Icons.person_outline_rounded,
@@ -240,7 +242,7 @@ class _AppShellState extends State<AppShell> {
       HomeScreen(onOpenProfile: () => _goTo(4)),
       OpportunitiesScreen(orgType: orgType),
       const MessagesBody(),
-      const NotificationsBody(),
+      NotificationsBody(onOpenMessages: () => _goTo(2)),
       const AccountBody(),
     ];
 

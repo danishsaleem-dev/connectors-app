@@ -134,6 +134,12 @@ class ApiClient {
     return _post('/api/mobile/messages', {'body': body});
   }
 
+  /// Marks every admin-authored message in the thread as read — see
+  /// MessagesStore.markRead's doc comment for when this is called.
+  static Future<void> markMessagesRead() {
+    return _post('/api/mobile/messages/read', {});
+  }
+
   /// Brands actively franchising — the same data the website's public
   /// /for-franchise page already shows anonymous visitors, not new
   /// exposure. Backs the Opportunities tab's "Brands" and "Franchise

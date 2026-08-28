@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import '../data/message.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/app_card.dart';
 import '../widgets/page_header.dart';
 import '../widgets/reveal.dart';
-import 'notification_detail_screen.dart';
 
-/// UI-only for now — there's no push-notification infra yet. The doc's
-/// bottom-nav spec calls for a Notifications tab, so this is the visual
-/// shape of it with sample content, ready to swap for a real feed once
-/// that infra exists.
+/// A different view of the same data Messages shows — an admin-authored
+/// message *is* a notification (see MessagesStore's doc comment). Nothing
+/// else in the product is real enough to notify on yet: an enquiry's
+/// status is admin-internal by design (see the website's `requests`
+/// table doc comment — the submitting org never sees it), so there's
+/// nothing there to surface honestly. When that changes, this is where a
+/// second notification source would join this one.
 class NotificationsBody extends StatelessWidget {
-  const NotificationsBody({super.key});
+  final VoidCallback onOpenMessages;
+
+  const NotificationsBody({super.key, required this.onOpenMessages});
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +28,114 @@ class NotificationsBody extends StatelessWidget {
           const PageHeader(
             icon: Icons.notifications_outlined,
             title: 'Notifications',
-            lead: "Updates on your requests and account.",
+            lead: 'Messages from the Connectors team.',
           ),
           const SizedBox(height: AppSpacing.xl),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+            child: ValueListenableBuilder<List<Message>>(
+              valueListenable: MessagesStore.thread,
+              builder: (context, thread, _) {
+                // Newest first for a notification feed — Messages itself
+                // stays oldest-first (a conversation reads top to bottom),
+                // but "what's new" reads top to bottom the other way.
+                final notifications = thread.where((m) => m.authorIsAdmin).toList().reversed.toList();
+
+                if (notifications.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Center(
+                      child: Text(
+                        "You're all caught up.",
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(color: AppColors.grey500),
+                      ),
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: [
+                    for (var i = 0; i < notifications.length; i++) ...[
+                      if (i > 0) const SizedBox(height: AppSpacing.sm),
+                      Reveal(
+                        index: i,
+                        child: _NotificationCard(
+                          message: notifications[i],
+                          onTap: onOpenMessages,
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationCard extends StatelessWidget {
+  final Message message;
+  final VoidCallback onTap;
+
+  const _NotificationCard({required this.message, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final unread = message.readAt == null;
+
+    // Unread gets a clearly-primary-tinted card, not just a shade off
+    // white — the icon badge inverts to a solid fill too, so an unread
+    // notification reads as highlighted at a glance, not just faintly
+    // different.
+    return AppCard(
+      radius: 16,
+      padding: const EdgeInsets.all(14),
+      color: unread ? const Color(0xFFF0EBF9) : AppColors.white,
+      onTap: onTap,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: unread ? AppColors.violet600 : AppColors.violet50,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.chat_bubble_outline_rounded,
+              color: unread ? AppColors.white : AppColors.violet600,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (var i = 0; i < sampleNotifications.length; i++) ...[
-                  if (i > 0) const SizedBox(height: AppSpacing.sm),
-                  Reveal(index: i, child: _NotificationCard(item: sampleNotifications[i])),
-                ],
+                Text('Connectors', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 2),
+                Text(
+                  message.body,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _relativeTime(message.createdAt),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: AppColors.grey300, fontWeight: FontWeight.w500),
+                ),
               ],
             ),
           ),
@@ -43,111 +145,11 @@ class NotificationsBody extends StatelessWidget {
   }
 }
 
-/// Read by the bottom nav to show an unread badge — same sample data the
-/// screen itself renders, so the badge count and what you see on opening
-/// the tab never disagree.
-int get unreadNotificationsCount => sampleNotifications.where((n) => n.unread).length;
-
-class NotificationItem {
-  final IconData icon;
-  final String title;
-  final String body;
-  final String time;
-  final bool unread;
-
-  const NotificationItem({
-    required this.icon,
-    required this.title,
-    required this.body,
-    required this.time,
-    this.unread = false,
-  });
-}
-
-const sampleNotifications = [
-  NotificationItem(
-    icon: Icons.location_city_rounded,
-    title: 'New location matched',
-    body: 'A retail unit in your target city just went live.',
-    time: '2h ago',
-    unread: true,
-  ),
-  NotificationItem(
-    icon: Icons.mark_email_read_outlined,
-    title: 'Request received',
-    body: "We've received your submission and are reviewing it.",
-    time: '1d ago',
-  ),
-  NotificationItem(
-    icon: Icons.campaign_outlined,
-    title: 'Welcome to Connectors',
-    body: 'Your account is set up — explore what you can do from Home.',
-    time: '3d ago',
-  ),
-];
-
-class _NotificationCard extends StatelessWidget {
-  final NotificationItem item;
-
-  const _NotificationCard({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    // Unread gets a clearly-primary-tinted card, not just a shade off
-    // white — the icon badge inverts to a solid fill too, so an unread
-    // notification reads as highlighted at a glance, not just faintly
-    // different.
-    return AppCard(
-      radius: 16,
-      padding: const EdgeInsets.all(14),
-      color: item.unread ? const Color(0xFFF0EBF9) : AppColors.white,
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => NotificationDetailScreen(item: item)),
-      ),
-      child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: item.unread ? AppColors.violet600 : AppColors.violet50,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  item.icon,
-                  color: item.unread ? AppColors.white : AppColors.violet600,
-                  size: 19,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(item.title, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 2),
-                    Text(
-                      item.body,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AppColors.grey500),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item.time,
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelMedium
-                          ?.copyWith(color: AppColors.grey300, fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-    );
-  }
+String _relativeTime(DateTime time) {
+  final diff = DateTime.now().difference(time);
+  if (diff.inMinutes < 1) return 'Just now';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+  if (diff.inHours < 24) return '${diff.inHours}h ago';
+  if (diff.inDays < 7) return '${diff.inDays}d ago';
+  return '${time.day}/${time.month}/${time.year}';
 }
