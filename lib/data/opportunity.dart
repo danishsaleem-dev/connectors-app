@@ -8,18 +8,17 @@ const _coverPalette = [
   [AppColors.violet900, AppColors.violet700],
 ];
 
-/// One listing shown under the Opportunities tab for the categories that
-/// are still mock: brands, franchise opportunities and investors. Locations,
-/// Retail Spaces and Commercial Projects moved to real data — they're all
-/// the same live `properties` rows LocationsScreen already serves brand
-/// accounts, just grouped by property type (see opportunities_screen.dart
-/// and location.dart's retailPropertyTypes/commercialPropertyTypes).
+/// One listing shown under the Opportunities tab for "Investors" — the one
+/// category still mock. Locations/Retail/Commercial (live `properties`
+/// rows, see location.dart) and Brands/Franchise Opportunities (live
+/// franchising organizations, see BrandsScreen) both moved to real data.
 ///
-/// The three categories still here would mean exposing *other*
-/// organizations' data (which brands, which franchise opportunities, whose
-/// investor profile) across account types that have no existing access
-/// rule for it — a real product decision, not something to invent
-/// unilaterally. Kept mock until that's actually decided.
+/// Investors staying mock isn't a technical gap — it's that showing real
+/// investor org data would mean exposing one account type's data to
+/// another with no existing access rule for it, unlike Brands/Franchise,
+/// which already have public precedent via the website's own
+/// /for-franchise page (see ApiClient.fetchFranchisingBrands's doc
+/// comment). Kept mock until that's actually decided.
 class OpportunityListing {
   final String id;
   final String category;
@@ -203,103 +202,10 @@ List<OpportunityCategoryConfig> categoriesForRole(String? orgType) {
   return opportunityCategories.where((c) => keys.contains(c.key)).toList();
 }
 
-/// Fictional listings, clearly not real brands — enough per category and
-/// enough field variety for the filters to have something to do.
+/// Fictional listings, clearly not real brands — enough field variety for
+/// the filters to have something to do. Only "investors" is still here —
+/// "brands"/"franchise" moved to real data (see BrandsScreen).
 const mockOpportunities = [
-  // Brands
-  OpportunityListing(
-    id: 'b1',
-    category: 'brands',
-    title: 'Verona Kitchens',
-    city: 'London',
-    country: 'United Kingdom',
-    industry: 'Food & Beverage',
-    brandType: 'Multi-Unit',
-    description: 'A fast-casual Italian concept expanding across the UK, seeking partners in secondary cities.',
-    featured: true,
-  ),
-  OpportunityListing(
-    id: 'b2',
-    category: 'brands',
-    title: 'Northbridge Coffee Co.',
-    city: 'Austin',
-    country: 'United States',
-    industry: 'Food & Beverage',
-    brandType: 'Single Unit',
-    description: 'Specialty coffee roaster looking for its first franchised locations outside Texas.',
-  ),
-  OpportunityListing(
-    id: 'b3',
-    category: 'brands',
-    title: 'Solace Wellness Spa',
-    city: 'Lahore',
-    country: 'Pakistan',
-    industry: 'Beauty',
-    brandType: 'Master Franchise',
-    description: 'Boutique spa brand offering master franchise rights across South Asia.',
-  ),
-  OpportunityListing(
-    id: 'b4',
-    category: 'brands',
-    title: 'Rapid Fit Studios',
-    city: 'Manchester',
-    country: 'United Kingdom',
-    industry: 'Fitness & Wellness',
-    brandType: 'Multi-Unit',
-    description: '30-minute HIIT studio format, 40 units open, targeting the North of England next.',
-  ),
-
-  // Franchise Opportunities
-  OpportunityListing(
-    id: 'f1',
-    category: 'franchise',
-    title: 'Bloom & Co. Florists',
-    city: 'Leeds',
-    country: 'United Kingdom',
-    industry: 'Retail',
-    investmentMin: 45000,
-    investmentMax: 80000,
-    franchiseFee: 8000,
-    description: 'Established florist franchise with a low-overhead retail format.',
-  ),
-  OpportunityListing(
-    id: 'f2',
-    category: 'franchise',
-    title: 'Turlington Menswear',
-    city: 'Chicago',
-    country: 'United States',
-    industry: 'Retail',
-    investmentMin: 180000,
-    investmentMax: 320000,
-    franchiseFee: 25000,
-    description: 'Made-to-measure menswear, mall and high-street formats available.',
-    featured: true,
-  ),
-  OpportunityListing(
-    id: 'f3',
-    category: 'franchise',
-    title: 'Crestline Learning Centres',
-    city: 'Karachi',
-    country: 'Pakistan',
-    industry: 'Education',
-    investmentMin: 60000,
-    investmentMax: 150000,
-    franchiseFee: 12000,
-    description: 'After-school tutoring centre network, single and multi-unit territories open.',
-  ),
-  OpportunityListing(
-    id: 'f4',
-    category: 'franchise',
-    title: 'Pacific Grill House',
-    city: 'San Diego',
-    country: 'United States',
-    industry: 'Food & Beverage',
-    investmentMin: 400000,
-    investmentMax: 750000,
-    franchiseFee: 40000,
-    description: 'Full-service casual dining concept, established supply chain and training programme.',
-  ),
-
   // Investors
   OpportunityListing(
     id: 'i1',

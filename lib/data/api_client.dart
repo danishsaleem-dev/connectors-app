@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'auth_result.dart';
 import 'auth_state.dart';
+import 'franchising_brand.dart';
 import 'location.dart';
 import 'message.dart';
 import 'profile_data.dart';
@@ -131,6 +132,16 @@ class ApiClient {
 
   static Future<void> sendMessage(String body) {
     return _post('/api/mobile/messages', {'body': body});
+  }
+
+  /// Brands actively franchising — the same data the website's public
+  /// /for-franchise page already shows anonymous visitors, not new
+  /// exposure. Backs the Opportunities tab's "Brands" and "Franchise
+  /// Opportunities" categories.
+  static Future<List<FranchisingBrand>> fetchFranchisingBrands() async {
+    final json = await _get('/api/mobile/opportunities/brands');
+    final list = (json['brands'] as List).cast<Map<String, dynamic>>();
+    return list.map(FranchisingBrand.fromJson).toList();
   }
 
   /// Brand-only — the endpoint itself enforces this (403s otherwise), same

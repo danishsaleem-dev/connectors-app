@@ -6,6 +6,7 @@ import '../theme/spacing.dart';
 import '../widgets/app_card.dart';
 import '../widgets/page_header.dart';
 import '../widgets/reveal.dart';
+import 'brands_screen.dart';
 import 'locations_screen.dart';
 import 'opportunity_list_screen.dart';
 
@@ -64,15 +65,22 @@ class OpportunitiesScreen extends StatelessWidget {
 // Categories backed by real, live property data for brand accounts —
 // "locations" is the unrestricted browse view (LocationsScreen's own Home
 // action), "retail" and "commercial" are that exact same data, just
-// grouped by property type (null means no grouping filter). "brands",
-// "franchise" and "investors" stay mock: showing them for real would mean
-// exposing other organizations' data across account types, which needs a
-// real access-control decision nobody's made yet — see opportunity.dart.
+// grouped by property type (null means no grouping filter).
 const _realPropertyCategories = <String, Set<String>?>{
   'locations': null,
   'retail': retailPropertyTypes,
   'commercial': commercialPropertyTypes,
 };
+
+// "Brands" and "Franchise Opportunities" are the same real, live query
+// (franchising organizations) for every role that sees them — not
+// brand-restricted like the property categories above, since it's brands
+// being browsed, not a brand's own data. "Investors" stays mock: showing
+// it for real would mean exposing investor orgs' data, which has no
+// existing public precedent the way franchising brands do (see
+// ApiClient.fetchFranchisingBrands's doc comment) — a real access-control
+// decision nobody's made yet.
+const _realBrandCategories = {'brands', 'franchise'};
 
 class _CategoryCard extends StatelessWidget {
   final OpportunityCategoryConfig category;
@@ -84,6 +92,7 @@ class _CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isRealProperty =
         orgType == 'brand' && _realPropertyCategories.containsKey(category.key);
+    final isRealBrandList = _realBrandCategories.contains(category.key);
 
     return AppCard(
       padding: const EdgeInsets.all(16),
@@ -94,7 +103,9 @@ class _CategoryCard extends StatelessWidget {
                   appBarTitle: category.key == 'locations' ? 'Available Locations' : category.label,
                   propertyTypes: _realPropertyCategories[category.key],
                 )
-              : OpportunityListScreen(category: category),
+              : isRealBrandList
+                  ? BrandsScreen(title: category.label)
+                  : OpportunityListScreen(category: category),
         ),
       ),
       child: Column(
