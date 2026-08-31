@@ -1,6 +1,10 @@
-/// One listing from GET /api/mobile/opportunities/locations — same shape
-/// the website's own /available-locations page renders, brand-only access
-/// enforced server-side (see that endpoint's doc comment).
+/// One listing from GET /api/mobile/opportunities/locations (or the
+/// landlord/developer-scoped /api/mobile/properties/mine — same shape) —
+/// same shape the website's own /available-locations page renders,
+/// brand-only access enforced server-side (see that endpoint's doc
+/// comment). Deliberately carries nothing that identifies who owns the
+/// listing — no party in the portal contacts another directly, only
+/// through Connectors.
 class Location {
   final String id;
   final String title;
@@ -19,7 +23,7 @@ class Location {
   final String status;
   final bool featured;
   final String? description;
-  final String? organizationName;
+  final bool isFavorited;
   final List<String> photoUrls;
 
   const Location({
@@ -40,7 +44,7 @@ class Location {
     required this.status,
     required this.featured,
     required this.description,
-    required this.organizationName,
+    this.isFavorited = false,
     required this.photoUrls,
   });
 
@@ -63,10 +67,32 @@ class Location {
       status: json['status'] as String,
       featured: json['featured'] as bool? ?? false,
       description: json['description'] as String?,
-      organizationName: json['organizationName'] as String?,
+      isFavorited: json['isFavorited'] as bool? ?? false,
       photoUrls: (json['photoUrls'] as List?)?.cast<String>() ?? const [],
     );
   }
+
+  Location copyWith({bool? isFavorited}) => Location(
+        id: id,
+        title: title,
+        propertyType: propertyType,
+        city: city,
+        country: country,
+        area: area,
+        sizeSqft: sizeSqft,
+        dimensions: dimensions,
+        floorLevel: floorLevel,
+        parkingAvailable: parkingAvailable,
+        rentAmount: rentAmount,
+        rentPeriod: rentPeriod,
+        currency: currency,
+        availableFrom: availableFrom,
+        status: status,
+        featured: featured,
+        description: description,
+        isFavorited: isFavorited ?? this.isFavorited,
+        photoUrls: photoUrls,
+      );
 
   /// e.g. "PKR 500,000 / month" — null when no rent is set (some listings
   /// are "POA", price on application, same as the website shows it).

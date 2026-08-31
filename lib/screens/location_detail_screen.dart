@@ -65,16 +65,6 @@ class LocationDetailScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    if (location.organizationName != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        'Listed by ${location.organizationName}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: AppColors.grey500),
-                      ),
-                    ],
                     const SizedBox(height: AppSpacing.xl),
                     _DetailGrid(location: location),
                     if (location.description != null && location.description!.isNotEmpty) ...[
@@ -90,7 +80,7 @@ class LocationDetailScreen extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: AppSpacing.section),
-                    EnquireCta(message: 'Interested in "${location.title}"? Email our team.'),
+                    InquireCta(message: 'Interested in this location?', subject: location.title),
                   ],
                 ),
               ),

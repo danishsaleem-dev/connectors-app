@@ -83,7 +83,7 @@ class BrandDetailScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.xl),
               _DetailGrid(brand: brand),
               const SizedBox(height: AppSpacing.section),
-              EnquireCta(message: 'Ask about franchising with ${brand.name}.'),
+              InquireCta(message: 'Ask about franchising with ${brand.name}.', subject: brand.name),
             ],
           ),
         ),

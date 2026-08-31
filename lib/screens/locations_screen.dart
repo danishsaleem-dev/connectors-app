@@ -32,12 +32,17 @@ class LocationsScreen extends StatefulWidget {
   final Future<List<Location>> Function() fetch;
   final String emptyMessage;
 
+  /// False for a landlord/developer's own "My Properties" — saving your
+  /// own listing isn't a thing, so the heart has no reason to show there.
+  final bool showFavorite;
+
   const LocationsScreen({
     super.key,
     this.appBarTitle = 'Available Locations',
     this.propertyTypes,
     this.fetch = ApiClient.fetchLocations,
     this.emptyMessage = 'Nothing available right now — check back soon.',
+    this.showFavorite = true,
   });
 
   @override
@@ -48,6 +53,20 @@ class _LocationsScreenState extends State<LocationsScreen> {
   late Future<List<Location>> _future;
   final _searchController = TextEditingController();
   LocationFilters _filters = const LocationFilters();
+  // Optimistic per-card overrides of the server's isFavorited, keyed by
+  // location id — avoids re-fetching the whole list just to flip one heart.
+  final Map<String, bool> _favoriteOverrides = {};
+
+  bool _isFavorited(Location location) => _favoriteOverrides[location.id] ?? location.isFavorited;
+
+  void _toggleFavorite(Location location) {
+    final next = !_isFavorited(location);
+    setState(() => _favoriteOverrides[location.id] = next);
+    ApiClient.toggleFavorite(location.id).catchError((_) {
+      if (mounted) setState(() => _favoriteOverrides[location.id] = !next);
+      return false;
+    });
+  }
 
   List<Location> _scoped(List<Location> locations) {
     final types = widget.propertyTypes;
@@ -178,7 +197,11 @@ class _LocationsScreenState extends State<LocationsScreen> {
                           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
                           itemBuilder: (context, i) => Reveal(
                             index: i,
-                            child: _LocationCard(location: filtered[i]),
+                            child: _LocationCard(
+                              location: filtered[i].copyWith(isFavorited: _isFavorited(filtered[i])),
+                              onToggleFavorite:
+                                  widget.showFavorite ? () => _toggleFavorite(filtered[i]) : null,
+                            ),
                           ),
                         ),
                 ),
@@ -469,8 +492,9 @@ class _StatusMessage extends StatelessWidget {
 
 class _LocationCard extends StatelessWidget {
   final Location location;
+  final VoidCallback? onToggleFavorite;
 
-  const _LocationCard({required this.location});
+  const _LocationCard({required this.location, this.onToggleFavorite});
 
   @override
   Widget build(BuildContext context) {
@@ -513,6 +537,31 @@ class _LocationCard extends StatelessWidget {
                           right: 10,
                           top: 10,
                           child: _Pill(text: 'Featured', color: AppColors.ink),
+                        ),
+                      if (onToggleFavorite != null)
+                        Positioned(
+                          right: 10,
+                          bottom: 10,
+                          child: Material(
+                            color: AppColors.white,
+                            shape: const CircleBorder(),
+                            child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: onToggleFavorite,
+                              child: Padding(
+                                padding: const EdgeInsets.all(7),
+                                child: Icon(
+                                  location.isFavorited
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  size: 16,
+                                  color: location.isFavorited
+                                      ? Colors.red.shade400
+                                      : AppColors.grey500,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                     ],
                   ),

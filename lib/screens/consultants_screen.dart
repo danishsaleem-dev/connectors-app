@@ -81,7 +81,10 @@ class ConsultantsBody extends StatelessWidget {
                 const SizedBox(height: AppSpacing.heading),
                 const ProcessSteps(steps: _steps),
                 const SizedBox(height: AppSpacing.section),
-                const EnquireCta(message: 'Need a consultant? Email our team.'),
+                const InquireCta(
+                  message: 'Need a consultant?',
+                  subject: 'The consultants roster',
+                ),
               ],
             ),
           ),

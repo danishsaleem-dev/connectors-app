@@ -50,7 +50,7 @@ class ServiceInfoScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
                     ),
                     const SizedBox(height: AppSpacing.section),
-                    EnquireCta(message: enquireMessage),
+                    InquireCta(message: enquireMessage, subject: title),
                   ],
                 ),
               ),

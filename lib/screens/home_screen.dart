@@ -143,18 +143,51 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  Material(
-                    color: AppColors.violet50,
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () => Navigator.of(context).push(ChatScreen.route()),
-                      child: const Padding(
-                        padding: EdgeInsets.all(11),
-                        child: Icon(
-                          Icons.auto_awesome_rounded,
-                          color: AppColors.violet600,
-                          size: 20,
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.violet600.withValues(alpha: 0.28),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      shape: const StadiumBorder(),
+                      child: Ink(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [AppColors.violet400, AppColors.violet600],
+                          ),
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
+                        ),
+                        child: InkWell(
+                          customBorder: const StadiumBorder(),
+                          onTap: () => Navigator.of(context).push(ChatScreen.route()),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.auto_awesome_rounded, color: AppColors.white, size: 18),
+                                SizedBox(width: 6),
+                                Text(
+                                  'AI',
+                                  style: TextStyle(
+                                    color: AppColors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),

@@ -121,7 +121,7 @@ class OpportunityDetailScreen extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: AppSpacing.section),
-                    const EnquireCta(message: 'Interested in this listing? Email our team.'),
+                    InquireCta(message: 'Interested in this listing?', subject: listing.title),
                   ],
                 ),
               ),

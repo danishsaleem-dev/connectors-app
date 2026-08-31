@@ -65,7 +65,10 @@ class PartnersBody extends StatelessWidget {
                   Reveal(index: i, child: _BenefitRow(benefit: PartnersData.benefits[i])),
                 ],
                 const SizedBox(height: AppSpacing.section),
-                const EnquireCta(message: 'Questions before you apply? Email our team.'),
+                const InquireCta(
+                  message: 'Questions before you apply?',
+                  subject: 'The Partners Program',
+                ),
               ],
             ),
           ),

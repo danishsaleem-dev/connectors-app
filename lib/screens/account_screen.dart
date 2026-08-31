@@ -11,7 +11,7 @@ import '../widgets/reveal.dart';
 import 'analytics_screen.dart';
 import 'contact_screen.dart';
 import 'edit_profile_screen.dart';
-import 'saved_items_screen.dart';
+import 'locations_screen.dart';
 import 'settings_screen.dart';
 import 'subscription_screen.dart';
 import 'verification_screen.dart';
@@ -87,14 +87,25 @@ class AccountBody extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => EditProfileScreen(session: session)),
                       ),
                     ),
-                    InfoItem(
-                      icon: Icons.bookmark_border_rounded,
-                      title: 'Saved',
-                      body: "Listings you've shortlisted.",
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SavedItemsScreen()),
+                    // Saving is a location thing, and only brand accounts
+                    // ever see a location to save one — same gate as the
+                    // Opportunities tab's own Locations category.
+                    if (session.orgType == 'brand')
+                      InfoItem(
+                        icon: Icons.bookmark_border_rounded,
+                        title: 'Saved',
+                        body: "Listings you've shortlisted.",
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => LocationsScreen(
+                              appBarTitle: 'Saved',
+                              fetch: ApiClient.fetchFavorites,
+                              emptyMessage:
+                                  'Nothing saved yet — tap the heart on a listing to save it here.',
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
                     InfoItem(
                       icon: Icons.verified_user_outlined,
                       title: 'Verification',

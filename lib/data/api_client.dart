@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'auth_result.dart';
 import 'auth_state.dart';
+import 'chat.dart';
 import 'franchising_brand.dart';
 import 'location.dart';
 import 'message.dart';
@@ -140,6 +141,23 @@ class ApiClient {
     return _post('/api/mobile/messages/read', {});
   }
 
+  /// Connectors AI's opening state — greeting plus suggested questions.
+  static Future<ChatIntro> fetchChatIntro() async {
+    final json = await _get('/api/mobile/chat');
+    return ChatIntro.fromJson(json);
+  }
+
+  /// Asks a free-text question. Pass [entryId] instead when the question
+  /// came from a suggested chip — answers it directly rather than
+  /// re-running its own label back through the matcher.
+  static Future<ChatReply> askChat({String? question, String? entryId}) async {
+    final json = await _post('/api/mobile/chat', {
+      'question': ?question,
+      'entryId': ?entryId,
+    });
+    return ChatReply.fromJson(json);
+  }
+
   /// Brands actively franchising — the same data the website's public
   /// /for-franchise page already shows anonymous visitors, not new
   /// exposure. Backs the Opportunities tab's "Brands" and "Franchise
@@ -164,6 +182,19 @@ class ApiClient {
     final json = await _get('/api/mobile/properties/mine');
     final list = (json['locations'] as List).cast<Map<String, dynamic>>();
     return list.map(Location.fromJson).toList();
+  }
+
+  /// The org's saved locations — backs the Saved tab.
+  static Future<List<Location>> fetchFavorites() async {
+    final json = await _get('/api/mobile/favorites');
+    final list = (json['locations'] as List).cast<Map<String, dynamic>>();
+    return list.map(Location.fromJson).toList();
+  }
+
+  /// Toggles one location's saved state; returns the new state.
+  static Future<bool> toggleFavorite(String propertyId) async {
+    final json = await _post('/api/mobile/favorites/toggle', {'propertyId': propertyId});
+    return json['favorited'] as bool;
   }
 
   /// `token` pins an explicit bearer value (checkSession, called with a
