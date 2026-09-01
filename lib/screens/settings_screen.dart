@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../data/auth_result.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/app_card.dart';
@@ -8,9 +10,11 @@ import '../widgets/app_card.dart';
 ///
 /// The switches hold real local state so the screen behaves correctly when
 /// you tap them, but nothing is persisted and no preference is wired to a
-/// backend — there's no notification infrastructure to configure yet. The
-/// legal rows deliberately have no destination rather than linking to a
-/// policy that hasn't been written.
+/// backend — there's no notification infrastructure to configure yet.
+/// Privacy policy opens the real page now that one exists; Terms of
+/// service still has no destination — there's genuinely no policy written
+/// yet, so it stays honest rather than linking to something that doesn't
+/// exist.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -27,6 +31,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _notWired() => ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Coming soon')),
       );
+
+  Future<void> _openPrivacyPolicy() async {
+    final ok = await launchUrl(
+      Uri.parse('$apiBaseUrl/privacy'),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't open the browser. Please try again.")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +109,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Column(
                 children: [
-                  _LinkRow(title: 'Privacy policy', onTap: _notWired),
+                  _LinkRow(title: 'Privacy policy', onTap: _openPrivacyPolicy),
                   const Divider(height: 1),
                   _LinkRow(title: 'Terms of service', onTap: _notWired),
                   const Divider(height: 1),

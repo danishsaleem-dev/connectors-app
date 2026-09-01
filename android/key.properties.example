@@ -1,0 +1,4 @@
+storePassword=<the keystore's own password>
+keyPassword=<the key's password — often the same as storePassword>
+keyAlias=upload
+storeFile=<absolute path to the .jks file, e.g. C:/Users/you/connectors-upload-key.jks>

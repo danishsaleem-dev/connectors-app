@@ -1,4 +1,4 @@
-name: Build APK
+name: Build release
 
 on:
   push:
@@ -23,13 +23,48 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+
+      # Reconstructs android/key.properties and the keystore it points at
+      # from repo secrets, so CI can produce a real, Play-Store-uploadable
+      # signed build. Skipped entirely (both builds below fall back to the
+      # debug key) until ANDROID_KEYSTORE_BASE64 etc. are added under
+      # Settings → Secrets and variables → Actions — see README.md's
+      # "Release signing" section for what to generate and how to encode
+      # it. Never commit the keystore or its passwords to the repo itself.
+      - name: Restore Android signing key
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_STORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=../upload-keystore.jks
+          EOF
+
       # Single-ABI (arm64 — virtually every phone from the last ~6 years) so
       # this ships one ~20-25MB APK instead of a "fat" universal one bundling
       # arm64 + armv7 + x86_64 native code, which is what made the first
-      # build 70+MB for an app this size.
+      # build 70+MB for an app this size. For sideloading/direct testing —
+      # Play Store itself is served from the AAB below, which already
+      # splits by ABI per device on Google's end.
       - run: flutter build apk --release --target-platform android-arm64
+
+      # What actually gets uploaded to Play Console — Google has required
+      # App Bundles (not APKs) for new apps since 2021.
+      - run: flutter build appbundle --release
 
       - uses: actions/upload-artifact@v4
         with:
           name: connectors-app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: connectors-app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab

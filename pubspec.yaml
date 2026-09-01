@@ -1,5 +1,5 @@
 name: connectors_app
-description: "A new Flutter project."
+description: "Connectors — brand expansion, franchising and property matching, in one app."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -56,8 +56,26 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+  # Regenerates every platform's launcher/app-store icon size from one
+  # master image — see the flutter_launcher_icons config below and
+  # README.md's "App icon" section for how to run it.
+  flutter_launcher_icons: ^0.14.4
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+# flutter_launcher_icons config — run `dart run flutter_launcher_icons`
+# after dropping a master icon at the path below (1024x1024 PNG, no
+# transparency needed but fine if present — remove_alpha_ios below
+# flattens it for the App Store's no-alpha requirement either way).
+flutter_launcher_icons:
+  image_path: "assets/icon/app_icon.png"
+  android: true
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  ios: true
+  remove_alpha_ios: true
 
 # The following section is specific to Flutter packages.
 flutter:

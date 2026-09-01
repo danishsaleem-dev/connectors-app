@@ -1,4 +1,4 @@
-package group.connectors.connectors_app
+package group.connectors.app
 
 import io.flutter.embedding.android.FlutterActivity
 
