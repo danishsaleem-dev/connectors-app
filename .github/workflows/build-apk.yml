@@ -8,6 +8,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Job-level, not step-level: the `secrets` context can't be referenced
+    # directly inside an `if:` condition at all (GitHub Actions rejects it
+    # with "Unrecognized named-value: 'secrets'" even at step scope) — only
+    # `env`/`vars` contexts are readable there. Exposing these as job env
+    # vars once here is what lets the signing step's `if:` below check
+    # `env.ANDROID_KEYSTORE_BASE64` instead.
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,12 +43,7 @@ jobs:
       # "Release signing" section for what to generate and how to encode
       # it. Never commit the keystore or its passwords to the repo itself.
       - name: Restore Android signing key
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/upload-keystore.jks
           cat > android/key.properties <<EOF
