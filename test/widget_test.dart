@@ -104,8 +104,13 @@ void main() {
     await tester.tap(find.byIcon(Icons.travel_explore_outlined));
     await _settle(tester);
 
-    // A brand sees Investors/Locations/Retail/Commercial, not Brands or
-    // Franchise Opportunities (those are for franchisees/investors).
+    // A brand sees Locations/Retail/Commercial, not Brands or Franchise
+    // Opportunities (those are for franchisees/investors). "Investors" used
+    // to be a fourth category here but was mock data with no real source
+    // and is hidden from every role's category list now (see
+    // opportunity.dart's _categoriesByRole) — not asserted findsNothing
+    // here since the Home tab's own "Investors" tile stays mounted (and
+    // matches by text) in the IndexedStack behind this tab.
     expect(find.text('Retail Spaces'), findsOneWidget);
     expect(find.text('Commercial Projects'), findsOneWidget);
   });
@@ -176,18 +181,11 @@ void main() {
 
     expect(find.text('Edit profile'), findsOneWidget);
     expect(find.text('Verification'), findsOneWidget);
-    expect(find.text('Membership'), findsOneWidget);
-
-    await tester.scrollUntilVisible(
-      find.text('Membership'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.text('Membership'));
-    await tester.pump();
-    await _settle(tester);
-
-    expect(find.text('Choose your plan'), findsOneWidget);
+    expect(find.text('Analytics'), findsOneWidget);
+    // Membership was UI-only with no billing behind it (fabricated plans
+    // and prices) — hidden from navigation rather than shown as real; see
+    // account_screen.dart's Growth section.
+    expect(find.text('Membership'), findsNothing);
   });
 
   testWidgets(
