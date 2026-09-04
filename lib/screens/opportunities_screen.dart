@@ -100,12 +100,14 @@ class _CategoryCard extends StatelessWidget {
         MaterialPageRoute(
           builder: (_) => isRealProperty
               ? LocationsScreen(
-                  appBarTitle: category.key == 'locations' ? 'Available Locations' : category.label,
+                  appBarTitle: category.key == 'locations'
+                      ? 'Available Locations'
+                      : category.label,
                   propertyTypes: _realPropertyCategories[category.key],
                 )
               : isRealBrandList
-                  ? BrandsScreen(title: category.label)
-                  : OpportunityListScreen(category: category),
+              ? BrandsScreen(title: category.label)
+              : OpportunityListScreen(category: category),
         ),
       ),
       child: Column(
@@ -123,9 +125,17 @@ class _CategoryCard extends StatelessWidget {
                   color: AppColors.violet50,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(category.icon, color: AppColors.violet600, size: 21),
+                child: Icon(
+                  category.icon,
+                  color: AppColors.violet600,
+                  size: 21,
+                ),
               ),
-              const Icon(Icons.arrow_outward_rounded, size: 16, color: AppColors.grey300),
+              const Icon(
+                Icons.arrow_outward_rounded,
+                size: 16,
+                color: AppColors.grey300,
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -140,10 +150,10 @@ class _CategoryCard extends StatelessWidget {
             category.description,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: AppColors.grey500, fontSize: 12.5),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.grey500,
+              fontSize: 12.5,
+            ),
           ),
         ],
       ),

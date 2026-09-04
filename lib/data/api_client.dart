@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'analytics.dart';
 import 'auth_result.dart';
 import 'auth_state.dart';
 import 'chat.dart';
@@ -20,8 +21,14 @@ class ApiException implements Exception {
 class ApiClient {
   ApiClient._();
 
-  static Future<AuthResult> login({required String email, required String password}) {
-    return _postAuth('/api/mobile/auth/login', {'email': email, 'password': password});
+  static Future<AuthResult> login({
+    required String email,
+    required String password,
+  }) {
+    return _postAuth('/api/mobile/auth/login', {
+      'email': email,
+      'password': password,
+    });
   }
 
   static Future<AuthResult> register({
@@ -42,7 +49,10 @@ class ApiClient {
     });
   }
 
-  static Future<AuthResult> _postAuth(String path, Map<String, dynamic> body) async {
+  static Future<AuthResult> _postAuth(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final json = await _post(path, body);
     return AuthResult(
       name: json['name'] as String,
@@ -87,7 +97,10 @@ class ApiClient {
   /// Submits one of the four enquiry wizards. `source` is "brand",
   /// "franchise", "landlord" or "investor" — the API route maps that to the
   /// database's enum values itself.
-  static Future<void> submitEnquiry(String source, Map<String, dynamic> fields) {
+  static Future<void> submitEnquiry(
+    String source,
+    Map<String, dynamic> fields,
+  ) {
     return _post('/api/mobile/enquiries', {'source': source, ...fields});
   }
 
@@ -193,8 +206,17 @@ class ApiClient {
 
   /// Toggles one location's saved state; returns the new state.
   static Future<bool> toggleFavorite(String propertyId) async {
-    final json = await _post('/api/mobile/favorites/toggle', {'propertyId': propertyId});
+    final json = await _post('/api/mobile/favorites/toggle', {
+      'propertyId': propertyId,
+    });
     return json['favorited'] as bool;
+  }
+
+  /// Real, org-scoped activity numbers for the Analytics screen — see
+  /// OrgAnalytics's doc comment for what is and isn't tracked yet.
+  static Future<OrgAnalytics> fetchAnalytics() async {
+    final json = await _get('/api/mobile/analytics');
+    return OrgAnalytics.fromJson(json['analytics'] as Map<String, dynamic>);
   }
 
   /// `token` pins an explicit bearer value (checkSession, called with a
@@ -217,19 +239,30 @@ class ApiClient {
           .get(Uri.parse('$apiBaseUrl$path'), headers: _headers(token: token))
           .timeout(const Duration(seconds: 20));
     } catch (_) {
-      throw ApiException("Couldn't reach Connectors — check your connection and try again.");
+      throw ApiException(
+        "Couldn't reach Connectors — check your connection and try again.",
+      );
     }
     return _decode(response);
   }
 
-  static Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> body) async {
+  static Future<Map<String, dynamic>> _post(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     http.Response response;
     try {
       response = await http
-          .post(Uri.parse('$apiBaseUrl$path'), headers: _headers(), body: jsonEncode(body))
+          .post(
+            Uri.parse('$apiBaseUrl$path'),
+            headers: _headers(),
+            body: jsonEncode(body),
+          )
           .timeout(const Duration(seconds: 20));
     } catch (_) {
-      throw ApiException("Couldn't reach Connectors — check your connection and try again.");
+      throw ApiException(
+        "Couldn't reach Connectors — check your connection and try again.",
+      );
     }
     return _decode(response);
   }
@@ -243,7 +276,9 @@ class ApiClient {
     }
 
     if (json['ok'] != true) {
-      throw ApiException((json['error'] as String?) ?? 'Something went wrong. Please try again.');
+      throw ApiException(
+        (json['error'] as String?) ?? 'Something went wrong. Please try again.',
+      );
     }
     return json;
   }

@@ -58,14 +58,16 @@ class OpportunityListing {
     return min ?? max;
   }
 
-  String? get feeDisplay => franchiseFee == null ? null : '${_money(franchiseFee!)} fee';
+  String? get feeDisplay =>
+      franchiseFee == null ? null : '${_money(franchiseFee!)} fee';
 
   /// No real photos behind this mock data, so each card/detail page gets a
   /// deterministic gradient cover instead of plain text running straight
   /// into the page background — stable per listing (keyed off `id`, not
   /// random) so it doesn't flicker between a different pair on rebuild.
   /// Stays inside the brand's existing violet/ink palette.
-  List<Color> get coverColors => _coverPalette[id.hashCode.abs() % _coverPalette.length];
+  List<Color> get coverColors =>
+      _coverPalette[id.hashCode.abs() % _coverPalette.length];
 
   String? get sizeDisplay => sizeSqft == null ? null : '$sizeSqft sq ft';
 }
@@ -83,7 +85,11 @@ class RangeBucket {
   final String label;
   final bool Function(int? amount) test;
 
-  const RangeBucket({required this.value, required this.label, required this.test});
+  const RangeBucket({
+    required this.value,
+    required this.label,
+    required this.test,
+  });
 }
 
 // Not const: each bucket's `test` closure is built by calling a helper
@@ -92,29 +98,58 @@ class RangeBucket {
 // is a plain, stable function value.
 final investmentBuckets = [
   RangeBucket(value: 'under-50k', label: 'Under \$50K', test: _under(50000)),
-  RangeBucket(value: '50k-200k', label: '\$50K – \$200K', test: _between(50000, 200000)),
-  RangeBucket(value: '200k-500k', label: '\$200K – \$500K', test: _between(200000, 500000)),
+  RangeBucket(
+    value: '50k-200k',
+    label: '\$50K – \$200K',
+    test: _between(50000, 200000),
+  ),
+  RangeBucket(
+    value: '200k-500k',
+    label: '\$200K – \$500K',
+    test: _between(200000, 500000),
+  ),
   RangeBucket(value: '500k-plus', label: '\$500K+', test: _atLeast(500000)),
 ];
 
 final feeBuckets = [
   RangeBucket(value: 'under-10k', label: 'Under \$10K', test: _under(10000)),
-  RangeBucket(value: '10k-30k', label: '\$10K – \$30K', test: _between(10000, 30000)),
+  RangeBucket(
+    value: '10k-30k',
+    label: '\$10K – \$30K',
+    test: _between(10000, 30000),
+  ),
   RangeBucket(value: '30k-plus', label: '\$30K+', test: _atLeast(30000)),
 ];
 
 final sizeBuckets = [
-  RangeBucket(value: 'under-2000', label: 'Under 2,000 sq ft', test: _under(2000)),
-  RangeBucket(value: '2000-5000', label: '2,000 – 5,000 sq ft', test: _between(2000, 5000)),
+  RangeBucket(
+    value: 'under-2000',
+    label: 'Under 2,000 sq ft',
+    test: _under(2000),
+  ),
+  RangeBucket(
+    value: '2000-5000',
+    label: '2,000 – 5,000 sq ft',
+    test: _between(2000, 5000),
+  ),
   RangeBucket(value: '5000-plus', label: '5,000+ sq ft', test: _atLeast(5000)),
 ];
 
-bool Function(int?) _under(int max) => (v) => v != null && v < max;
-bool Function(int?) _between(int min, int max) => (v) => v != null && v >= min && v < max;
-bool Function(int?) _atLeast(int min) => (v) => v != null && v >= min;
+bool Function(int?) _under(int max) =>
+    (v) => v != null && v < max;
+bool Function(int?) _between(int min, int max) =>
+    (v) => v != null && v >= min && v < max;
+bool Function(int?) _atLeast(int min) =>
+    (v) => v != null && v >= min;
 
 const countries = ['United Kingdom', 'United States', 'Pakistan'];
-const industries = ['Food & Beverage', 'Retail', 'Fitness & Wellness', 'Beauty', 'Education'];
+const industries = [
+  'Food & Beverage',
+  'Retail',
+  'Fitness & Wellness',
+  'Beauty',
+  'Education',
+];
 const brandTypes = ['Single Unit', 'Multi-Unit', 'Master Franchise'];
 
 /// One of the six categories under Opportunities. `filters` names which of
@@ -188,17 +223,34 @@ OpportunityCategoryConfig categoryFor(String key) =>
 /// Which categories a given account type sees — a first pass at "the
 /// opportunities show up according to role," since the doc didn't specify
 /// the exact mapping. Worth confirming/adjusting once this is reviewed.
+///
+/// "Investors" is deliberately never listed for any role — it's still
+/// defined above (and OpportunityListScreen/OpportunityDetailScreen still
+/// render it) so the screen isn't thrown away, but every account type it
+/// showed for used mock listings with no real data source (see
+/// OpportunityListing's doc comment), so it's hidden from navigation until
+/// that access-control decision is actually made. vendor/consultant are
+/// listed explicitly (rather than falling through to "all categories")
+/// so they don't reach it — or the brand-only property categories — via
+/// the null-orgType fallback below.
 const _categoriesByRole = {
-  'brand': ['investors', 'locations', 'retail', 'commercial'],
+  'brand': ['locations', 'retail', 'commercial'],
   'franchisee': ['brands', 'franchise'],
   'landlord': ['brands', 'franchise'],
   'developer': ['brands', 'franchise'],
-  'investor': ['brands', 'franchise', 'investors'],
+  'investor': ['brands', 'franchise'],
+  'vendor': ['brands', 'franchise'],
+  'consultant': ['brands', 'franchise'],
 };
 
+/// Brands/Franchise are real for every role — the safe fallback for an org
+/// type with no explicit entry above (there shouldn't be one; this only
+/// guards against orgType being null or a future new type), so it never
+/// silently lands on "investors" or the brand-only property categories.
+const _fallbackCategoryKeys = ['brands', 'franchise'];
+
 List<OpportunityCategoryConfig> categoriesForRole(String? orgType) {
-  final keys = _categoriesByRole[orgType];
-  if (keys == null) return opportunityCategories;
+  final keys = _categoriesByRole[orgType] ?? _fallbackCategoryKeys;
   return opportunityCategories.where((c) => keys.contains(c.key)).toList();
 }
 
@@ -215,7 +267,8 @@ const mockOpportunities = [
     country: 'United Kingdom',
     investmentMin: 500000,
     investmentMax: 2000000,
-    description: 'Backing multi-unit F&B and fitness operators across the UK and Europe.',
+    description:
+        'Backing multi-unit F&B and fitness operators across the UK and Europe.',
     featured: true,
   ),
   OpportunityListing(
@@ -226,7 +279,8 @@ const mockOpportunities = [
     country: 'United States',
     investmentMin: 250000,
     investmentMax: 1000000,
-    description: 'Early-stage capital for retail and wellness franchise operators.',
+    description:
+        'Early-stage capital for retail and wellness franchise operators.',
   ),
   OpportunityListing(
     id: 'i3',
@@ -236,9 +290,9 @@ const mockOpportunities = [
     country: 'Pakistan',
     investmentMin: 100000,
     investmentMax: 400000,
-    description: 'Regional investor group focused on master franchise deals in South Asia.',
+    description:
+        'Regional investor group focused on master franchise deals in South Asia.',
   ),
-
 ];
 
 List<OpportunityListing> opportunitiesFor(String category) =>

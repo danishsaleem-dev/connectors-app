@@ -13,7 +13,6 @@ import 'contact_screen.dart';
 import 'edit_profile_screen.dart';
 import 'locations_screen.dart';
 import 'settings_screen.dart';
-import 'subscription_screen.dart';
 import 'verification_screen.dart';
 
 /// The account tab — no session param, unlike a pushed screen would need:
@@ -32,16 +31,23 @@ class AccountBody extends StatelessWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(err is ApiException ? err.message : "Couldn't open the portal."),
+          content: Text(
+            err is ApiException ? err.message : "Couldn't open the portal.",
+          ),
         ),
       );
       return;
     }
 
-    final ok = await launchUrl(Uri.parse(handoffUrl), mode: LaunchMode.externalApplication);
+    final ok = await launchUrl(
+      Uri.parse(handoffUrl),
+      mode: LaunchMode.externalApplication,
+    );
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Couldn't open the browser. Please try again.")),
+        const SnackBar(
+          content: Text("Couldn't open the browser. Please try again."),
+        ),
       );
     }
   }
@@ -69,7 +75,8 @@ class AccountBody extends StatelessWidget {
                 index: 1,
                 child: FeatureCard(
                   title: 'Open the Portal',
-                  body: 'Your dashboard, documents and requests, already signed in.',
+                  body:
+                      'Your dashboard, documents and requests, already signed in.',
                   onTap: () => _openPortal(context),
                 ),
               ),
@@ -84,7 +91,9 @@ class AccountBody extends StatelessWidget {
                       title: 'Edit profile',
                       body: 'Your name, company and contact details.',
                       onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => EditProfileScreen(session: session)),
+                        MaterialPageRoute(
+                          builder: (_) => EditProfileScreen(session: session),
+                        ),
                       ),
                     ),
                     // Saving is a location thing, and only brand accounts
@@ -111,7 +120,9 @@ class AccountBody extends StatelessWidget {
                       title: 'Verification',
                       body: 'Verify your business to build trust.',
                       onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const VerificationScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const VerificationScreen(),
+                        ),
                       ),
                     ),
                   ],
@@ -126,17 +137,11 @@ class AccountBody extends StatelessWidget {
                     InfoItem(
                       icon: Icons.insights_outlined,
                       title: 'Analytics',
-                      body: 'Views, enquiries and where interest comes from.',
+                      body: 'Your messages and saved-listing activity.',
                       onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
-                      ),
-                    ),
-                    InfoItem(
-                      icon: Icons.workspace_premium_outlined,
-                      title: 'Membership',
-                      body: 'Compare plans and what each one unlocks.',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const AnalyticsScreen(),
+                        ),
                       ),
                     ),
                   ],
@@ -153,7 +158,9 @@ class AccountBody extends StatelessWidget {
                       title: 'Settings',
                       body: 'Notifications and preferences.',
                       onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
                       ),
                     ),
                     InfoItem(
@@ -161,7 +168,9 @@ class AccountBody extends StatelessWidget {
                       title: 'Contact',
                       body: 'Our three offices, and how to reach them.',
                       onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const ContactScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const ContactScreen(),
+                        ),
                       ),
                     ),
                     InfoItem(
@@ -192,10 +201,10 @@ class _GroupLabel extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4, bottom: AppSpacing.sm),
       child: Text(
         text.toUpperCase(),
-        style: Theme.of(context)
-            .textTheme
-            .labelMedium
-            ?.copyWith(color: AppColors.grey500, letterSpacing: 1.1),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: AppColors.grey500,
+          letterSpacing: 1.1,
+        ),
       ),
     );
   }
@@ -243,13 +252,17 @@ class _ProfileCard extends StatelessWidget {
             width: 56,
             height: 56,
             alignment: Alignment.center,
-            decoration: const BoxDecoration(color: AppColors.white, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+              color: AppColors.white,
+              shape: BoxShape.circle,
+            ),
             child: Text(
-              session.name.trim().isEmpty ? '?' : session.name.trim()[0].toUpperCase(),
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(color: AppColors.violet600),
+              session.name.trim().isEmpty
+                  ? '?'
+                  : session.name.trim()[0].toUpperCase(),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(color: AppColors.violet600),
             ),
           ),
           const SizedBox(width: AppSpacing.lg),
@@ -261,20 +274,19 @@ class _ProfileCard extends StatelessWidget {
                   session.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium
-                      ?.copyWith(color: AppColors.white),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineMedium?.copyWith(color: AppColors.white),
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  session.orgName ?? (session.isAdmin ? 'Connectors team' : 'Signed in'),
+                  session.orgName ??
+                      (session.isAdmin ? 'Connectors team' : 'Signed in'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: AppColors.white.withValues(alpha: 0.78)),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.white.withValues(alpha: 0.78),
+                  ),
                 ),
               ],
             ),

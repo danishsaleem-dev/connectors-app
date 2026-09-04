@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/onboarding_data.dart';
 import '../theme/colors.dart';
+import '../widgets/gradient_background.dart';
 import '../widgets/orbit_field.dart';
 
 /// The doc's four welcome screens, as a swipeable carousel.
@@ -15,7 +16,11 @@ class OnboardingScreen extends StatefulWidget {
   final VoidCallback onGetStarted;
   final VoidCallback onLogin;
 
-  const OnboardingScreen({super.key, required this.onGetStarted, required this.onLogin});
+  const OnboardingScreen({
+    super.key,
+    required this.onGetStarted,
+    required this.onLogin,
+  });
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -47,88 +52,89 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 8, 12, 0),
-                child: TextButton(
-                  onPressed: widget.onGetStarted,
-                  child: Text(
-                    'Skip',
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelLarge
-                        ?.copyWith(color: AppColors.grey500),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: PageView.builder(
-                controller: _controller,
-                onPageChanged: (i) => setState(() => _page = i),
-                itemCount: onboardingSlides.length,
-                itemBuilder: (context, i) => _Slide(slide: onboardingSlides[i]),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var i = 0; i < onboardingSlides.length; i++)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 260),
-                    curve: Curves.easeOutCubic,
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: i == _page ? 22 : 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: i == _page ? AppColors.violet600 : AppColors.grey200,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _next,
-                      child: Text(_isLast ? 'Get Started' : 'Next'),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: widget.onLogin,
-                    child: Text.rich(
-                      TextSpan(
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: AppColors.grey500),
-                        children: const [
-                          TextSpan(text: 'Already have an account?  '),
-                          TextSpan(
-                            text: 'Login',
-                            style: TextStyle(
-                              color: AppColors.violet600,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
+      body: LightGradientBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 12, 0),
+                  child: TextButton(
+                    onPressed: widget.onGetStarted,
+                    child: Text(
+                      'Skip',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.grey500,
                       ),
                     ),
                   ),
+                ),
+              ),
+              Expanded(
+                child: PageView.builder(
+                  controller: _controller,
+                  onPageChanged: (i) => setState(() => _page = i),
+                  itemCount: onboardingSlides.length,
+                  itemBuilder: (context, i) =>
+                      _Slide(slide: onboardingSlides[i]),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < onboardingSlides.length; i++)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 260),
+                      curve: Curves.easeOutCubic,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: i == _page ? 22 : 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: i == _page
+                            ? AppColors.violet600
+                            : AppColors.grey200,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _next,
+                        child: Text(_isLast ? 'Get Started' : 'Next'),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: widget.onLogin,
+                      child: Text.rich(
+                        TextSpan(
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.grey500),
+                          children: const [
+                            TextSpan(text: 'Already have an account?  '),
+                            TextSpan(
+                              text: 'Login',
+                              style: TextStyle(
+                                color: AppColors.violet600,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -182,15 +188,17 @@ class _Slide extends StatelessWidget {
           Text(
             slide.heading,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 12),
           Text(
             slide.description,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
           ),
         ],
       ),
