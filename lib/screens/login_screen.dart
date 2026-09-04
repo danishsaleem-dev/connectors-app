@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
+import '../data/oauth_flow.dart';
+import '../data/oauth_service.dart';
 import '../theme/colors.dart';
 import '../widgets/auth_shell.dart';
-import 'phone_login_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -31,8 +32,22 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _soon() => ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Coming soon')),
+  /// There's no self-service reset flow yet — but an admin can genuinely
+  /// issue a new password today (see resetUserPassword on the website), so
+  /// this points at the route that actually works rather than saying
+  /// "coming soon" and leaving someone locked out.
+  void _forgotPassword() => ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email info@connectors.group and we\'ll reset it for you.'),
+        ),
+      );
+
+  void _oauth(String provider) => startOAuthSignIn(
+        context,
+        provider: provider,
+        setBusy: (busy) {
+          if (mounted) setState(() => _loading = busy);
+        },
       );
 
   Future<void> _submit() async {
@@ -115,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const Spacer(),
               TextButton(
-                onPressed: _soon,
+                onPressed: _forgotPassword,
                 child: Text(
                   'Forgot password?',
                   style: Theme.of(context)
@@ -144,25 +159,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   : const Text('Log in'),
             ),
           ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.grey200, width: 1.2),
-              ),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PhoneLoginScreen()),
-              ),
-              icon: const Icon(Icons.smartphone_rounded, size: 19),
-              label: const Text('Use mobile number'),
-            ),
-          ),
+          // "Use mobile number" is deliberately gone: there's no SMS
+          // provider and no phone-auth endpoint, so it led to an OTP screen
+          // that could never verify anything. PhoneLoginScreen/OtpScreen are
+          // still in the codebase for whenever that's actually built.
           const SizedBox(height: 26),
           AuthProviderRow(
             providers: [
-              (icon: Icons.g_mobiledata_rounded, label: 'Google', onTap: _soon),
-              (icon: Icons.apple_rounded, label: 'Apple', onTap: _soon),
+              if (OAuthService.googleConfigured)
+                (
+                  icon: Icons.g_mobiledata_rounded,
+                  label: 'Google',
+                  onTap: () => _oauth('google'),
+                ),
+              if (OAuthService.appleAvailable)
+                (
+                  icon: Icons.apple_rounded,
+                  label: 'Apple',
+                  onTap: () => _oauth('apple'),
+                ),
             ],
           ),
           const SizedBox(height: 28),

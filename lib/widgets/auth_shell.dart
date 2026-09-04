@@ -102,8 +102,12 @@ InputDecoration authInput({
 }
 
 /// The "or continue with" divider plus provider buttons, shared by Login
-/// and Signup. Google/Apple come from the doc's login-options list; none
-/// of them are wired to a provider yet.
+/// and Signup (see oauth_flow.dart for what they do).
+///
+/// Callers pass only the providers actually available on this build and
+/// platform — Google needs its client IDs compiled in, Apple only runs
+/// natively on iOS/macOS — so an empty list is a real case, and renders
+/// nothing at all rather than a divider promising options that aren't there.
 class AuthProviderRow extends StatelessWidget {
   final List<({IconData icon, String label, VoidCallback onTap})> providers;
 
@@ -111,6 +115,8 @@ class AuthProviderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (providers.isEmpty) return const SizedBox.shrink();
+
     return Column(
       children: [
         Row(

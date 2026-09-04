@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../data/account_types.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
+import '../data/oauth_flow.dart';
+import '../data/oauth_service.dart';
 import '../theme/colors.dart';
 import '../widgets/auth_shell.dart';
 import 'login_screen.dart';
@@ -56,8 +58,15 @@ class _SignupScreenState extends State<SignupScreen> {
 
   AccountTypeOption get _activeType => accountTypes.firstWhere((t) => t.value == _type);
 
-  void _soon() => ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Coming soon')),
+  /// Signing up with a provider is the same call as signing in with one —
+  /// the server decides which it is by whether the verified email already
+  /// has an account, so there's no separate "register with Google" path.
+  void _oauth(String provider) => startOAuthSignIn(
+        context,
+        provider: provider,
+        setBusy: (busy) {
+          if (mounted) setState(() => _loading = busy);
+        },
       );
 
   Future<void> _submit() async {
@@ -242,8 +251,18 @@ class _SignupScreenState extends State<SignupScreen> {
           const SizedBox(height: 26),
           AuthProviderRow(
             providers: [
-              (icon: Icons.g_mobiledata_rounded, label: 'Google', onTap: _soon),
-              (icon: Icons.apple_rounded, label: 'Apple', onTap: _soon),
+              if (OAuthService.googleConfigured)
+                (
+                  icon: Icons.g_mobiledata_rounded,
+                  label: 'Google',
+                  onTap: () => _oauth('google'),
+                ),
+              if (OAuthService.appleAvailable)
+                (
+                  icon: Icons.apple_rounded,
+                  label: 'Apple',
+                  onTap: () => _oauth('apple'),
+                ),
             ],
           ),
           const SizedBox(height: 28),

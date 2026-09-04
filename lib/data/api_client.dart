@@ -7,6 +7,7 @@ import 'chat.dart';
 import 'franchising_brand.dart';
 import 'location.dart';
 import 'message.dart';
+import 'oauth_outcome.dart';
 import 'profile_data.dart';
 
 export 'auth_result.dart' show AuthResult, apiBaseUrl;
@@ -49,11 +50,60 @@ class ApiClient {
     });
   }
 
+  /// Google/Apple sign-in. Sends the provider's ID token for the server to
+  /// verify — see OAuthService for why the app never sends an identity of
+  /// its own — and comes back either signed in, or needing the account type
+  /// and company name that no provider can tell us.
+  static Future<OAuthOutcome> oauthSignIn({
+    required String provider,
+    required String idToken,
+  }) async {
+    final json = await _post('/api/mobile/auth/oauth', {
+      'provider': provider,
+      'idToken': idToken,
+    });
+    if (json['needsSignup'] == true) {
+      return OAuthNeedsSignup(
+        pendingToken: json['pendingToken'] as String,
+        email: json['email'] as String,
+        name: json['name'] as String?,
+      );
+    }
+    return OAuthSignedIn(_authResultFrom(json));
+  }
+
+  /// Finishes a first-time Google/Apple signup. `pendingToken` is the
+  /// server's own short-lived proof that it verified this identity moments
+  /// ago; the email is deliberately never re-sent from here, so it can't be
+  /// swapped for someone else's on the way.
+  static Future<AuthResult> completeOauthSignup({
+    required String pendingToken,
+    required String type,
+    required String organizationName,
+    required String name,
+    String? discipline,
+  }) async {
+    final json = await _post('/api/mobile/auth/oauth/complete', {
+      'pendingToken': pendingToken,
+      'type': type,
+      'organizationName': organizationName,
+      'name': name,
+      'discipline': ?discipline,
+    });
+    return _authResultFrom(json);
+  }
+
   static Future<AuthResult> _postAuth(
     String path,
     Map<String, dynamic> body,
   ) async {
-    final json = await _post(path, body);
+    return _authResultFrom(await _post(path, body));
+  }
+
+  /// The one shape every "you're signed in now" response has — login,
+  /// register and Google/Apple alike, matching the server's own
+  /// mobileAuthResponse helper.
+  static AuthResult _authResultFrom(Map<String, dynamic> json) {
     return AuthResult(
       name: json['name'] as String,
       isAdmin: json['isAdmin'] as bool,

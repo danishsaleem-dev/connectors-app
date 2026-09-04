@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../data/oauth_flow.dart';
+import '../data/oauth_service.dart';
 import '../data/site_data.dart';
 import '../theme/colors.dart';
 import '../widgets/gradient_background.dart';
@@ -91,32 +93,43 @@ class WelcomeScreen extends StatelessWidget {
                         child: const Text('Sign In'),
                       ),
                     ),
-                    const SizedBox(height: 22),
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: AppColors.white.withValues(alpha: 0.24))),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            'OR SIGN IN WITH',
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: AppColors.white.withValues(alpha: 0.55),
-                                  letterSpacing: 1.2,
-                                ),
+                    // Only shown when there's actually something behind it:
+                    // Google needs its client IDs compiled into the build,
+                    // and Apple only signs in natively on iOS/macOS.
+                    if (OAuthService.googleConfigured || OAuthService.appleAvailable) ...[
+                      const SizedBox(height: 22),
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: AppColors.white.withValues(alpha: 0.24))),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'OR SIGN IN WITH',
+                              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    color: AppColors.white.withValues(alpha: 0.55),
+                                    letterSpacing: 1.2,
+                                  ),
+                            ),
                           ),
-                        ),
-                        Expanded(child: Divider(color: AppColors.white.withValues(alpha: 0.24))),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _AltSignInButton(icon: Icons.mail_outline_rounded, context: context),
-                        const SizedBox(width: 16),
-                        _AltSignInButton(icon: Icons.smartphone_rounded, context: context),
-                      ],
-                    ),
+                          Expanded(child: Divider(color: AppColors.white.withValues(alpha: 0.24))),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (OAuthService.googleConfigured)
+                            _AltSignInButton(
+                              icon: Icons.g_mobiledata_rounded,
+                              provider: 'google',
+                            ),
+                          if (OAuthService.googleConfigured && OAuthService.appleAvailable)
+                            const SizedBox(width: 16),
+                          if (OAuthService.appleAvailable)
+                            _AltSignInButton(icon: Icons.apple_rounded, provider: 'apple'),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 26),
                     Center(
                       child: GestureDetector(
@@ -156,24 +169,49 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-/// UI-only for now — the app has one sign-in method (email + password), so
-/// these don't gate any real alt-auth flow yet. A tap says so rather than
-/// doing nothing, so it reads as "not built yet" instead of "broken."
-class _AltSignInButton extends StatelessWidget {
+/// One round Google/Apple button. Stateful only to hold its own spinner
+/// while the provider sheet and our verification round-trip are in flight —
+/// the Welcome screen itself is stateless and shouldn't have to be.
+class _AltSignInButton extends StatefulWidget {
   final IconData icon;
-  final BuildContext context;
+  final String provider;
 
-  const _AltSignInButton({required this.icon, required this.context});
+  const _AltSignInButton({required this.icon, required this.provider});
 
   @override
-  Widget build(BuildContext _) {
+  State<_AltSignInButton> createState() => _AltSignInButtonState();
+}
+
+class _AltSignInButtonState extends State<_AltSignInButton> {
+  bool _busy = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_busy) {
+      return const SizedBox(
+        width: 52,
+        height: 52,
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+          ),
+        ),
+      );
+    }
+
     return Material(
       color: AppColors.white.withValues(alpha: 0.08),
       shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),
-        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Coming soon')),
+        onTap: () => startOAuthSignIn(
+          context,
+          provider: widget.provider,
+          setBusy: (busy) {
+            if (mounted) setState(() => _busy = busy);
+          },
         ),
         child: Container(
           width: 52,
@@ -183,7 +221,7 @@ class _AltSignInButton extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.white.withValues(alpha: 0.3)),
           ),
-          child: Icon(icon, color: AppColors.white, size: 22),
+          child: Icon(widget.icon, color: AppColors.white, size: 22),
         ),
       ),
     );
