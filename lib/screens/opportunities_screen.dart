@@ -104,6 +104,10 @@ class _CategoryCard extends StatelessWidget {
                       ? 'Available Locations'
                       : category.label,
                   propertyTypes: _realPropertyCategories[category.key],
+                  // Only the unfiltered "Locations" category is the same
+                  // full browse view as the Home quick action — Retail/
+                  // Commercial are narrower sub-views of it.
+                  showRequestCta: category.key == 'locations',
                 )
               : isRealBrandList
               ? BrandsScreen(title: category.label)

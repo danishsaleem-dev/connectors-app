@@ -17,7 +17,8 @@ import 'package:connectors_app/widgets/floating_nav_bar.dart';
 /// pumpAndSettle would hang until its own timeout on every screen. This
 /// advances enough frames for the bounded entrance animations (Reveal) to
 /// finish without waiting on the ones that never do.
-Future<void> _settle(WidgetTester tester) => tester.pump(const Duration(milliseconds: 900));
+Future<void> _settle(WidgetTester tester) =>
+    tester.pump(const Duration(milliseconds: 900));
 
 const _fakeBrandSession = AuthResult(
   name: 'Jamie Test',
@@ -41,7 +42,9 @@ void main() {
     // Manager calls, not a clean "missing platform channel" failure),
     // which makes driving the full boot flow here more trouble than it's
     // worth for what's fundamentally a static screen.
-    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const SplashScreen()));
+    await tester.pumpWidget(
+      MaterialApp(theme: buildAppTheme(), home: const SplashScreen()),
+    );
     await tester.pump();
 
     expect(find.text('CONNECTORS'), findsOneWidget);
@@ -52,15 +55,21 @@ void main() {
   testWidgets('Signed out, the app shows Welcome, not the tab shell', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const WelcomeScreen()));
+    await tester.pumpWidget(
+      MaterialApp(theme: buildAppTheme(), home: const WelcomeScreen()),
+    );
     await tester.pump();
 
     expect(find.text('Sign In'), findsOneWidget);
     expect(find.textContaining('Sign up now'), findsOneWidget);
   });
 
-  testWidgets('Sign In opens the real login screen', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const WelcomeScreen()));
+  testWidgets('Sign In opens the real login screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: buildAppTheme(), home: const WelcomeScreen()),
+    );
     await tester.pump();
 
     await tester.tap(find.text('Sign In'));
@@ -72,54 +81,62 @@ void main() {
     expect(find.text('Log in'), findsOneWidget);
   });
 
-  testWidgets('Signed in, the app shell renders with bottom nav and Home active', (
-    WidgetTester tester,
-  ) async {
-    Auth.session.value = _fakeBrandSession;
-    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
-    await tester.pump();
-    // Let every Reveal's staggered delayed-start timer actually fire —
-    // otherwise they're still pending when the test ends, which the test
-    // framework treats as a leak.
-    await _settle(tester);
+  testWidgets(
+    'Signed in, the app shell renders with bottom nav and Home active',
+    (WidgetTester tester) async {
+      Auth.session.value = _fakeBrandSession;
+      await tester.pumpWidget(
+        MaterialApp(theme: buildAppTheme(), home: const AppShell()),
+      );
+      await tester.pump();
+      // Let every Reveal's staggered delayed-start timer actually fire —
+      // otherwise they're still pending when the test ends, which the test
+      // framework treats as a leak.
+      await _settle(tester);
 
-    // No app bar/logo any more — Home's own profile row is the only place
-    // the signed-in account shows up.
-    expect(find.byType(FloatingNavBar), findsOneWidget);
-    expect(find.text('Jamie Test'), findsOneWidget);
-    // Role now shares a line with a time-of-day greeting ("Good evening ·
-    // Brand"), so match the role within it rather than as its own string.
-    expect(find.textContaining('Brand'), findsWidgets);
-  });
+      // No app bar/logo any more — Home's own profile row is the only place
+      // the signed-in account shows up.
+      expect(find.byType(FloatingNavBar), findsOneWidget);
+      expect(find.text('Jamie Test'), findsOneWidget);
+      // Role now shares a line with a time-of-day greeting ("Good evening ·
+      // Brand"), so match the role within it rather than as its own string.
+      expect(find.textContaining('Brand'), findsWidgets);
+    },
+  );
 
-  testWidgets('Tapping the Opportunities tab shows the role-appropriate categories', (
-    WidgetTester tester,
-  ) async {
-    Auth.session.value = _fakeBrandSession;
-    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
-    await tester.pump();
+  testWidgets(
+    'Tapping the Opportunities tab shows the role-appropriate categories',
+    (WidgetTester tester) async {
+      Auth.session.value = _fakeBrandSession;
+      await tester.pumpWidget(
+        MaterialApp(theme: buildAppTheme(), home: const AppShell()),
+      );
+      await tester.pump();
 
-    // The second tab is now a shared hub (Opportunities) rather than the
-    // account type's own form — every account type gets the same icon.
-    await tester.tap(find.byIcon(Icons.travel_explore_outlined));
-    await _settle(tester);
+      // The second tab is now a shared hub (Opportunities) rather than the
+      // account type's own form — every account type gets the same icon.
+      await tester.tap(find.byIcon(Icons.travel_explore_outlined));
+      await _settle(tester);
 
-    // A brand sees Locations/Retail/Commercial, not Brands or Franchise
-    // Opportunities (those are for franchisees/investors). "Investors" used
-    // to be a fourth category here but was mock data with no real source
-    // and is hidden from every role's category list now (see
-    // opportunity.dart's _categoriesByRole) — not asserted findsNothing
-    // here since the Home tab's own "Investors" tile stays mounted (and
-    // matches by text) in the IndexedStack behind this tab.
-    expect(find.text('Retail Spaces'), findsOneWidget);
-    expect(find.text('Commercial Projects'), findsOneWidget);
-  });
+      // A brand sees Locations/Retail/Commercial, not Brands or Franchise
+      // Opportunities (those are for franchisees/investors). "Investors" used
+      // to be a fourth category here but was mock data with no real source
+      // and is hidden from every role's category list now (see
+      // opportunity.dart's _categoriesByRole) — not asserted findsNothing
+      // here since the Home tab's own "Investors" tile stays mounted (and
+      // matches by text) in the IndexedStack behind this tab.
+      expect(find.text('Retail Spaces'), findsOneWidget);
+      expect(find.text('Commercial Projects'), findsOneWidget);
+    },
+  );
 
   testWidgets("A brand's Home offers all five of its actions as a tile grid", (
     WidgetTester tester,
   ) async {
     Auth.session.value = _fakeBrandSession;
-    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
+    await tester.pumpWidget(
+      MaterialApp(theme: buildAppTheme(), home: const AppShell()),
+    );
     await tester.pump();
     await _settle(tester);
 
@@ -144,12 +161,19 @@ void main() {
     await tester.tap(find.text('Franchisees'));
     await tester.pump();
     await _settle(tester);
-    expect(find.text('Your budget, territory and industry interest.'), findsOneWidget);
+    expect(
+      find.text('Your budget, territory and industry interest.'),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('Account tab offers Contact now that Menu is gone', (WidgetTester tester) async {
+  testWidgets('Account tab offers Contact now that Menu is gone', (
+    WidgetTester tester,
+  ) async {
     Auth.session.value = _fakeBrandSession;
-    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
+    await tester.pumpWidget(
+      MaterialApp(theme: buildAppTheme(), home: const AppShell()),
+    );
     await tester.pump();
 
     await tester.tap(find.byIcon(Icons.person_outline_rounded));
@@ -173,18 +197,21 @@ void main() {
     WidgetTester tester,
   ) async {
     Auth.session.value = _fakeBrandSession;
-    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
+    await tester.pumpWidget(
+      MaterialApp(theme: buildAppTheme(), home: const AppShell()),
+    );
     await tester.pump();
 
     await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await _settle(tester);
 
     expect(find.text('Edit profile'), findsOneWidget);
-    expect(find.text('Verification'), findsOneWidget);
     expect(find.text('Analytics'), findsOneWidget);
-    // Membership was UI-only with no billing behind it (fabricated plans
-    // and prices) — hidden from navigation rather than shown as real; see
-    // account_screen.dart's Growth section.
+    // Verification and Membership are both UI-only with no real backend
+    // behind them (no KYC pipeline, no billing) — hidden from navigation
+    // rather than shown as real; see account_screen.dart's "Your account"
+    // and "Growth" sections.
+    expect(find.text('Verification'), findsNothing);
     expect(find.text('Membership'), findsNothing);
   });
 
@@ -192,18 +219,36 @@ void main() {
     'Brand enquiry wizard blocks on an empty required field, then advances once filled',
     (WidgetTester tester) async {
       Auth.session.value = _fakeBrandSession;
-      await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const AppShell()));
+      await tester.pumpWidget(
+        MaterialApp(theme: buildAppTheme(), home: const AppShell()),
+      );
       await tester.pump();
       await _settle(tester);
 
-      // Reaches the brand's request form via its Home tile now — the
-      // second tab is the shared Opportunities hub, not a per-type form.
+      // The Home tile now opens Available Locations to browse, not the
+      // request form directly — the form is one tap further, behind that
+      // screen's pinned "Request a location" bar. The bar renders
+      // unconditionally (it's outside the listing's own FutureBuilder), so
+      // this doesn't depend on the location list itself ever loading.
       await tester.scrollUntilVisible(
         find.text('Location'),
         200,
         scrollable: find.byType(Scrollable).first,
       );
+      // A bare pump() before _settle on both taps below, not just _settle
+      // alone: each is now a Navigator.push two frames deep in nested
+      // Material/InkWell (a GridView tile, then a Scaffold's
+      // bottomNavigationBar), and jumping straight to _settle's single
+      // large time-step can land before the gesture arena has resolved
+      // which recognizer actually won the tap, so onTap never fires and
+      // the push silently never happens. One real frame first lets that
+      // resolve before the time-jump.
       await tester.tap(find.text('Location'));
+      await tester.pump();
+      await _settle(tester);
+
+      await tester.tap(find.text('Request a location'));
+      await tester.pump();
       await _settle(tester);
 
       // The form sits directly under the page header now, but the screen
@@ -211,7 +256,16 @@ void main() {
       // initial offsets, so scroll defensively rather than assume it's
       // already on screen. "Next" (not the submit label, which only
       // appears on the last step) is present as soon as step 1 renders.
-      await tester.scrollUntilVisible(find.text('Next'), 400, scrollable: find.byType(Scrollable).first);
+      //
+      // ensureVisible (not scrollUntilVisible + find.byType(Scrollable).first)
+      // deliberately: we're now two routes deep (Home → Available Locations
+      // → this form), and every earlier route's own Scrollables are still
+      // mounted underneath (Navigator keeps them for the pop transition) —
+      // `.first` can resolve to one of *those*, not this screen's own, and
+      // then scroll something invisible forever. ensureVisible instead
+      // walks up from the actual target element to find its real scrollable
+      // ancestor, so it's correct regardless of navigation depth.
+      await tester.ensureVisible(find.text('Next'));
       await _settle(tester);
 
       expect(find.text('Step 1 of 5'), findsOneWidget);
@@ -227,8 +281,14 @@ void main() {
       // Fill in every required field on step 1.
       final textFields = find.byType(TextField);
       await tester.enterText(textFields.at(0), 'Verona Kitchens'); // Brand Name
-      await tester.enterText(textFields.at(1), 'Verona Kitchens Pvt Ltd'); // Company Name
-      await tester.enterText(textFields.at(2), 'Ayesha Khan'); // Contact Person Name
+      await tester.enterText(
+        textFields.at(1),
+        'Verona Kitchens Pvt Ltd',
+      ); // Company Name
+      await tester.enterText(
+        textFields.at(2),
+        'Ayesha Khan',
+      ); // Contact Person Name
       // index 3 is Designation — optional, skipped.
       await tester.enterText(textFields.at(4), '+92 300 1234567'); // Mobile
       await tester.enterText(textFields.at(5), 'ayesha@verona.pk'); // Email
@@ -236,7 +296,7 @@ void main() {
 
       // Entering text can autoscroll to keep the focused field visible, so
       // re-find "Next" in view rather than trusting the earlier scroll.
-      await tester.scrollUntilVisible(find.text('Next'), 400, scrollable: find.byType(Scrollable).first);
+      await tester.ensureVisible(find.text('Next'));
       await _settle(tester);
 
       await tester.tap(find.text('Next'));

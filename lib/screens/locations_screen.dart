@@ -6,6 +6,7 @@ import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/app_card.dart';
 import '../widgets/reveal.dart';
+import 'audience_screen.dart';
 import 'location_detail_screen.dart';
 
 /// Brand-only browse view by default — the endpoint itself enforces that
@@ -36,6 +37,13 @@ class LocationsScreen extends StatefulWidget {
   /// own listing isn't a thing, so the heart has no reason to show there.
   final bool showFavorite;
 
+  /// A persistent "Request a location" bar pinned under the list — for the
+  /// one real, unfiltered browse view (brand's Home quick action, and the
+  /// Opportunities tab's "Locations" category, which is the same screen).
+  /// Off by default: it doesn't belong on Saved (already-shortlisted
+  /// listings) or a landlord's own "My Properties".
+  final bool showRequestCta;
+
   const LocationsScreen({
     super.key,
     this.appBarTitle = 'Available Locations',
@@ -43,6 +51,7 @@ class LocationsScreen extends StatefulWidget {
     this.fetch = ApiClient.fetchLocations,
     this.emptyMessage = 'Nothing available right now — check back soon.',
     this.showFavorite = true,
+    this.showRequestCta = false,
   });
 
   @override
@@ -52,12 +61,39 @@ class LocationsScreen extends StatefulWidget {
 class _LocationsScreenState extends State<LocationsScreen> {
   late Future<List<Location>> _future;
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
   LocationFilters _filters = const LocationFilters();
   // Optimistic per-card overrides of the server's isFavorited, keyed by
   // location id — avoids re-fetching the whole list just to flip one heart.
   final Map<String, bool> _favoriteOverrides = {};
 
-  bool _isFavorited(Location location) => _favoriteOverrides[location.id] ?? location.isFavorited;
+  // Client-side pagination over the one already-fetched list, not repeat
+  // network requests — the full result set is small enough (tens, not
+  // thousands, of rows) that a second round-trip per page would be slower
+  // than just rendering fewer of what's already in memory. Ten at a time
+  // keeps first paint fast and the list from feeling like a wall of cards;
+  // scrolling near the bottom reveals ten more, same as most feeds.
+  static const _pageSize = 10;
+  int _visibleCount = _pageSize;
+  // Set once per build from the actual filtered result, so the scroll
+  // listener (which can't see `build`'s locals) knows when to stop growing
+  // _visibleCount.
+  int _filteredCount = 0;
+
+  void _onScroll() {
+    if (_visibleCount >= _filteredCount) return;
+    if (_scrollController.position.pixels <
+        _scrollController.position.maxScrollExtent - 300) {
+      return;
+    }
+    setState(
+      () =>
+          _visibleCount = (_visibleCount + _pageSize).clamp(0, _filteredCount),
+    );
+  }
+
+  bool _isFavorited(Location location) =>
+      _favoriteOverrides[location.id] ?? location.isFavorited;
 
   void _toggleFavorite(Location location) {
     final next = !_isFavorited(location);
@@ -78,23 +114,31 @@ class _LocationsScreenState extends State<LocationsScreen> {
   void initState() {
     super.initState();
     _future = widget.fetch();
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   void _retry() => setState(() => _future = widget.fetch());
 
   void _updateFilters(LocationFilters Function(LocationFilters) update) {
-    setState(() => _filters = update(_filters));
+    setState(() {
+      _filters = update(_filters);
+      _visibleCount = _pageSize;
+    });
   }
 
   void _clearFilters() {
     _searchController.clear();
-    setState(() => _filters = const LocationFilters());
+    setState(() {
+      _filters = const LocationFilters();
+      _visibleCount = _pageSize;
+    });
   }
 
   @override
@@ -125,9 +169,14 @@ class _LocationsScreenState extends State<LocationsScreen> {
               );
             }
 
-            final cities = locations.map((l) => l.city).toSet().toList()..sort();
-            final availableTypes = widget.propertyTypes ?? propertyTypeLabels.keys.toSet();
+            final cities = locations.map((l) => l.city).toSet().toList()
+              ..sort();
+            final availableTypes =
+                widget.propertyTypes ?? propertyTypeLabels.keys.toSet();
             final filtered = locations.where(_filters.matches).toList();
+            _filteredCount = filtered.length;
+            final visible = filtered.take(_visibleCount).toList();
+            final hasMore = _visibleCount < filtered.length;
 
             return Column(
               children: [
@@ -140,7 +189,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
                   ),
                   child: _SearchField(
                     controller: _searchController,
-                    onChanged: (value) => _updateFilters((f) => f.copyWith(query: value)),
+                    onChanged: (value) =>
+                        _updateFilters((f) => f.copyWith(query: value)),
                   ),
                 ),
                 Padding(
@@ -154,10 +204,15 @@ class _LocationsScreenState extends State<LocationsScreen> {
                     filters: _filters,
                     cities: cities,
                     availableTypes: availableTypes,
-                    onStatusChanged: (v) => _updateFilters((f) => f.copyWith(status: () => v)),
-                    onTypeChanged: (v) => _updateFilters((f) => f.copyWith(propertyType: () => v)),
-                    onSizeChanged: (v) => _updateFilters((f) => f.copyWith(sizeBucket: () => v)),
-                    onCityChanged: (v) => _updateFilters((f) => f.copyWith(city: () => v)),
+                    onStatusChanged: (v) =>
+                        _updateFilters((f) => f.copyWith(status: () => v)),
+                    onTypeChanged: (v) => _updateFilters(
+                      (f) => f.copyWith(propertyType: () => v),
+                    ),
+                    onSizeChanged: (v) =>
+                        _updateFilters((f) => f.copyWith(sizeBucket: () => v)),
+                    onCityChanged: (v) =>
+                        _updateFilters((f) => f.copyWith(city: () => v)),
                     onClear: _clearFilters,
                   ),
                 ),
@@ -171,10 +226,12 @@ class _LocationsScreenState extends State<LocationsScreen> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      filtered.length == 1 ? '1 result' : '${filtered.length} results',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelLarge?.copyWith(color: AppColors.grey500),
+                      filtered.length == 1
+                          ? '1 result'
+                          : '${filtered.length} results',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.grey500,
+                      ),
                     ),
                   ),
                 ),
@@ -187,27 +244,104 @@ class _LocationsScreenState extends State<LocationsScreen> {
                           retryLabel: 'Clear filters',
                         )
                       : ListView.separated(
+                          controller: _scrollController,
                           padding: const EdgeInsets.fromLTRB(
                             AppSpacing.page,
                             AppSpacing.md,
                             AppSpacing.page,
                             AppSpacing.section,
                           ),
-                          itemCount: filtered.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-                          itemBuilder: (context, i) => Reveal(
-                            index: i,
-                            child: _LocationCard(
-                              location: filtered[i].copyWith(isFavorited: _isFavorited(filtered[i])),
-                              onToggleFavorite:
-                                  widget.showFavorite ? () => _toggleFavorite(filtered[i]) : null,
-                            ),
-                          ),
+                          itemCount: visible.length + (hasMore ? 1 : 0),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: AppSpacing.md),
+                          itemBuilder: (context, i) {
+                            if (i == visible.length) {
+                              // Reached while scrolling near the bottom —
+                              // _onScroll has already grown _visibleCount by
+                              // the time this next frame paints, so this
+                              // reads as "more is loading," not a dead end.
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: AppSpacing.lg,
+                                ),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            final location = visible[i];
+                            return Reveal(
+                              index: i,
+                              child: _LocationCard(
+                                location: location.copyWith(
+                                  isFavorited: _isFavorited(location),
+                                ),
+                                onToggleFavorite: widget.showFavorite
+                                    ? () => _toggleFavorite(location)
+                                    : null,
+                              ),
+                            );
+                          },
                         ),
                 ),
               ],
             );
           },
+        ),
+      ),
+      bottomNavigationBar: widget.showRequestCta
+          ? const _RequestLocationBar()
+          : null,
+    );
+  }
+}
+
+/// Pinned under the list rather than folded into the scrolling content —
+/// "request a location" is a standing offer for the whole screen, not tied
+/// to whatever's currently in view, so it stays reachable at any scroll
+/// position instead of requiring a scroll to the very bottom.
+class _RequestLocationBar extends StatelessWidget {
+  const _RequestLocationBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.page,
+          12,
+          AppSpacing.page,
+          12,
+        ),
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          border: Border(top: BorderSide(color: AppColors.grey100)),
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => Scaffold(
+                  appBar: AppBar(title: const Text('Request a Location')),
+                  body: SafeArea(
+                    child: SingleChildScrollView(
+                      child: buildAudienceScreen('for-brands'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+            label: const Text('Request a location'),
+          ),
         ),
       ),
     );
@@ -240,7 +374,10 @@ class _SearchField extends StatelessWidget {
               ),
         filled: true,
         fillColor: AppColors.white,
-        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 14,
+          horizontal: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -288,13 +425,17 @@ class _FilterBar extends StatelessWidget {
         children: [
           _FilterChip(
             label: 'Status',
-            value: filters.status == null ? null : propertyStatusLabels[filters.status],
+            value: filters.status == null
+                ? null
+                : propertyStatusLabels[filters.status],
             onTap: () => _openPicker(
               context,
               title: 'Status',
               value: filters.status,
               options: propertyStatusLabels.entries
-                  .where((e) => e.key != 'withdrawn') // never shown — filtered out server-side
+                  .where(
+                    (e) => e.key != 'withdrawn',
+                  ) // never shown — filtered out server-side
                   .map((e) => (e.key, e.value))
                   .toList(),
               onSelect: onStatusChanged,
@@ -303,7 +444,9 @@ class _FilterBar extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           _FilterChip(
             label: 'Type',
-            value: filters.propertyType == null ? null : propertyTypeLabels[filters.propertyType],
+            value: filters.propertyType == null
+                ? null
+                : propertyTypeLabels[filters.propertyType],
             onTap: () => _openPicker(
               context,
               title: 'Property type',
@@ -374,7 +517,10 @@ class _FilterBar extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text(title, style: Theme.of(sheetContext).textTheme.titleLarge),
+                child: Text(
+                  title,
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
               ),
             ),
             ListTile(
@@ -391,7 +537,10 @@ class _FilterBar extends StatelessWidget {
               ListTile(
                 title: Text(option.$2),
                 trailing: value == option.$1
-                    ? const Icon(Icons.check_rounded, color: AppColors.violet600)
+                    ? const Icon(
+                        Icons.check_rounded,
+                        color: AppColors.violet600,
+                      )
                     : null,
                 onTap: () {
                   onSelect(option.$1);
@@ -411,7 +560,11 @@ class _FilterChip extends StatelessWidget {
   final String? value;
   final VoidCallback onTap;
 
-  const _FilterChip({required this.label, required this.value, required this.onTap});
+  const _FilterChip({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -426,7 +579,9 @@ class _FilterChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: active ? AppColors.violet600 : AppColors.grey100),
+            border: Border.all(
+              color: active ? AppColors.violet600 : AppColors.grey100,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -434,8 +589,8 @@ class _FilterChip extends StatelessWidget {
               Text(
                 active ? value! : label,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: active ? AppColors.violet600 : AppColors.grey500,
-                    ),
+                  color: active ? AppColors.violet600 : AppColors.grey500,
+                ),
               ),
               const SizedBox(width: 4),
               Icon(
@@ -477,7 +632,9 @@ class _StatusMessage extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 20),
@@ -498,130 +655,146 @@ class _LocationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cover = location.photoUrls.isNotEmpty ? location.photoUrls.first : null;
+    final cover = location.photoUrls.isNotEmpty
+        ? location.photoUrls.first
+        : null;
 
     return AppCard(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => LocationDetailScreen(location: location)),
+        MaterialPageRoute(
+          builder: (_) => LocationDetailScreen(location: location),
+        ),
       ),
       child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                child: AspectRatio(
-                  aspectRatio: 16 / 10,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (cover != null)
-                        Image.network(
-                          cover,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const _ImageFallback(),
-                          loadingBuilder: (context, child, progress) =>
-                              progress == null ? child : const _ImageFallback(loading: true),
-                        )
-                      else
-                        const _ImageFallback(),
-                      Positioned(
-                        left: 10,
-                        top: 10,
-                        child: _Pill(
-                          text: propertyStatusLabels[location.status] ?? location.status,
-                          color: AppColors.violet600,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            child: AspectRatio(
+              aspectRatio: 16 / 10,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (cover != null)
+                    Image.network(
+                      cover,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const _ImageFallback(),
+                      loadingBuilder: (context, child, progress) =>
+                          progress == null
+                          ? child
+                          : const _ImageFallback(loading: true),
+                    )
+                  else
+                    const _ImageFallback(),
+                  Positioned(
+                    left: 10,
+                    top: 10,
+                    child: _Pill(
+                      text:
+                          propertyStatusLabels[location.status] ??
+                          location.status,
+                      color: AppColors.violet600,
+                    ),
+                  ),
+                  if (location.featured)
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: _Pill(text: 'Featured', color: AppColors.ink),
+                    ),
+                  if (onToggleFavorite != null)
+                    Positioned(
+                      right: 10,
+                      bottom: 10,
+                      child: Material(
+                        color: AppColors.white,
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: onToggleFavorite,
+                          child: Padding(
+                            padding: const EdgeInsets.all(7),
+                            child: Icon(
+                              location.isFavorited
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              size: 16,
+                              color: location.isFavorited
+                                  ? Colors.red.shade400
+                                  : AppColors.grey500,
+                            ),
+                          ),
                         ),
                       ),
-                      if (location.featured)
-                        Positioned(
-                          right: 10,
-                          top: 10,
-                          child: _Pill(text: 'Featured', color: AppColors.ink),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  location.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  [
+                    propertyTypeLabels[location.propertyType] ??
+                        location.propertyType,
+                    [
+                      location.area,
+                      location.city,
+                    ].where((s) => s != null && s.isNotEmpty).join(', '),
+                  ].where((s) => s.isNotEmpty).join(' · '),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+                ),
+                if (location.sizeSqft != null ||
+                    location.rentDisplay != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (location.sizeSqft != null) ...[
+                        const Icon(
+                          Icons.square_foot_rounded,
+                          size: 15,
+                          color: AppColors.violet400,
                         ),
-                      if (onToggleFavorite != null)
-                        Positioned(
-                          right: 10,
-                          bottom: 10,
-                          child: Material(
-                            color: AppColors.white,
-                            shape: const CircleBorder(),
-                            child: InkWell(
-                              customBorder: const CircleBorder(),
-                              onTap: onToggleFavorite,
-                              child: Padding(
-                                padding: const EdgeInsets.all(7),
-                                child: Icon(
-                                  location.isFavorited
-                                      ? Icons.favorite_rounded
-                                      : Icons.favorite_border_rounded,
-                                  size: 16,
-                                  color: location.isFavorited
-                                      ? Colors.red.shade400
-                                      : AppColors.grey500,
-                                ),
-                              ),
-                            ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${location.sizeSqft} sq ft',
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                      ],
+                      if (location.sizeSqft != null &&
+                          location.rentDisplay != null)
+                        const SizedBox(width: 14),
+                      if (location.rentDisplay != null)
+                        Expanded(
+                          child: Text(
+                            location.rentDisplay!,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(color: AppColors.violet600),
                           ),
                         ),
                     ],
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      location.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      [
-                        propertyTypeLabels[location.propertyType] ?? location.propertyType,
-                        [location.area, location.city].where((s) => s != null && s.isNotEmpty).join(', '),
-                      ].where((s) => s.isNotEmpty).join(' · '),
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AppColors.grey500),
-                    ),
-                    if (location.sizeSqft != null || location.rentDisplay != null) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          if (location.sizeSqft != null) ...[
-                            const Icon(Icons.square_foot_rounded, size: 15, color: AppColors.violet400),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${location.sizeSqft} sq ft',
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                          ],
-                          if (location.sizeSqft != null && location.rentDisplay != null)
-                            const SizedBox(width: 14),
-                          if (location.rentDisplay != null)
-                            Expanded(
-                              child: Text(
-                                location.rentDisplay!,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
-                                    ?.copyWith(color: AppColors.violet600),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
+                ],
+              ],
+            ),
           ),
+        ],
+      ),
     );
   }
 }
@@ -640,9 +813,16 @@ class _ImageFallback extends StatelessWidget {
           ? const SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.grey300),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.grey300,
+              ),
             )
-          : const Icon(Icons.storefront_outlined, color: AppColors.grey300, size: 28),
+          : const Icon(
+              Icons.storefront_outlined,
+              color: AppColors.grey300,
+              size: 28,
+            ),
     );
   }
 }
@@ -657,10 +837,15 @@ class _Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Text(
         text,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.white),
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(color: AppColors.white),
       ),
     );
   }

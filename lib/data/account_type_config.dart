@@ -77,22 +77,25 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
     marketingBannerText: 'We scale local marketing for multi-location brands.',
     homeActions: [
       HomeAction(
-        title: 'Request a Location',
-        body: "Submit your preferred expansion location and let opportunities find you.",
-        icon: Icons.search_rounded,
-        buildScreen: () => buildAudienceScreen('for-brands'),
+        title: 'Available Locations',
+        body: 'Browse open retail and commercial space across our markets.',
+        icon: Icons.location_city_rounded,
+        buildScreen: () => const LocationsScreen(showRequestCta: true),
+        hasOwnScaffold: true,
         shortLabel: 'Location',
       ),
       HomeAction(
         title: 'Find Franchisees',
-        body: 'Connect with franchisees ready to open your brand in a new territory.',
+        body:
+            'Connect with franchisees ready to open your brand in a new territory.',
         icon: Icons.handshake_rounded,
         buildScreen: () => buildAudienceScreen('for-franchise'),
         shortLabel: 'Franchisees',
       ),
       HomeAction(
         title: 'Find Investors',
-        body: "Connect with potential investors to accelerate your brand's future growth.",
+        body:
+            "Connect with potential investors to accelerate your brand's future growth.",
         icon: Icons.trending_up_rounded,
         buildScreen: () => buildAudienceScreen('for-investors'),
         shortLabel: 'Investors',
@@ -105,7 +108,8 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
           title: 'Marketing Services',
           icon: Icons.campaign_rounded,
           lead: 'We scale local marketing for multi-location brands.',
-          body: 'Every location has its own local audience — marketing support that '
+          body:
+              'Every location has its own local audience — marketing support that '
               'works market-by-market, not one campaign stretched across all of '
               'them. Get in touch and our team will walk you through what fits '
               'your brand.',
@@ -116,13 +120,15 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
       ),
       HomeAction(
         title: 'IT Solutions',
-        body: 'Technology built for running a multi-location franchise operation.',
+        body:
+            'Technology built for running a multi-location franchise operation.',
         icon: Icons.memory_rounded,
         buildScreen: () => const ServiceInfoScreen(
           title: 'IT Solutions',
           icon: Icons.memory_rounded,
           lead: 'Technology built for franchise operations.',
-          body: 'From day-to-day systems to the tools your franchisees use — get '
+          body:
+              'From day-to-day systems to the tools your franchisees use — get '
               'in touch and our team will talk through what your brand actually '
               'needs.',
           enquireMessage: 'Ask about technology support for your brand.',
@@ -134,7 +140,8 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
   ),
   'franchisee': AccountTypeConfig(
     promoHeadline: 'Find Your Franchise,\nFaster.',
-    promoSubtitle: 'Browse live opportunities or apply directly — whichever gets you moving.',
+    promoSubtitle:
+        'Browse live opportunities or apply directly — whichever gets you moving.',
     marketingBannerText: "Questions before you apply? We're here to help.",
     homeActions: [
       HomeAction(
@@ -165,7 +172,8 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
   'landlord': AccountTypeConfig(
     promoHeadline: 'Fill Your Space,\nFaster.',
     promoSubtitle: 'Submit your property and see who wants it.',
-    marketingBannerText: "Questions about listing your space? We're here to help.",
+    marketingBannerText:
+        "Questions about listing your space? We're here to help.",
     homeActions: [
       HomeAction(
         title: 'Submit Property',
@@ -194,7 +202,8 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         buildScreen: () => const ComingSoonScreen(
           title: 'Interested Brands',
           icon: Icons.visibility_rounded,
-          message: "Once brands express interest in a property you've submitted, "
+          message:
+              "Once brands express interest in a property you've submitted, "
               "they'll show up here.",
         ),
         hasOwnScaffold: true,
@@ -206,8 +215,10 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
   // is already titled "Landlords & Developers" and covers both.
   'developer': AccountTypeConfig(
     promoHeadline: 'Fill Your Mall,\nFaster.',
-    promoSubtitle: 'Tell us what you need, or browse brands actively expanding.',
-    marketingBannerText: "Questions about your development? We're here to help.",
+    promoSubtitle:
+        'Tell us what you need, or browse brands actively expanding.',
+    marketingBannerText:
+        "Questions about your development? We're here to help.",
     homeActions: [
       HomeAction(
         title: 'Request Brand Placement',
@@ -267,7 +278,8 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         buildScreen: () => const ComingSoonScreen(
           title: 'Investment Portfolio',
           icon: Icons.account_balance_wallet_rounded,
-          message: "Once you back an opportunity through Connectors, it'll show "
+          message:
+              "Once you back an opportunity through Connectors, it'll show "
               'up here.',
         ),
         hasOwnScaffold: true,

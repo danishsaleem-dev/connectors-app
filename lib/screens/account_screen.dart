@@ -13,7 +13,6 @@ import 'contact_screen.dart';
 import 'edit_profile_screen.dart';
 import 'locations_screen.dart';
 import 'settings_screen.dart';
-import 'verification_screen.dart';
 
 /// The account tab — no session param, unlike a pushed screen would need:
 /// it's only ever shown once AppRoot has already confirmed someone's signed
@@ -115,16 +114,6 @@ class AccountBody extends StatelessWidget {
                           ),
                         ),
                       ),
-                    InfoItem(
-                      icon: Icons.verified_user_outlined,
-                      title: 'Verification',
-                      body: 'Verify your business to build trust.',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const VerificationScreen(),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
