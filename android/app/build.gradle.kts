@@ -29,7 +29,10 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "group.connectors.app"
-    compileSdk = flutter.compileSdkVersion
+    // Hardcoded rather than flutter.compileSdkVersion: that default (36)
+    // hasn't caught up to flutter_secure_storage 11.x's AAR, which declares
+    // a minCompileSdk of 37 and fails CheckAarMetadataWorkAction otherwise.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
