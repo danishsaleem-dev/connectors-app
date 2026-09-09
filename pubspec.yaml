@@ -43,11 +43,11 @@ dependencies:
   url_launcher: ^6.3.1
   # Persists the session token in the platform keychain/keystore, so signing
   # in survives an app restart instead of asking every time.
-  flutter_secure_storage: ^9.2.4
+  flutter_secure_storage: ^11.0.0
   google_sign_in: ^7.2.0
   sign_in_with_apple: ^8.2.0
   image_picker: ^1.2.3
-  file_picker: ^11.0.3
+  file_picker: ^12.2.0
 
 dev_dependencies:
   flutter_test:

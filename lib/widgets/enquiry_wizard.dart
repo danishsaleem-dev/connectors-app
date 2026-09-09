@@ -66,18 +66,26 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
   /// photos, not just photos — unlike the profile-photo upload, which is
   /// UploadPurpose.photo and image-only.
   Future<void> _pickFile(FileFieldSpec field) async {
-    FilePickerResult? result;
+    const extensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+    List<PlatformFile> files;
     try {
-      result = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: const ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
-        allowMultiple: field.multiple,
-      );
+      if (field.multiple) {
+        files = await FilePicker.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: extensions,
+        );
+      } else {
+        final file = await FilePicker.pickFile(
+          type: FileType.custom,
+          allowedExtensions: extensions,
+        );
+        files = file == null ? [] : [file];
+      }
     } catch (_) {
       setState(() => _stepError = "Couldn't open the file picker.");
       return;
     }
-    if (result == null || result.files.isEmpty) return;
+    if (files.isEmpty) return;
 
     setState(() {
       _fileUploading[field.name] = true;
@@ -85,7 +93,7 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
     });
     try {
       final uploaded = <_UploadedFile>[];
-      for (final file in result.files) {
+      for (final file in files) {
         final path = file.path;
         if (path == null) continue;
         final res = await ApiClient.uploadFile(File(path), purpose: UploadPurpose.document);
