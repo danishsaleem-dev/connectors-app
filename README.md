@@ -89,8 +89,19 @@ than failing in a confusing way.
 ### 4. App build-time configuration
 
 The Google client IDs are compiled in with `--dart-define`, so they aren't
-committed. Add them to the release build commands (and to
-`.github/workflows/build-apk.yml`, sourced from repo secrets):
+committed. `.github/workflows/build-apk.yml` already passes them on every
+build, sourced from **repo Variables** (Settings → Secrets and variables →
+Actions → *Variables* tab, not *Secrets* — a client ID isn't sensitive, it's
+visible in every sign-in request the app makes, but keeping it out of
+committed source still means a fork doesn't inherit a working client and
+staging/production can use different projects):
+
+```
+GOOGLE_SERVER_CLIENT_ID=<web client id>
+GOOGLE_IOS_CLIENT_ID=<ios client id>
+```
+
+For a local `flutter run`/manual build, pass the same two as `--dart-define`:
 
 ```
 flutter build appbundle --release \

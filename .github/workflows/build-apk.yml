@@ -19,6 +19,17 @@ jobs:
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+      # Not secrets — an OAuth client ID is visible in every sign-in request
+      # the app makes and inside the compiled APK either way — but kept as
+      # repo Variables rather than committed literals so a fork doesn't
+      # inherit a working client, and staging/production builds can differ
+      # without a code change. Settings → Secrets and variables → Actions →
+      # Variables. GOOGLE_IOS_CLIENT_ID is genuinely optional: unset, it
+      # compiles to an empty string and OAuthService treats that as "no iOS
+      # client configured" (fine for this Android build; required before an
+      # iOS build ships). See oauth_service.dart's doc comment.
+      GOOGLE_SERVER_CLIENT_ID: ${{ vars.GOOGLE_SERVER_CLIENT_ID }}
+      GOOGLE_IOS_CLIENT_ID: ${{ vars.GOOGLE_IOS_CLIENT_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,11 +70,17 @@ jobs:
       # build 70+MB for an app this size. For sideloading/direct testing —
       # Play Store itself is served from the AAB below, which already
       # splits by ABI per device on Google's end.
-      - run: flutter build apk --release --target-platform android-arm64
+      - run: >
+          flutter build apk --release --target-platform android-arm64
+          --dart-define=GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID
+          --dart-define=GOOGLE_IOS_CLIENT_ID=$GOOGLE_IOS_CLIENT_ID
 
       # What actually gets uploaded to Play Console — Google has required
       # App Bundles (not APKs) for new apps since 2021.
-      - run: flutter build appbundle --release
+      - run: >
+          flutter build appbundle --release
+          --dart-define=GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID
+          --dart-define=GOOGLE_IOS_CLIENT_ID=$GOOGLE_IOS_CLIENT_ID
 
       - uses: actions/upload-artifact@v4
         with:
