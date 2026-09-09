@@ -98,7 +98,11 @@ class _MessagesBodyState extends State<MessagesBody> {
       setState(() => _sending = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(err is ApiException ? err.message : "Couldn't send. Please try again."),
+          content: Text(
+            err is ApiException
+                ? err.message
+                : "Couldn't send. Please try again.",
+          ),
         ),
       );
     }
@@ -106,12 +110,14 @@ class _MessagesBodyState extends State<MessagesBody> {
 
   @override
   Widget build(BuildContext context) {
-    // 110 clears the floating nav bar, which overlays the body (see
-    // AppShell's extendBody) — the same allowance every other tab's
-    // scrollable content uses, applied here to the whole column since this
-    // screen pins a composer at the bottom instead of just scrolling.
+    // 82 clears exactly the floating nav bar's own footprint (68 tall + 14
+    // bottom margin — see FloatingNavBar), which overlays the body (see
+    // AppShell's extendBody). Other tabs pad scrollable *content* by 110 for
+    // generous end-of-list breathing room past the bar; a pinned composer
+    // isn't scrolling content, so the bigger number just reads as a gap
+    // between it and the bar instead of the composer sitting snug above it.
     return Padding(
-      padding: const EdgeInsets.only(bottom: 110),
+      padding: const EdgeInsets.only(bottom: 82),
       child: Column(
         children: [
           const PageHeader(
@@ -121,7 +127,11 @@ class _MessagesBodyState extends State<MessagesBody> {
           ),
           const SizedBox(height: AppSpacing.sm),
           Expanded(child: _body()),
-          _Composer(controller: _composeController, sending: _sending, onSend: _send),
+          _Composer(
+            controller: _composeController,
+            sending: _sending,
+            onSend: _send,
+          ),
         ],
       ),
     );
@@ -136,12 +146,18 @@ class _MessagesBodyState extends State<MessagesBody> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.wifi_off_rounded, color: AppColors.grey300, size: 40),
+              const Icon(
+                Icons.wifi_off_rounded,
+                color: AppColors.grey300,
+                size: 40,
+              ),
               const SizedBox(height: 16),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
               ),
               const SizedBox(height: 20),
               OutlinedButton(onPressed: _load, child: const Text('Try again')),
@@ -161,7 +177,9 @@ class _MessagesBodyState extends State<MessagesBody> {
               child: Text(
                 'Say hello — a member of the Connectors team will reply here.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
               ),
             ),
           );
@@ -193,32 +211,39 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
-        mainAxisAlignment: fromConnectors ? MainAxisAlignment.start : MainAxisAlignment.end,
+        mainAxisAlignment: fromConnectors
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.end,
         children: [
           Flexible(
             child: Column(
-              crossAxisAlignment:
-                  fromConnectors ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+              crossAxisAlignment: fromConnectors
+                  ? CrossAxisAlignment.start
+                  : CrossAxisAlignment.end,
               children: [
                 Text(
                   fromConnectors ? 'Connectors' : message.authorName,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(color: AppColors.grey500),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelMedium?.copyWith(color: AppColors.grey500),
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: fromConnectors ? AppColors.grey50 : AppColors.violet600,
+                    color: fromConnectors
+                        ? AppColors.grey50
+                        : AppColors.violet600,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     message.body,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: fromConnectors ? AppColors.ink : AppColors.white,
-                        ),
+                      color: fromConnectors ? AppColors.ink : AppColors.white,
+                    ),
                   ),
                 ),
               ],
@@ -235,12 +260,21 @@ class _Composer extends StatelessWidget {
   final bool sending;
   final VoidCallback onSend;
 
-  const _Composer({required this.controller, required this.sending, required this.onSend});
+  const _Composer({
+    required this.controller,
+    required this.sending,
+    required this.onSend,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.page, 0, AppSpacing.page, AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.page,
+        0,
+        AppSpacing.page,
+        AppSpacing.md,
+      ),
       child: Row(
         children: [
           Expanded(
@@ -254,7 +288,10 @@ class _Composer extends StatelessWidget {
                 hintText: 'Write a message…',
                 filled: true,
                 fillColor: AppColors.grey50,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: const BorderSide(color: AppColors.grey200),
@@ -265,7 +302,10 @@ class _Composer extends StatelessWidget {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: AppColors.violet600, width: 1.5),
+                  borderSide: const BorderSide(
+                    color: AppColors.violet600,
+                    width: 1.5,
+                  ),
                 ),
               ),
             ),
@@ -283,9 +323,16 @@ class _Composer extends StatelessWidget {
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.white,
+                        ),
                       )
-                    : const Icon(Icons.arrow_upward_rounded, color: AppColors.white, size: 20),
+                    : const Icon(
+                        Icons.arrow_upward_rounded,
+                        color: AppColors.white,
+                        size: 20,
+                      ),
               ),
             ),
           ),

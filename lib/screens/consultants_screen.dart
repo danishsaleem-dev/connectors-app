@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../data/api_client.dart';
 import '../data/consultant.dart';
 import '../theme/colors.dart';
@@ -77,14 +78,16 @@ class _ConsultantsBodyState extends State<ConsultantsBody> {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: AppSpacing.sm,
-                      crossAxisSpacing: AppSpacing.sm,
-                      childAspectRatio: 0.72,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: AppSpacing.sm,
+                          crossAxisSpacing: AppSpacing.sm,
+                          childAspectRatio: 0.72,
+                        ),
                     itemCount: consultants.length,
-                    itemBuilder: (context, i) => _ConsultantCard(consultant: consultants[i]),
+                    itemBuilder: (context, i) =>
+                        _ConsultantCard(consultant: consultants[i]),
                   ),
                   const SizedBox(height: AppSpacing.section),
                   const InquireCta(
@@ -106,69 +109,94 @@ class _ConsultantCard extends StatelessWidget {
 
   const _ConsultantCard({required this.consultant});
 
+  // Opens the same public profile the website's own /consultants page
+  // links to — the app has no consultant detail screen of its own (see
+  // the user's own scoping decision on ProfileDraft.expertise: experience/
+  // education stay out of the app UI for now), so the full profile only
+  // ever existed on the website. externalApplication so it opens in the
+  // device's browser rather than an in-app webview.
+  Future<void> _open(BuildContext context) async {
+    final ok = await launchUrl(
+      Uri.parse('$apiBaseUrl/consultants/${consultant.slug}'),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't open that profile.")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final photoUrl = consultant.photoUrl;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (photoUrl != null)
-            Image.network(
-              photoUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => const _PhotoFallback(),
-              loadingBuilder: (context, child, progress) =>
-                  progress == null ? child : const _PhotoFallback(loading: true),
-            )
-          else
-            const _PhotoFallback(),
-          // Scrim rather than a solid bar — the name stays legible over a
-          // light or dark portrait without cropping the image behind it,
-          // same treatment the website's own ConsultantCard uses.
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 28, 12, 12),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black87],
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _open(context),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (photoUrl != null)
+                Image.network(
+                  photoUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const _PhotoFallback(),
+                  loadingBuilder: (context, child, progress) => progress == null
+                      ? child
+                      : const _PhotoFallback(loading: true),
+                )
+              else
+                const _PhotoFallback(),
+              // Scrim rather than a solid bar — the name stays legible over a
+              // light or dark portrait without cropping the image behind it,
+              // same treatment the website's own ConsultantCard uses.
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 28, 12, 12),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black87],
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        consultant.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: AppColors.white),
+                      ),
+                      if (consultant.title != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          consultant.title!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: AppColors.white.withValues(alpha: 0.78),
+                              ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    consultant.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: AppColors.white),
-                  ),
-                  if (consultant.title != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      consultant.title!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.white.withValues(alpha: 0.78),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -188,9 +216,16 @@ class _PhotoFallback extends StatelessWidget {
           ? const SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.grey300),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.grey300,
+              ),
             )
-          : const Icon(Icons.person_outline_rounded, color: AppColors.grey300, size: 32),
+          : const Icon(
+              Icons.person_outline_rounded,
+              color: AppColors.grey300,
+              size: 32,
+            ),
     );
   }
 }
@@ -213,7 +248,9 @@ class _StatusMessage extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
           ),
           if (onRetry != null) ...[
             const SizedBox(height: 18),
