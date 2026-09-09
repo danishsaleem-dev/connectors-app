@@ -39,6 +39,8 @@ dependencies:
   google_fonts: ^8.2.1
   # Enquiry submissions and login/register calls to the website's API.
   http: ^1.6.0
+  # MediaType, for uploadFile's explicit multipart contentType.
+  http_parser: ^4.1.2
   # Opens the mailto/tel links in the CTA sections.
   url_launcher: ^6.3.1
   # Persists the session token in the platform keychain/keystore, so signing
@@ -48,6 +50,10 @@ dependencies:
   sign_in_with_apple: ^8.2.0
   image_picker: ^1.2.3
   file_picker: ^12.2.0
+  # Guesses a file's real content type from its extension for uploadFile —
+  # MultipartFile.fromPath defaults to application/octet-stream otherwise,
+  # which the server's type allowlist always rejects.
+  mime: ^2.0.0
 
 dev_dependencies:
   flutter_test:

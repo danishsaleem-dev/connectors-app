@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import 'analytics.dart';
 import 'auth_result.dart';
 import 'auth_state.dart';
@@ -323,7 +325,19 @@ class ApiClient {
       )
         ..headers.addAll(_headers()..remove('Content-Type'))
         ..fields['purpose'] = purpose.wireValue
-        ..files.add(await http.MultipartFile.fromPath('file', file.path));
+        ..files.add(
+          await http.MultipartFile.fromPath(
+            'file',
+            file.path,
+            // Without this, MultipartFile defaults to
+            // application/octet-stream, which the server's type allowlist
+            // (UPLOAD_ALLOWED_TYPES / UPLOAD_PURPOSES) always rejects —
+            // guess it from the extension instead of leaving it unset.
+            contentType: MediaType.parse(
+              lookupMimeType(file.path) ?? 'application/octet-stream',
+            ),
+          ),
+        );
       streamed = await request.send().timeout(const Duration(seconds: 60));
     } catch (_) {
       throw ApiException(
