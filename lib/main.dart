@@ -186,6 +186,7 @@ class _AppShellState extends State<AppShell> {
         if (value != null) seeded[field.key] = value;
       }
       ProfileDraft.seed(seeded);
+      ProfileDraft.photoUrl.value = data.photoUrl;
       if (data.onboardingCompletedAt != null && Auth.session.value != null) {
         Auth.session.value = Auth.session.value!.copyWith(
           onboardingCompletedAt: data.onboardingCompletedAt,

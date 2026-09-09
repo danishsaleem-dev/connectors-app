@@ -333,24 +333,42 @@ class _PromoBanner extends StatelessWidget {
 /// plain white cards with a soft shadow, icon and text floating directly
 /// on the card). Wraps to further rows past 3, rather than the old
 /// always-one-line squeeze.
+/// Rows of up to 3, not a plain 3-column grid — a uniform grid leaves a
+/// dangling empty cell on any action count that isn't a multiple of 3 (5
+/// actions today: 3 then 2), which reads as a missing tile rather than a
+/// deliberate layout. Chunking into rows and giving the last, shorter row's
+/// tiles Expanded instead means a partial row fills the same width evenly
+/// two-up rather than sitting stranded at a third-of-width each.
 class _ActionGrid extends StatelessWidget {
   final List<HomeAction> actions;
 
   const _ActionGrid({required this.actions});
 
+  static const _perRow = 3;
+
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: AppSpacing.sm,
-        crossAxisSpacing: AppSpacing.sm,
-        childAspectRatio: 0.92,
-      ),
-      itemCount: actions.length,
-      itemBuilder: (context, i) => _ActionTile(action: actions[i]),
+    final rows = <List<HomeAction>>[];
+    for (var i = 0; i < actions.length; i += _perRow) {
+      rows.add(actions.sublist(i, (i + _perRow).clamp(0, actions.length)));
+    }
+
+    return Column(
+      children: [
+        for (var r = 0; r < rows.length; r++) ...[
+          if (r > 0) const SizedBox(height: AppSpacing.sm),
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                for (var i = 0; i < rows[r].length; i++) ...[
+                  if (i > 0) const SizedBox(width: AppSpacing.sm),
+                  Expanded(child: _ActionTile(action: rows[r][i])),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

@@ -370,6 +370,13 @@ class ProfileDraft {
 
   static final values = ValueNotifier<Map<String, Object>>({});
 
+  /// Separate from `values` deliberately — a photo isn't a form field with
+  /// a "filled" state the completion meter counts, it's a resolved,
+  /// ready-to-render URL the avatar widgets in Account/Edit profile both
+  /// listen to, so a change (upload, or the initial seed) repaints both
+  /// immediately without either screen re-fetching anything.
+  static final photoUrl = ValueNotifier<String?>(null);
+
   static Object? get(String key) => values.value[key];
 
   static void set(String key, Object? value) {
@@ -386,7 +393,10 @@ class ProfileDraft {
   /// ApiClient.fetchProfile, rather than merged field-by-field.
   static void seed(Map<String, Object> fields) => values.value = fields;
 
-  static void clear() => values.value = {};
+  static void clear() {
+    values.value = {};
+    photoUrl.value = null;
+  }
 
   static int filledCount(String? orgType) {
     final fields = profileFieldsFor(orgType);

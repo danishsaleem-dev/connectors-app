@@ -10,6 +10,12 @@
 	<string>Connectors</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<!-- image_picker (profile photo, consultant/property attachments) needs
+	     this string or the app crashes outright the first time it tries to
+	     open the photo library — iOS refuses to show the picker at all
+	     without one. Gallery only; the app never requests camera access. -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Connectors uses your photo library to let you choose a profile photo or attach a document.</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>

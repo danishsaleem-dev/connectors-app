@@ -13,6 +13,14 @@ class ProfileData {
   /// coerceProfileValue, not a field-by-field mapping here.
   final Map<String, dynamic> profile;
 
+  /// Already resolved to a signed, directly-renderable URL server-side —
+  /// the underlying column is a private Storage path (logoUrl for brand/
+  /// vendor, photoUrl for everyone else), and normalizing which one *and*
+  /// resolving it both happen in the API route so the app never needs to
+  /// know its own org type's column name. Null means no photo saved yet,
+  /// not a broken one.
+  final String? photoUrl;
+
   const ProfileData({
     this.orgType,
     this.organizationName,
@@ -20,6 +28,7 @@ class ProfileData {
     this.country,
     this.onboardingCompletedAt,
     required this.profile,
+    this.photoUrl,
   });
 
   factory ProfileData.fromJson(Map<String, dynamic> json) {
@@ -32,6 +41,7 @@ class ProfileData {
       country: org['country'] as String?,
       onboardingCompletedAt: completedRaw == null ? null : DateTime.tryParse(completedRaw),
       profile: (json['profile'] as Map<String, dynamic>?) ?? const {},
+      photoUrl: json['photoUrl'] as String?,
     );
   }
 }

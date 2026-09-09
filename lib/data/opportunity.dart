@@ -224,6 +224,11 @@ OpportunityCategoryConfig categoryFor(String key) =>
 /// opportunities show up according to role," since the doc didn't specify
 /// the exact mapping. Worth confirming/adjusting once this is reviewed.
 ///
+/// landlord/developer have no entry at all: they don't browse this
+/// category hub — see OpportunitiesScreen, which shows their real
+/// "who's interested in my properties" list instead and never calls
+/// categoriesForRole for them.
+///
 /// "Investors" is deliberately never listed for any role — it's still
 /// defined above (and OpportunityListScreen/OpportunityDetailScreen still
 /// render it) so the screen isn't thrown away, but every account type it
@@ -236,8 +241,6 @@ OpportunityCategoryConfig categoryFor(String key) =>
 const _categoriesByRole = {
   'brand': ['locations', 'retail', 'commercial'],
   'franchisee': ['brands', 'franchise'],
-  'landlord': ['brands', 'franchise'],
-  'developer': ['brands', 'franchise'],
   'investor': ['brands', 'franchise'],
   'vendor': ['brands', 'franchise'],
   'consultant': ['brands', 'franchise'],

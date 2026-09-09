@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
+import '../data/profile_fields.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/app_card.dart';
+import '../widgets/avatar.dart';
 import '../widgets/feature_card.dart';
 import '../widgets/info_list.dart';
 import '../widgets/reveal.dart';
@@ -237,21 +239,14 @@ class _ProfileCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              color: AppColors.white,
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              session.name.trim().isEmpty
-                  ? '?'
-                  : session.name.trim()[0].toUpperCase(),
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(color: AppColors.violet600),
+          ValueListenableBuilder<String?>(
+            valueListenable: ProfileDraft.photoUrl,
+            builder: (context, photoUrl, _) => Avatar(
+              photoUrl: photoUrl,
+              name: session.name,
+              size: 56,
+              backgroundColor: AppColors.white,
+              foregroundColor: AppColors.violet600,
             ),
           ),
           const SizedBox(width: AppSpacing.lg),

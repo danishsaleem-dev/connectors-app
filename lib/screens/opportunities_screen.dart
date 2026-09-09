@@ -7,6 +7,7 @@ import '../widgets/app_card.dart';
 import '../widgets/page_header.dart';
 import '../widgets/reveal.dart';
 import 'brands_screen.dart';
+import 'interested_screen.dart';
 import 'locations_screen.dart';
 import 'opportunity_list_screen.dart';
 
@@ -14,6 +15,12 @@ import 'opportunity_list_screen.dart';
 /// what's relevant varies a lot by category (a franchise fee means nothing
 /// for a commercial project). Which categories show is role-dependent; see
 /// categoriesForRole's doc comment for the current (first-pass) mapping.
+///
+/// Landlord/developer don't get that category hub at all: they don't
+/// browse brands/franchise the way everyone else does, and were never
+/// meant to (property owners are matched *to* demand, not the other way
+/// round) — this tab is their real "who's interested in what I've got"
+/// list instead, the same content as their Home quick action.
 class OpportunitiesScreen extends StatelessWidget {
   final String? orgType;
 
@@ -21,6 +28,13 @@ class OpportunitiesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (orgType == 'landlord' || orgType == 'developer') {
+      return const SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(0, AppSpacing.md, 0, 110),
+        child: InterestedBody(showHeader: true),
+      );
+    }
+
     final categories = categoriesForRole(orgType);
 
     return SingleChildScrollView(

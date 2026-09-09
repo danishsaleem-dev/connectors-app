@@ -4,6 +4,7 @@ import '../screens/audience_screen.dart';
 import '../screens/brands_screen.dart';
 import '../screens/coming_soon_screen.dart';
 import '../screens/consultants_screen.dart';
+import '../screens/interested_screen.dart';
 import '../screens/locations_screen.dart';
 import '../screens/messages_screen.dart';
 import '../screens/partners_screen.dart';
@@ -116,7 +117,7 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
           enquireMessage: 'Ask about marketing support for your brand.',
         ),
         hasOwnScaffold: true,
-        shortLabel: 'Marketing',
+        shortLabel: 'Digital Marketing',
       ),
       HomeAction(
         title: 'IT Solutions',
@@ -134,7 +135,7 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
           enquireMessage: 'Ask about technology support for your brand.',
         ),
         hasOwnScaffold: true,
-        shortLabel: 'IT',
+        shortLabel: 'Technology Partners',
       ),
     ],
   ),
@@ -196,16 +197,10 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         shortLabel: 'My Properties',
       ),
       HomeAction(
-        title: 'View Interested Brands',
-        body: 'See which brands have shown interest in your property.',
+        title: 'Interested Organizations',
+        body: 'See which brands, franchisees or investors want your property.',
         icon: Icons.visibility_rounded,
-        buildScreen: () => const ComingSoonScreen(
-          title: 'Interested Brands',
-          icon: Icons.visibility_rounded,
-          message:
-              "Once brands express interest in a property you've submitted, "
-              "they'll show up here.",
-        ),
+        buildScreen: () => const InterestedScreen(),
         hasOwnScaffold: true,
         shortLabel: 'Interested',
       ),
@@ -247,6 +242,14 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
         buildScreen: () => const BrandsScreen(title: 'Brand Categories'),
         hasOwnScaffold: true,
         shortLabel: 'Categories',
+      ),
+      HomeAction(
+        title: 'Interested Organizations',
+        body: 'See which brands, franchisees or investors want your property.',
+        icon: Icons.visibility_rounded,
+        buildScreen: () => const InterestedScreen(),
+        hasOwnScaffold: true,
+        shortLabel: 'Interested',
       ),
     ],
   ),

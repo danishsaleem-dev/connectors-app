@@ -146,8 +146,8 @@ void main() {
     expect(find.text('Location'), findsOneWidget);
     expect(find.text('Franchisees'), findsOneWidget);
     expect(find.text('Investors'), findsOneWidget);
-    expect(find.text('Marketing'), findsOneWidget);
-    expect(find.text('IT'), findsOneWidget);
+    expect(find.text('Digital Marketing'), findsOneWidget);
+    expect(find.text('Technology Partners'), findsOneWidget);
 
     // Tapping the franchisees tile opens the franchise form specifically,
     // not the brand's own — each tile is wired to a different existing

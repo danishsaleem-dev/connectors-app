@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'auth_result.dart';
+import 'profile_fields.dart';
 import 'session_storage.dart';
 
 /// Who is signed in, for the app's in-memory lifetime — plus the on-disk
@@ -25,5 +26,9 @@ class Auth {
   static void signOut() {
     session.value = null;
     SessionStorage.clearToken();
+    // Otherwise a different account signing in right after would briefly
+    // render with this account's leftover profile completion state and
+    // photo until the next fetch lands.
+    ProfileDraft.clear();
   }
 }

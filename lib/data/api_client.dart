@@ -1,14 +1,18 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'analytics.dart';
 import 'auth_result.dart';
 import 'auth_state.dart';
 import 'chat.dart';
+import 'consultant.dart';
 import 'franchising_brand.dart';
 import 'location.dart';
 import 'message.dart';
 import 'oauth_outcome.dart';
 import 'profile_data.dart';
+import 'property_interest.dart';
+import 'upload.dart';
 
 export 'auth_result.dart' show AuthResult, apiBaseUrl;
 
@@ -262,11 +266,66 @@ class ApiClient {
     return json['favorited'] as bool;
   }
 
+  /// What admin has flagged as interested in this org's own properties —
+  /// empty (never an error) for any org type that doesn't own properties,
+  /// since the server just scopes to properties the caller owns.
+  static Future<List<PropertyInterest>> fetchInterests() async {
+    final json = await _get('/api/mobile/interests');
+    final list = (json['interests'] as List).cast<Map<String, dynamic>>();
+    return list.map(PropertyInterest.fromJson).toList();
+  }
+
+  /// The published consultant roster — public, no session required, same
+  /// as the website's own /consultants page.
+  static Future<List<Consultant>> fetchConsultants() async {
+    final json = await _get('/api/mobile/consultants');
+    final list = (json['consultants'] as List).cast<Map<String, dynamic>>();
+    return list.map(Consultant.fromJson).toList();
+  }
+
   /// Real, org-scoped activity numbers for the Analytics screen — see
   /// OrgAnalytics's doc comment for what is and isn't tracked yet.
   static Future<OrgAnalytics> fetchAnalytics() async {
     final json = await _get('/api/mobile/analytics');
     return OrgAnalytics.fromJson(json['analytics'] as Map<String, dynamic>);
+  }
+
+  /// Uploads one file (a profile photo, or a document attachment) and
+  /// returns the private Storage path plus a signed URL ready to render
+  /// immediately — the same two purposes /api/upload has always issued
+  /// signed-upload tokens for on the web, just server-side here (see the
+  /// mobile route's doc comment for why that's fine on this side).
+  ///
+  /// `path` is what every other save call sends back to the server (as
+  /// `fields: {'photo': path}`, or inside a repeatable entry, or as an
+  /// enquiry attachment) — never the raw bytes twice, and never `url`,
+  /// which is a temporary signed link only good for immediately previewing
+  /// what was just picked.
+  static Future<UploadResult> uploadFile(
+    File file, {
+    UploadPurpose purpose = UploadPurpose.photo,
+  }) async {
+    http.StreamedResponse streamed;
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$apiBaseUrl/api/mobile/upload'),
+      )
+        ..headers.addAll(_headers()..remove('Content-Type'))
+        ..fields['purpose'] = purpose.wireValue
+        ..files.add(await http.MultipartFile.fromPath('file', file.path));
+      streamed = await request.send().timeout(const Duration(seconds: 60));
+    } catch (_) {
+      throw ApiException(
+        "Couldn't reach Connectors — check your connection and try again.",
+      );
+    }
+    final response = await http.Response.fromStream(streamed);
+    final json = _decode(response);
+    return UploadResult(
+      path: json['path'] as String,
+      url: json['url'] as String?,
+    );
   }
 
   /// `token` pins an explicit bearer value (checkSession, called with a
