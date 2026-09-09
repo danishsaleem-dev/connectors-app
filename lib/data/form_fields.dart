@@ -77,11 +77,24 @@ class RadioGroupSpec extends FieldSpec {
   });
 }
 
-/// Every file field on the website is optional, and real upload handling
-/// needs a backend endpoint this app doesn't have yet — rendered as an
-/// honest "coming soon" tile rather than faking a working picker.
+/// Every file field on the website is optional. `name` is the key the
+/// uploaded Storage path (or, when [multiple], a list of them) lands under
+/// in the submitted payload — see the matching zod schema field
+/// (`*Path`/`*Paths`) in connectors/src/lib/schemas.
 class FileFieldSpec extends FieldSpec {
-  const FileFieldSpec({required super.label, super.hint});
+  final String name;
+
+  /// True for the "up to a few" fields (outlet photos, property photos) —
+  /// lets the picker select more than one file and stores an array under
+  /// `name` instead of a single path.
+  final bool multiple;
+
+  const FileFieldSpec({
+    required this.name,
+    required super.label,
+    super.hint,
+    this.multiple = false,
+  });
 }
 
 class FormStep {

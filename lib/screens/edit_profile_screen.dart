@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,6 +10,7 @@ import '../theme/spacing.dart';
 import '../widgets/app_card.dart';
 import '../widgets/avatar.dart';
 import '../widgets/profile_field_input.dart';
+import '../widgets/tags_editor.dart';
 
 /// Editing the account's own details — the same field definitions and the
 /// same [ProfileDraft] the completion flow uses, so whichever route
@@ -83,6 +85,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final organizationName = values.remove('organizationName') as String?;
     final phone = values.remove('phone') as String?;
     final country = values.remove('country') as String?;
+    // Name-only, no description — see ProfileDraft.expertise's doc comment.
+    // Sent as one JSON-string field, matching the shape jsonEntries() on
+    // the server already parses for the website's own ExpertiseEditor.
+    if (widget.session.orgType == 'consultant') {
+      values['expertise'] = jsonEncode(
+        ProfileDraft.expertise.value.map((name) => {'name': name}).toList(),
+      );
+    }
     try {
       await ApiClient.saveProfile(
         organizationName: organizationName,
@@ -202,6 +212,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ProfileFieldInput(field: step.fields[i]),
                     ],
                   ],
+                ),
+              ),
+            ],
+            if (widget.session.orgType == 'consultant') ...[
+              const SizedBox(height: AppSpacing.xl),
+              Text('Expertise', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 4),
+              Text(
+                'Areas you advise on — shown on your public consultants page profile.',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppCard(
+                radius: 16,
+                padding: const EdgeInsets.all(16),
+                child: ValueListenableBuilder<List<String>>(
+                  valueListenable: ProfileDraft.expertise,
+                  builder: (context, tags, _) => TagsEditor(
+                    initial: tags,
+                    onChanged: (next) => ProfileDraft.expertise.value = next,
+                    placeholder: 'e.g. Site Selection',
+                  ),
                 ),
               ),
             ],

@@ -6,6 +6,7 @@ import 'auth_result.dart';
 import 'auth_state.dart';
 import 'chat.dart';
 import 'consultant.dart';
+import 'consultant_request.dart';
 import 'franchising_brand.dart';
 import 'location.dart';
 import 'message.dart';
@@ -264,6 +265,15 @@ class ApiClient {
       'propertyId': propertyId,
     });
     return json['favorited'] as bool;
+  }
+
+  /// Admin-released leads from the public consultants page — empty (never
+  /// an error) for any org type that isn't a consultant, same reasoning as
+  /// fetchInterests.
+  static Future<List<ConsultantRequest>> fetchConsultantRequests() async {
+    final json = await _get('/api/mobile/consultant-requests');
+    final list = (json['requests'] as List).cast<Map<String, dynamic>>();
+    return list.map(ConsultantRequest.fromJson).toList();
   }
 
   /// What admin has flagged as interested in this org's own properties —

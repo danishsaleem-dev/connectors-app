@@ -377,6 +377,14 @@ class ProfileDraft {
   /// immediately without either screen re-fetching anything.
   static final photoUrl = ValueNotifier<String?>(null);
 
+  /// Consultant only — a name-only subset of the real `expertise` column
+  /// (which also carries an optional per-tag description; the website's
+  /// own editor supports that, this one deliberately doesn't yet). Kept
+  /// outside `values`/the generic ProfileField system for the same reason
+  /// `photoUrl` is: this isn't a single scalar field, it's its own little
+  /// editor with add/remove state.
+  static final expertise = ValueNotifier<List<String>>([]);
+
   static Object? get(String key) => values.value[key];
 
   static void set(String key, Object? value) {
@@ -396,6 +404,7 @@ class ProfileDraft {
   static void clear() {
     values.value = {};
     photoUrl.value = null;
+    expertise.value = [];
   }
 
   static int filledCount(String? orgType) {

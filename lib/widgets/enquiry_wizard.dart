@@ -1,8 +1,21 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../data/api_client.dart';
 import '../data/form_fields.dart';
+import '../data/upload.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
+
+/// One picked-and-uploaded file — [displayName] is what was actually
+/// picked (for showing "brand-logo.png" in the UI); [path] is the private
+/// Storage path the server needs, from ApiClient.uploadFile.
+class _UploadedFile {
+  final String displayName;
+  final String path;
+
+  const _UploadedFile({required this.displayName, required this.path});
+}
 
 /// Renders any of the four ported enquiry forms from a `List<FormStep>` —
 /// same step-by-step shape as the website's useFormWizard hook (progress
@@ -38,11 +51,68 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
 
   final Map<String, dynamic> _values = {};
   final Map<String, TextEditingController> _controllers = {};
+  final Map<String, bool> _fileUploading = {};
+  final Map<String, List<_UploadedFile>> _uploadedFiles = {};
 
   TextEditingController _controllerFor(String name) =>
       _controllers.putIfAbsent(name, () => TextEditingController());
 
   String _otherKey(CheckboxGroupSpec field) => field.otherFieldName ?? '${field.name}:other';
+
+  /// Picks (one, or several when [FileFieldSpec.multiple]) and uploads
+  /// immediately — same "upload on pick, not on submit" flow as Edit
+  /// Profile's photo, so a mistake is caught before the whole form's been
+  /// filled in, not after. PDF/Word/image because these are documents and
+  /// photos, not just photos — unlike the profile-photo upload, which is
+  /// UploadPurpose.photo and image-only.
+  Future<void> _pickFile(FileFieldSpec field) async {
+    FilePickerResult? result;
+    try {
+      result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+        allowMultiple: field.multiple,
+      );
+    } catch (_) {
+      setState(() => _stepError = "Couldn't open the file picker.");
+      return;
+    }
+    if (result == null || result.files.isEmpty) return;
+
+    setState(() {
+      _fileUploading[field.name] = true;
+      _stepError = null;
+    });
+    try {
+      final uploaded = <_UploadedFile>[];
+      for (final file in result.files) {
+        final path = file.path;
+        if (path == null) continue;
+        final res = await ApiClient.uploadFile(File(path), purpose: UploadPurpose.document);
+        uploaded.add(_UploadedFile(displayName: file.name, path: res.path));
+      }
+      if (!mounted) return;
+      setState(() {
+        if (field.multiple) {
+          _uploadedFiles.putIfAbsent(field.name, () => []).addAll(uploaded);
+        } else {
+          _uploadedFiles[field.name] = uploaded;
+        }
+        _fileUploading[field.name] = false;
+      });
+    } catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _fileUploading[field.name] = false;
+        _stepError =
+            err is ApiException ? err.message : "Couldn't upload that file. Please try again.";
+      });
+    }
+  }
+
+  void _removeFile(String name, int index) {
+    setState(() => _uploadedFiles[name]?.removeAt(index));
+  }
 
   @override
   void dispose() {
@@ -82,9 +152,70 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
         setState(() => _stepError = 'Fill in "${field.label}" to continue.');
         return false;
       }
+      final formatError = _formatError(field);
+      if (formatError != null) {
+        setState(() => _stepError = formatError);
+        return false;
+      }
     }
     setState(() => _stepError = null);
     return true;
+  }
+
+  static final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+  // Digits plus the punctuation a real phone number is actually written
+  // with (+, spaces, hyphens, parens) — rejects anything with a letter or
+  // other stray character, then separately requires enough digits that a
+  // partial/garbled number ("123") can't pass just for looking phone-shaped.
+  static final _phoneCharsPattern = RegExp(r'^[0-9+\-\s()]+$');
+
+  /// Real format checks, independent of _isFilled's presence check —
+  /// applies whether or not the field is required, so an *optional* email
+  /// field that's been typed into still has to actually be an email.
+  /// Server-side validation already exists (the zod schemas behind
+  /// /api/mobile/enquiries — see this class's doc comment), but catching
+  /// it here means a mistyped email fails on the step it was typed on,
+  /// not after a round trip once the whole form's been filled in.
+  String? _formatError(FieldSpec field) {
+    switch (field) {
+      case TextFieldSpec(:final name, :final label, :final keyboardType):
+        final text = _controllerFor(name).text.trim();
+        if (text.isEmpty) return null;
+        if (keyboardType == TextInputType.emailAddress) {
+          if (!_emailPattern.hasMatch(text)) return 'Enter a valid email address.';
+        } else if (keyboardType == TextInputType.phone) {
+          final digitCount = text.replaceAll(RegExp(r'[^0-9]'), '').length;
+          if (!_phoneCharsPattern.hasMatch(text) || digitCount < 7) {
+            return 'Enter a valid phone number.';
+          }
+        } else if (keyboardType == TextInputType.number) {
+          if (double.tryParse(text) == null) return 'Enter a valid number for "$label".';
+        }
+        return null;
+
+      case RangeFieldSpec(:final minName, :final maxName, :final label):
+        final minText = _controllerFor(minName).text.trim();
+        final maxText = _controllerFor(maxName).text.trim();
+        if (minText.isEmpty && maxText.isEmpty) return null;
+        final min = minText.isEmpty ? null : double.tryParse(minText);
+        final max = maxText.isEmpty ? null : double.tryParse(maxText);
+        if (minText.isNotEmpty && min == null) {
+          return 'Enter a valid number for "$label".';
+        }
+        if (maxText.isNotEmpty && max == null) {
+          return 'Enter a valid number for "$label".';
+        }
+        if (min != null && max != null && min > max) {
+          return '"$label" minimum can\'t be more than the maximum.';
+        }
+        return null;
+
+      case DateFieldSpec():
+      case CheckboxGroupSpec():
+      case RadioGroupSpec():
+      case FileFieldSpec():
+        return null;
+    }
   }
 
   /// Walks every step's fields (not just the current one — earlier steps'
@@ -119,8 +250,10 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
           case RadioGroupSpec(:final name):
             final value = _values[name] as String?;
             if (value != null) payload[name] = value;
-          case FileFieldSpec():
-            break; // no upload support yet — see FileFieldSpec's doc comment
+          case FileFieldSpec(:final name, :final multiple):
+            final files = _uploadedFiles[name] ?? const [];
+            if (files.isEmpty) break;
+            payload[name] = multiple ? files.map((f) => f.path).toList() : files.first.path;
         }
       }
     }
@@ -190,6 +323,10 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
               values: _values,
               controllerFor: _controllerFor,
               onChanged: () => setState(() {}),
+              isUploading: (name) => _fileUploading[name] ?? false,
+              uploadedFilesFor: (name) => _uploadedFiles[name] ?? const [],
+              onPickFile: _pickFile,
+              onRemoveFile: _removeFile,
             ),
           ],
           if (_stepError != null) ...[
@@ -339,12 +476,20 @@ class _FieldRenderer extends StatelessWidget {
   final Map<String, dynamic> values;
   final TextEditingController Function(String name) controllerFor;
   final VoidCallback onChanged;
+  final bool Function(String name) isUploading;
+  final List<_UploadedFile> Function(String name) uploadedFilesFor;
+  final void Function(FileFieldSpec field) onPickFile;
+  final void Function(String name, int index) onRemoveFile;
 
   const _FieldRenderer({
     required this.field,
     required this.values,
     required this.controllerFor,
     required this.onChanged,
+    required this.isUploading,
+    required this.uploadedFilesFor,
+    required this.onPickFile,
+    required this.onRemoveFile,
   });
 
   Widget _label(BuildContext context) {
@@ -585,22 +730,108 @@ class _FieldRenderer extends StatelessWidget {
           ],
         );
 
-      case FileFieldSpec(:final hint):
+      case FileFieldSpec(:final name, :final hint, :final multiple):
+        final uploading = isUploading(name);
+        final files = uploadedFilesFor(name);
+        // Single-file fields hide the picker once something's uploaded —
+        // tapping the file's own remove button is how you'd pick a
+        // different one, rather than the tile silently accepting a second
+        // file that would then overwrite the first without saying so.
+        final showPicker = multiple || files.isEmpty;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _label(context),
             const SizedBox(height: 8),
-            InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('File attachments are coming soon.')),
+            for (var i = 0; i < files.length; i++) ...[
+              if (i > 0) const SizedBox(height: 6),
+              _UploadedFileTile(name: files[i].displayName, onRemove: () => onRemoveFile(name, i)),
+            ],
+            if (files.isNotEmpty && (uploading || showPicker)) const SizedBox(height: 8),
+            if (uploading)
+              const _UploadingTile()
+            else if (showPicker)
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                // `field` (this.field, typed FieldSpec) isn't promoted by
+                // the switch pattern the way a local parameter would be —
+                // this cast is safe precisely because we're already inside
+                // the exhaustive `case FileFieldSpec(...)` branch.
+                onTap: () => onPickFile(field as FileFieldSpec),
+                child: DottedTile(hint: hint),
               ),
-              child: DottedTile(hint: hint),
-            ),
           ],
         );
     }
+  }
+}
+
+class _UploadedFileTile extends StatelessWidget {
+  final String name;
+  final VoidCallback onRemove;
+
+  const _UploadedFileTile({required this.name, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.violet50,
+        border: Border.all(color: AppColors.violet200),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.insert_drive_file_outlined, size: 18, color: AppColors.violet600),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.violet700),
+            ),
+          ),
+          InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: onRemove,
+            child: const Padding(
+              padding: EdgeInsets.all(2),
+              child: Icon(Icons.close_rounded, size: 16, color: AppColors.violet600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UploadingTile extends StatelessWidget {
+  const _UploadingTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 18),
+      decoration: BoxDecoration(
+        color: AppColors.grey50,
+        border: Border.all(color: AppColors.grey200),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.violet400),
+          ),
+          const SizedBox(height: 8),
+          Text('Uploading…', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500)),
+        ],
+      ),
+    );
   }
 }
 

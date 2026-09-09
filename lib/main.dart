@@ -187,6 +187,13 @@ class _AppShellState extends State<AppShell> {
       }
       ProfileDraft.seed(seeded);
       ProfileDraft.photoUrl.value = data.photoUrl;
+      final expertiseRaw = data.profile['expertise'];
+      ProfileDraft.expertise.value = expertiseRaw is List
+          ? expertiseRaw
+                .map((e) => e is Map ? e['name'] as String? : null)
+                .whereType<String>()
+                .toList()
+          : [];
       if (data.onboardingCompletedAt != null && Auth.session.value != null) {
         Auth.session.value = Auth.session.value!.copyWith(
           onboardingCompletedAt: data.onboardingCompletedAt,
@@ -213,12 +220,18 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final orgType = Auth.session.value?.orgType;
 
+    // A consultant doesn't browse Brands/Franchise the way every other
+    // role does — see OpportunitiesScreen — so the tab is genuinely a
+    // different thing for them: admin-released leads, not opportunities to
+    // browse. Same tab index and page either way, just relabeled.
+    final isConsultant = orgType == 'consultant';
+
     final navItems = [
       const NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
-      const NavItem(
-        icon: Icons.travel_explore_outlined,
-        activeIcon: Icons.travel_explore_rounded,
-        label: 'Opportunities',
+      NavItem(
+        icon: isConsultant ? Icons.inbox_outlined : Icons.travel_explore_outlined,
+        activeIcon: isConsultant ? Icons.inbox_rounded : Icons.travel_explore_rounded,
+        label: isConsultant ? 'Requests' : 'Opportunities',
       ),
       NavItem(
         icon: Icons.chat_bubble_outline_rounded,

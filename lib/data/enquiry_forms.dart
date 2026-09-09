@@ -113,9 +113,14 @@ class EnquiryForms {
     FormStep(
       title: 'Uploads',
       fields: [
-        FileFieldSpec(label: 'Company Profile (PDF)', hint: 'Optional'),
-        FileFieldSpec(label: 'Brand Logo', hint: 'Optional'),
-        FileFieldSpec(label: 'Existing Outlet Photos', hint: 'Optional, up to a few'),
+        FileFieldSpec(name: 'companyProfilePath', label: 'Company Profile (PDF)', hint: 'Optional'),
+        FileFieldSpec(name: 'brandLogoPath', label: 'Brand Logo', hint: 'Optional'),
+        FileFieldSpec(
+          name: 'outletPhotoPaths',
+          label: 'Existing Outlet Photos',
+          hint: 'Optional, up to a few',
+          multiple: true,
+        ),
       ],
     ),
   ];
@@ -184,7 +189,7 @@ class EnquiryForms {
     ),
     FormStep(
       title: 'Documents',
-      fields: [FileFieldSpec(label: 'CV / Business Profile', hint: 'Optional, PDF')],
+      fields: [FileFieldSpec(name: 'cvPath', label: 'CV / Business Profile', hint: 'Optional, PDF')],
     ),
   ];
 
@@ -263,8 +268,13 @@ class EnquiryForms {
     FormStep(
       title: 'Uploads',
       fields: [
-        FileFieldSpec(label: 'Property Photos', hint: 'Optional, up to a few'),
-        FileFieldSpec(label: 'Floor Plan / Layout', hint: 'Optional'),
+        FileFieldSpec(
+          name: 'propertyPhotoPaths',
+          label: 'Property Photos',
+          hint: 'Optional, up to a few',
+          multiple: true,
+        ),
+        FileFieldSpec(name: 'floorPlanPath', label: 'Floor Plan / Layout', hint: 'Optional'),
       ],
     ),
   ];
@@ -328,7 +338,13 @@ class EnquiryForms {
     ),
     FormStep(
       title: 'Documents',
-      fields: [FileFieldSpec(label: 'Investment Profile / Company Overview', hint: 'Optional, PDF')],
+      fields: [
+        FileFieldSpec(
+          name: 'investmentProfilePath',
+          label: 'Investment Profile / Company Overview',
+          hint: 'Optional, PDF',
+        ),
+      ],
     ),
   ];
 }
