@@ -16,6 +16,7 @@ import 'oauth_outcome.dart';
 import 'profile_data.dart';
 import 'property_interest.dart';
 import 'upload.dart';
+import 'vendor_opportunity.dart';
 
 export 'auth_result.dart' show AuthResult, apiBaseUrl;
 
@@ -287,6 +288,15 @@ class ApiClient {
     return list.map(PropertyInterest.fromJson).toList();
   }
 
+  /// Admin-authored briefs handed to this vendor — empty (never an error)
+  /// for any org type that isn't a vendor, same reasoning as
+  /// fetchConsultantRequests.
+  static Future<List<VendorOpportunity>> fetchVendorOpportunities() async {
+    final json = await _get('/api/mobile/vendor-opportunities');
+    final list = (json['opportunities'] as List).cast<Map<String, dynamic>>();
+    return list.map(VendorOpportunity.fromJson).toList();
+  }
+
   /// The published consultant roster — public, no session required, same
   /// as the website's own /consultants page.
   static Future<List<Consultant>> fetchConsultants() async {
@@ -319,25 +329,26 @@ class ApiClient {
   }) async {
     http.StreamedResponse streamed;
     try {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$apiBaseUrl/api/mobile/upload'),
-      )
-        ..headers.addAll(_headers()..remove('Content-Type'))
-        ..fields['purpose'] = purpose.wireValue
-        ..files.add(
-          await http.MultipartFile.fromPath(
-            'file',
-            file.path,
-            // Without this, MultipartFile defaults to
-            // application/octet-stream, which the server's type allowlist
-            // (UPLOAD_ALLOWED_TYPES / UPLOAD_PURPOSES) always rejects —
-            // guess it from the extension instead of leaving it unset.
-            contentType: MediaType.parse(
-              lookupMimeType(file.path) ?? 'application/octet-stream',
-            ),
-          ),
-        );
+      final request =
+          http.MultipartRequest(
+              'POST',
+              Uri.parse('$apiBaseUrl/api/mobile/upload'),
+            )
+            ..headers.addAll(_headers()..remove('Content-Type'))
+            ..fields['purpose'] = purpose.wireValue
+            ..files.add(
+              await http.MultipartFile.fromPath(
+                'file',
+                file.path,
+                // Without this, MultipartFile defaults to
+                // application/octet-stream, which the server's type allowlist
+                // (UPLOAD_ALLOWED_TYPES / UPLOAD_PURPOSES) always rejects —
+                // guess it from the extension instead of leaving it unset.
+                contentType: MediaType.parse(
+                  lookupMimeType(file.path) ?? 'application/octet-stream',
+                ),
+              ),
+            );
       streamed = await request.send().timeout(const Duration(seconds: 60));
     } catch (_) {
       throw ApiException(

@@ -224,25 +224,21 @@ OpportunityCategoryConfig categoryFor(String key) =>
 /// opportunities show up according to role," since the doc didn't specify
 /// the exact mapping. Worth confirming/adjusting once this is reviewed.
 ///
-/// landlord/developer/consultant have no entry at all: none of them browse
-/// this category hub — see OpportunitiesScreen, which shows each of them
-/// their own real content instead and never calls categoriesForRole for
-/// them.
+/// landlord/developer/consultant/vendor have no entry at all: none of them
+/// browse this category hub — see OpportunitiesScreen, which shows each of
+/// them their own real content instead and never calls categoriesForRole
+/// for them.
 ///
 /// "Investors" is deliberately never listed for any role — it's still
 /// defined above (and OpportunityListScreen/OpportunityDetailScreen still
 /// render it) so the screen isn't thrown away, but every account type it
 /// showed for used mock listings with no real data source (see
 /// OpportunityListing's doc comment), so it's hidden from navigation until
-/// that access-control decision is actually made. vendor is listed
-/// explicitly (rather than falling through to "all categories") so it
-/// doesn't reach it — or the brand-only property categories — via the
-/// null-orgType fallback below.
+/// that access-control decision is actually made.
 const _categoriesByRole = {
   'brand': ['locations', 'retail', 'commercial'],
   'franchisee': ['brands', 'franchise'],
   'investor': ['brands', 'franchise'],
-  'vendor': ['brands', 'franchise'],
 };
 
 /// Brands/Franchise are real for every role — the safe fallback for an org

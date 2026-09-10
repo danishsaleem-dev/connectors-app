@@ -11,18 +11,19 @@ import 'interested_screen.dart';
 import 'locations_screen.dart';
 import 'opportunity_list_screen.dart';
 import 'requests_screen.dart';
+import 'vendor_opportunities_screen.dart';
 
 /// The Opportunities tab — a category hub rather than one long feed, since
 /// what's relevant varies a lot by category (a franchise fee means nothing
 /// for a commercial project). Which categories show is role-dependent; see
 /// categoriesForRole's doc comment for the current (first-pass) mapping.
 ///
-/// Landlord/developer and consultant don't get that category hub at all —
-/// none of them browse brands/franchise the way everyone else does. This
-/// tab is their own real content instead: landlord/developer's "who's
-/// interested in what I've got" (same as their Home quick action);
+/// Landlord/developer, consultant and vendor don't get that category hub
+/// at all — none of them browse brands/franchise the way everyone else
+/// does. This tab is their own real content instead: landlord/developer's
+/// "who's interested in what I've got" (same as their Home quick action);
 /// consultant's admin-released leads (relabeled "Requests" — see
-/// main.dart's isConsultant branch).
+/// main.dart's isConsultant branch); vendor's admin-authored work briefs.
 class OpportunitiesScreen extends StatelessWidget {
   final String? orgType;
 
@@ -40,6 +41,12 @@ class OpportunitiesScreen extends StatelessWidget {
       return const SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(0, AppSpacing.md, 0, 110),
         child: RequestsBody(),
+      );
+    }
+    if (orgType == 'vendor') {
+      return const SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(0, AppSpacing.md, 0, 110),
+        child: VendorOpportunitiesBody(),
       );
     }
 

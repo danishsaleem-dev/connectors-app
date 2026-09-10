@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
-import '../data/partners_data.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../data/auth_result.dart' show apiBaseUrl;
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
-import '../widgets/info_list.dart';
 import '../widgets/page_header.dart';
-import '../widgets/reveal.dart';
-import '../widgets/section_intro.dart';
-
-const _icons = {
-  'designer': Icons.brush_rounded,
-  'architect': Icons.architecture_rounded,
-  'interior': Icons.chair_alt_rounded,
-  'agency': Icons.campaign_rounded,
-  'consultant': Icons.insights_rounded,
-  'contractor': Icons.construction_rounded,
-};
 
 /// The vendor side of the business — designers, architects, agencies and
-/// contractors joining the bench Connectors places on real projects.
-/// Condensed from the website's /partners: the "why it exists" pitch, the
-/// six disciplines, three of the six benefits, then straight to signup.
+/// contractors joining the bench Connectors places on real projects. Used
+/// to carry the full pitch (disciplines, benefits) inline; a vendor opening
+/// this from their own Home is already signed up, so that marketing case
+/// has already been made — this is now just a way to ask a question, plus
+/// a link out to the website's own /partners page for anyone who wants the
+/// full pitch again.
 class PartnersBody extends StatelessWidget {
   const PartnersBody({super.key});
+
+  Future<void> _readMore(BuildContext context) async {
+    final ok = await launchUrl(
+      Uri.parse('$apiBaseUrl/partners'),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Couldn't open that page.")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,73 +44,31 @@ class PartnersBody extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'A vetted bench of designers, architects, interior '
-                  'specialists, agencies, consultants and contractors we can '
-                  'put in front of a brand the day the lease is signed.',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+                  'Questions about the programme, a live project, or your '
+                  'own account — send them straight to your Connectors team.',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
                 ),
-                const SizedBox(height: AppSpacing.section),
-                const SectionIntro(eyebrow: 'Six disciplines', title: 'One bench, every trade.'),
-                const SizedBox(height: AppSpacing.sm),
-                InfoList(
-                  items: [
-                    for (final d in PartnersData.disciplines)
-                      InfoItem(icon: _icons[d.key] ?? Icons.circle, title: d.title, body: d.body),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.section),
-                const SectionIntro(eyebrow: 'What you get', title: 'Why vendors stay on the bench.'),
-                const SizedBox(height: AppSpacing.heading),
-                for (var i = 0; i < PartnersData.benefits.length; i++) ...[
-                  if (i > 0) const SizedBox(height: AppSpacing.lg),
-                  Reveal(index: i, child: _BenefitRow(benefit: PartnersData.benefits[i])),
-                ],
                 const SizedBox(height: AppSpacing.section),
                 const InquireCta(
-                  message: 'Questions before you apply?',
+                  message: 'Ask us about the Partners Program',
                   subject: 'The Partners Program',
+                ),
+                const SizedBox(height: AppSpacing.md),
+                OutlinedButton.icon(
+                  onPressed: () => _readMore(context),
+                  icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                  label: const Text('Read more about the Partners Program'),
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _BenefitRow extends StatelessWidget {
-  final PartnerBenefit benefit;
-
-  const _BenefitRow({required this.benefit});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 2),
-          child: Icon(Icons.check_rounded, color: AppColors.violet600, size: 18),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(benefit.title, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 3),
-              Text(
-                benefit.body,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
