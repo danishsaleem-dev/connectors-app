@@ -7,6 +7,7 @@ import '../widgets/app_card.dart';
 import '../widgets/page_header.dart';
 import '../widgets/reveal.dart';
 import 'brands_screen.dart';
+import 'franchise_opportunities_screen.dart';
 import 'interested_screen.dart';
 import 'locations_screen.dart';
 import 'opportunity_list_screen.dart';
@@ -18,12 +19,14 @@ import 'vendor_opportunities_screen.dart';
 /// for a commercial project). Which categories show is role-dependent; see
 /// categoriesForRole's doc comment for the current (first-pass) mapping.
 ///
-/// Landlord/developer, consultant and vendor don't get that category hub
-/// at all — none of them browse brands/franchise the way everyone else
-/// does. This tab is their own real content instead: landlord/developer's
-/// "who's interested in what I've got" (same as their Home quick action);
-/// consultant's admin-released leads (relabeled "Requests" — see
-/// main.dart's isConsultant branch); vendor's admin-authored work briefs.
+/// Landlord/developer, consultant, vendor and franchisee don't get that
+/// category hub at all — none of them browse brands/franchise the way a
+/// brand's own "Locations" category does. This tab is their own real
+/// content instead: landlord/developer's "who's interested in what I've
+/// got" (same as their Home quick action); consultant's admin-released
+/// leads (relabeled "Requests" — see main.dart's isConsultant branch);
+/// vendor's admin-authored work briefs; franchisee's admin-matched
+/// franchise opportunities.
 class OpportunitiesScreen extends StatelessWidget {
   final String? orgType;
 
@@ -47,6 +50,12 @@ class OpportunitiesScreen extends StatelessWidget {
       return const SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(0, AppSpacing.md, 0, 110),
         child: VendorOpportunitiesBody(),
+      );
+    }
+    if (orgType == 'franchisee') {
+      return const SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(0, AppSpacing.md, 0, 110),
+        child: FranchiseOpportunitiesBody(),
       );
     }
 

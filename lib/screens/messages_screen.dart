@@ -16,7 +16,11 @@ class MessagesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Messages')),
-      body: const SafeArea(child: MessagesBody()),
+      // This Scaffold has no floating nav bar to clear — unlike the
+      // bottom-nav tab's own chrome-less Scaffold (see AppShell), where
+      // MessagesBody needs its default bottom padding to keep the composer
+      // from sitting behind it.
+      body: const SafeArea(child: MessagesBody(reserveNavBarSpace: false)),
     );
   }
 }
@@ -30,7 +34,14 @@ class MessagesScreen extends StatelessWidget {
 /// wherever this is used as a Home tile it must set hasOwnScaffold: true
 /// and go through MessagesScreen above, not this widget bare.
 class MessagesBody extends StatefulWidget {
-  const MessagesBody({super.key});
+  /// True (the default) when this sits under AppShell's floating nav bar —
+  /// the composer needs enough bottom clearance to sit above it rather
+  /// than behind it. False for MessagesScreen's own plain Scaffold above,
+  /// which has no floating bar to clear, so the composer just sits at the
+  /// screen's own bottom edge.
+  final bool reserveNavBarSpace;
+
+  const MessagesBody({super.key, this.reserveNavBarSpace = true});
 
   @override
   State<MessagesBody> createState() => _MessagesBodyState();
@@ -117,7 +128,7 @@ class _MessagesBodyState extends State<MessagesBody> {
     // isn't scrolling content, so the bigger number just reads as a gap
     // between it and the bar instead of the composer sitting snug above it.
     return Padding(
-      padding: const EdgeInsets.only(bottom: 82),
+      padding: EdgeInsets.only(bottom: widget.reserveNavBarSpace ? 82 : 0),
       child: Column(
         children: [
           const PageHeader(

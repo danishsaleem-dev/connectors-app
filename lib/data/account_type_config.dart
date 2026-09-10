@@ -4,6 +4,7 @@ import '../screens/audience_screen.dart';
 import '../screens/brands_screen.dart';
 import '../screens/coming_soon_screen.dart';
 import '../screens/consultants_screen.dart';
+import '../screens/franchise_opportunities_screen.dart';
 import '../screens/interested_screen.dart';
 import '../screens/locations_screen.dart';
 import '../screens/messages_screen.dart';
@@ -146,12 +147,13 @@ final Map<String, AccountTypeConfig> accountTypeConfigs = {
     marketingBannerText: "Questions before you apply? We're here to help.",
     homeActions: [
       HomeAction(
-        title: 'Explore Brands',
-        body: 'Browse brands actively looking for franchise partners.',
-        icon: Icons.storefront_rounded,
-        buildScreen: () => const BrandsScreen(title: 'Explore Brands'),
+        title: 'Opportunities',
+        body:
+            'Franchise opportunities your Connectors team has matched you to.',
+        icon: Icons.workspace_premium_rounded,
+        buildScreen: () => const FranchiseOpportunitiesScreen(),
         hasOwnScaffold: true,
-        shortLabel: 'Brands',
+        shortLabel: 'Opportunities',
       ),
       HomeAction(
         title: 'Apply for Franchise',

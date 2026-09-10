@@ -52,90 +52,117 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LightGradientBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 8, 12, 0),
-                  child: TextButton(
-                    onPressed: widget.onGetStarted,
-                    child: Text(
-                      'Skip',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppColors.grey500,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Base fallback (also what briefly shows while a photo is still
+          // loading) — the same gradient this screen always had, so a slow
+          // connection never means a blank or black screen.
+          const LightGradientBackground(child: SizedBox.expand()),
+          // Crossfades to the current slide's own photo rather than
+          // swapping instantly, so paging feels considered rather than a
+          // hard cut.
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 320),
+            child: Image.network(
+              onboardingPhotoUrl(onboardingSlides[_page].backgroundPhotoId),
+              key: ValueKey(_page),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox.expand(),
+            ),
+          ),
+          // A light wash over the photo — enough of it shows through to
+          // read as themed, deliberate imagery, while every heading/body
+          // text color on this screen (all dark-on-light) stays exactly as
+          // legible as it was against the plain gradient.
+          IgnorePointer(
+            child: Container(color: AppColors.white.withValues(alpha: 0.82)),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 8, 12, 0),
+                    child: TextButton(
+                      onPressed: widget.onGetStarted,
+                      child: Text(
+                        'Skip',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: AppColors.grey500,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: PageView.builder(
-                  controller: _controller,
-                  onPageChanged: (i) => setState(() => _page = i),
-                  itemCount: onboardingSlides.length,
-                  itemBuilder: (context, i) =>
-                      _Slide(slide: onboardingSlides[i]),
+                Expanded(
+                  child: PageView.builder(
+                    controller: _controller,
+                    onPageChanged: (i) => setState(() => _page = i),
+                    itemCount: onboardingSlides.length,
+                    itemBuilder: (context, i) =>
+                        _Slide(slide: onboardingSlides[i]),
+                  ),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (var i = 0; i < onboardingSlides.length; i++)
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 260),
-                      curve: Curves.easeOutCubic,
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      width: i == _page ? 22 : 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        color: i == _page
-                            ? AppColors.violet600
-                            : AppColors.grey200,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
-                child: Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _next,
-                        child: Text(_isLast ? 'Get Started' : 'Next'),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      onPressed: widget.onLogin,
-                      child: Text.rich(
-                        TextSpan(
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.grey500),
-                          children: const [
-                            TextSpan(text: 'Already have an account?  '),
-                            TextSpan(
-                              text: 'Login',
-                              style: TextStyle(
-                                color: AppColors.violet600,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+                    for (var i = 0; i < onboardingSlides.length; i++)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 260),
+                        curve: Curves.easeOutCubic,
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: i == _page ? 22 : 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: i == _page
+                              ? AppColors.violet600
+                              : AppColors.grey200,
+                          borderRadius: BorderRadius.circular(999),
                         ),
                       ),
-                    ),
                   ],
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _next,
+                          child: Text(_isLast ? 'Get Started' : 'Next'),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: widget.onLogin,
+                        child: Text.rich(
+                          TextSpan(
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: AppColors.grey500),
+                            children: const [
+                              TextSpan(text: 'Already have an account?  '),
+                              TextSpan(
+                                text: 'Login',
+                                style: TextStyle(
+                                  color: AppColors.violet600,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

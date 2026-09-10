@@ -224,10 +224,10 @@ OpportunityCategoryConfig categoryFor(String key) =>
 /// opportunities show up according to role," since the doc didn't specify
 /// the exact mapping. Worth confirming/adjusting once this is reviewed.
 ///
-/// landlord/developer/consultant/vendor have no entry at all: none of them
-/// browse this category hub — see OpportunitiesScreen, which shows each of
-/// them their own real content instead and never calls categoriesForRole
-/// for them.
+/// landlord/developer/consultant/vendor/franchisee have no entry at all:
+/// none of them browse this category hub — see OpportunitiesScreen, which
+/// shows each of them their own real content instead and never calls
+/// categoriesForRole for them.
 ///
 /// "Investors" is deliberately never listed for any role — it's still
 /// defined above (and OpportunityListScreen/OpportunityDetailScreen still
@@ -237,7 +237,6 @@ OpportunityCategoryConfig categoryFor(String key) =>
 /// that access-control decision is actually made.
 const _categoriesByRole = {
   'brand': ['locations', 'retail', 'commercial'],
-  'franchisee': ['brands', 'franchise'],
   'investor': ['brands', 'franchise'],
 };
 

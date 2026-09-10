@@ -9,6 +9,7 @@ import 'auth_state.dart';
 import 'chat.dart';
 import 'consultant.dart';
 import 'consultant_request.dart';
+import 'franchise_opportunity.dart';
 import 'franchising_brand.dart';
 import 'location.dart';
 import 'message.dart';
@@ -295,6 +296,16 @@ class ApiClient {
     final json = await _get('/api/mobile/vendor-opportunities');
     final list = (json['opportunities'] as List).cast<Map<String, dynamic>>();
     return list.map(VendorOpportunity.fromJson).toList();
+  }
+
+  /// Franchise opportunities an admin has matched to this franchisee —
+  /// empty (never an error) for any org type that isn't a franchisee, same
+  /// reasoning as fetchVendorOpportunities.
+  static Future<List<FranchiseOpportunity>>
+  fetchFranchiseOpportunities() async {
+    final json = await _get('/api/mobile/franchise-opportunities');
+    final list = (json['opportunities'] as List).cast<Map<String, dynamic>>();
+    return list.map(FranchiseOpportunity.fromJson).toList();
   }
 
   /// The published consultant roster — public, no session required, same

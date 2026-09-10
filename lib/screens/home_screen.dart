@@ -42,7 +42,9 @@ void _openAction(BuildContext context, HomeAction action) {
           ? action.buildScreen()
           : Scaffold(
               appBar: AppBar(title: Text(action.title)),
-              body: SafeArea(child: SingleChildScrollView(child: action.buildScreen())),
+              body: SafeArea(
+                child: SingleChildScrollView(child: action.buildScreen()),
+              ),
             ),
     ),
   );
@@ -106,9 +108,7 @@ class HomeScreen extends StatelessWidget {
                                   (session?.name.trim().isNotEmpty ?? false)
                                       ? session!.name.trim()[0].toUpperCase()
                                       : '?',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
+                                  style: Theme.of(context).textTheme.titleLarge
                                       ?.copyWith(color: AppColors.white),
                                 ),
                               ),
@@ -128,14 +128,19 @@ class HomeScreen extends StatelessWidget {
                                     const SizedBox(height: 1),
                                     Text(
                                       session?.name ?? '',
-                                      style: Theme.of(context).textTheme.titleLarge,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
                               ),
                               if (onOpenProfile != null)
-                                const Icon(Icons.chevron_right_rounded, color: AppColors.grey300),
+                                const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: AppColors.grey300,
+                                ),
                             ],
                           ),
                         ),
@@ -169,13 +174,21 @@ class HomeScreen extends StatelessWidget {
                         ),
                         child: InkWell(
                           customBorder: const StadiumBorder(),
-                          onTap: () => Navigator.of(context).push(ChatScreen.route()),
+                          onTap: () =>
+                              Navigator.of(context).push(ChatScreen.route()),
                           child: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 11,
+                            ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.auto_awesome_rounded, color: AppColors.white, size: 18),
+                                Icon(
+                                  Icons.auto_awesome_rounded,
+                                  color: AppColors.white,
+                                  size: 18,
+                                ),
                                 SizedBox(width: 6),
                                 Text(
                                   'AI',
@@ -205,7 +218,10 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                Text('Quick actions', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Quick actions',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: AppSpacing.md),
                 Reveal(
                   index: 1,
@@ -228,7 +244,10 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.section),
                 const Eyebrow('All actions'),
                 const SizedBox(height: AppSpacing.sm),
-                Text('Everything in one place.', style: Theme.of(context).textTheme.headlineMedium),
+                Text(
+                  'Everything in one place.',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
                 const SizedBox(height: AppSpacing.heading),
                 for (var i = 0; i < config.homeActions.length; i++) ...[
                   if (i > 0) const SizedBox(height: AppSpacing.sm),
@@ -265,11 +284,16 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Reveal(index: 2, child: _HighlightRow(cards: _trustHighlights(context))),
+                Reveal(
+                  index: 2,
+                  child: _HighlightRow(cards: _trustHighlights(context)),
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 const Reveal(
                   index: 3,
-                  child: _MarketingBanner(text: "Questions before you start? We're here to help."),
+                  child: _MarketingBanner(
+                    text: "Questions before you start? We're here to help.",
+                  ),
                 ),
               ],
             ],
@@ -310,17 +334,16 @@ class _PromoBanner extends StatelessWidget {
           Text(
             headline,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: AppColors.white,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
             subtitle,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: AppColors.white.withValues(alpha: 0.78)),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.white.withValues(alpha: 0.78),
+            ),
           ),
         ],
       ),
@@ -408,9 +431,9 @@ class _ActionTile extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -465,23 +488,24 @@ const _franchiseHighlights = [
 /// forms) rather than invented features, since these types don't have a
 /// franchise-program equivalent to show off.
 List<_HighlightData> _trustHighlights(BuildContext context) => [
-      _HighlightData(
-        icon: Icons.public_rounded,
-        title: '${SiteData.offices.length} Offices, One Team',
-        statHeadline: 'Global',
-        statSubtitle: 'UK, US & Pakistan',
-        accentColor: AppColors.violet600,
-        onTap: () =>
-            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ContactScreen())),
-      ),
-      const _HighlightData(
-        icon: Icons.bolt_rounded,
-        title: 'Fast Response',
-        statHeadline: '1 Day',
-        statSubtitle: 'Typical review time',
-        accentColor: AppColors.ink,
-      ),
-    ];
+  _HighlightData(
+    icon: Icons.public_rounded,
+    title: '${SiteData.offices.length} Offices, One Team',
+    statHeadline: 'Global',
+    statSubtitle: 'UK, US & Pakistan',
+    accentColor: AppColors.violet600,
+    onTap: () => Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ContactScreen())),
+  ),
+  const _HighlightData(
+    icon: Icons.bolt_rounded,
+    title: 'Fast Response',
+    statHeadline: '1 Day',
+    statSubtitle: 'Typical review time',
+    accentColor: AppColors.ink,
+  ),
+];
 
 /// A pair of informational highlight cards. IntrinsicHeight + stretch
 /// keeps both the same height regardless of which title wraps to two
@@ -536,27 +560,40 @@ class _HighlightCard extends StatelessWidget {
           child: Stack(
             children: [
               Positioned.fill(
-                child: CustomPaint(painter: _DotPatternPainter(color: accentColor)),
+                child: CustomPaint(
+                  painter: _DotPatternPainter(color: accentColor),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       width: 36,
                       height: 36,
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(color: accentColor, shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: accentColor,
+                        shape: BoxShape.circle,
+                      ),
                       child: Icon(icon, color: AppColors.white, size: 17),
                     ),
                     const SizedBox(height: 12),
                     Text(title, style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 14),
+                    // Fills whatever's left after IntrinsicHeight stretches
+                    // this card to match its sibling's — a one-line title
+                    // left dead space above the stat box instead of the two
+                    // boxes lining up at the bottom, the way a shorter card
+                    // sitting next to a two-line-title card otherwise reads.
+                    const Spacer(),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 11,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.ink,
                         borderRadius: BorderRadius.circular(12),
@@ -566,15 +603,16 @@ class _HighlightCard extends StatelessWidget {
                         children: [
                           Text(
                             statHeadline,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
+                            style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(color: AppColors.white),
                           ),
                           Text(
                             statSubtitle,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.white.withValues(alpha: 0.65),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: AppColors.white.withValues(
+                                    alpha: 0.65,
+                                  ),
                                   fontSize: 11.5,
                                 ),
                           ),
@@ -625,7 +663,8 @@ class _DotPatternPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _DotPatternPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _DotPatternPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// Closing banner — its one action is real (opens the existing chat
@@ -647,10 +686,7 @@ class _MarketingBanner extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            child: Text(text, style: Theme.of(context).textTheme.titleMedium),
           ),
           const SizedBox(width: AppSpacing.sm),
           OutlinedButton(
@@ -665,5 +701,3 @@ class _MarketingBanner extends StatelessWidget {
     );
   }
 }
-
-

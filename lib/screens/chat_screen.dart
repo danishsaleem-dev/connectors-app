@@ -7,13 +7,19 @@ import 'audience_screen.dart';
 
 /// Deep-links a chat answer's link straight to the app's own matching
 /// screen where one exists, rather than a website URL the app can't open.
-const _audienceSlugs = {'for-brands', 'for-franchise', 'for-landlords', 'for-investors'};
+const _audienceSlugs = {
+  'for-brands',
+  'for-franchise',
+  'for-landlords',
+  'for-investors',
+};
 
 class _ChatMessage {
   final bool isUser;
   final String text;
   final ChatLink? link;
   final bool needsHuman;
+
   /// Only set on an assistant message that needs a human — what to send
   /// on if the user asks to talk to the team, since the assistant's own
   /// reply text isn't the question that needs answering.
@@ -44,11 +50,18 @@ class ChatScreen extends StatelessWidget {
       barrierColor: Colors.black45,
       transitionDuration: const Duration(milliseconds: 380),
       reverseTransitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (context, animation, secondaryAnimation) => const ChatScreen(),
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const ChatScreen(),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
         return SlideTransition(
-          position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(curved),
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(curved),
           child: child,
         );
       },
@@ -61,15 +74,29 @@ class ChatScreen extends StatelessWidget {
       color: Colors.transparent,
       child: SafeArea(
         top: false,
-        child: FractionallySizedBox(
-          heightFactor: 0.88,
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            decoration: const BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        // This route has no Scaffold, so nothing resizes it for the
+        // keyboard the way a normal screen's body would — heightFactor is
+        // computed against the *full* screen, so without this the keyboard
+        // just overlaps whatever's at the bottom instead of the sheet
+        // shrinking to stay above it. Matches the keyboard's own animation
+        // speed rather than the framework's longer implicit-animation
+        // default, so the sheet doesn't visibly lag behind it opening.
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: FractionallySizedBox(
+            heightFactor: 0.88,
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: const _ChatBody(),
             ),
-            child: const _ChatBody(),
           ),
         ),
       ),
@@ -169,7 +196,10 @@ class _ChatBodyState extends State<_ChatBody> {
       if (!mounted) return;
       setState(() {
         _messages.add(
-          _ChatMessage(isUser: false, text: "Couldn't reach Connectors AI. Please try again."),
+          _ChatMessage(
+            isUser: false,
+            text: "Couldn't reach Connectors AI. Please try again.",
+          ),
         );
         _asking = false;
       });
@@ -192,7 +222,11 @@ class _ChatBodyState extends State<_ChatBody> {
       setState(() => message.escalated = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(err is ApiException ? err.message : "Couldn't send. Please try again."),
+          content: Text(
+            err is ApiException
+                ? err.message
+                : "Couldn't send. Please try again.",
+          ),
         ),
       );
     }
@@ -233,10 +267,17 @@ class _ChatBodyState extends State<_ChatBody> {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.auto_awesome_rounded, color: AppColors.white, size: 19),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppColors.white,
+                  size: 19,
+                ),
               ),
               const SizedBox(width: 12),
-              Text('Connectors AI', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Connectors AI',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.close_rounded, color: AppColors.grey500),
@@ -256,7 +297,10 @@ class _ChatBodyState extends State<_ChatBody> {
                     AppSpacing.page,
                     AppSpacing.md,
                   ),
-                  itemCount: _messages.length + (_suggested.isNotEmpty ? 1 : 0) + (_asking ? 1 : 0),
+                  itemCount:
+                      _messages.length +
+                      (_suggested.isNotEmpty ? 1 : 0) +
+                      (_asking ? 1 : 0),
                   itemBuilder: (context, i) {
                     if (i < _messages.length) {
                       return _MessageBubble(
@@ -276,7 +320,12 @@ class _ChatBodyState extends State<_ChatBody> {
                 ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.page, 0, AppSpacing.page, AppSpacing.md),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            0,
+            AppSpacing.page,
+            AppSpacing.md,
+          ),
           child: Row(
             children: [
               Expanded(
@@ -291,14 +340,20 @@ class _ChatBodyState extends State<_ChatBody> {
                     hintText: 'Ask Connectors AI…',
                     filled: true,
                     fillColor: AppColors.grey50,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
                       borderSide: const BorderSide(color: AppColors.grey200),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
-                      borderSide: const BorderSide(color: AppColors.violet600, width: 1.5),
+                      borderSide: const BorderSide(
+                        color: AppColors.violet600,
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -312,7 +367,11 @@ class _ChatBodyState extends State<_ChatBody> {
                   onTap: _asking ? null : _submitInput,
                   child: const Padding(
                     padding: EdgeInsets.all(12),
-                    child: Icon(Icons.arrow_upward_rounded, color: AppColors.white, size: 20),
+                    child: Icon(
+                      Icons.arrow_upward_rounded,
+                      color: AppColors.white,
+                      size: 20,
+                    ),
                   ),
                 ),
               ),
@@ -327,7 +386,10 @@ class _ChatBodyState extends State<_ChatBody> {
     final slug = link.href.replaceFirst('/', '');
     if (!_audienceSlugs.contains(slug)) return;
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => Scaffold(body: SafeArea(child: buildAudienceScreen(slug)))),
+      MaterialPageRoute(
+        builder: (_) =>
+            Scaffold(body: SafeArea(child: buildAudienceScreen(slug))),
+      ),
     );
   }
 }
@@ -337,7 +399,11 @@ class _MessageBubble extends StatelessWidget {
   final ValueChanged<ChatLink> onOpenLink;
   final VoidCallback onEscalate;
 
-  const _MessageBubble({required this.message, required this.onOpenLink, required this.onEscalate});
+  const _MessageBubble({
+    required this.message,
+    required this.onOpenLink,
+    required this.onEscalate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -345,14 +411,21 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           Flexible(
             child: Column(
-              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: isUser ? AppColors.violet600 : AppColors.grey50,
                     borderRadius: BorderRadius.circular(16),
@@ -360,8 +433,8 @@ class _MessageBubble extends StatelessWidget {
                   child: Text(
                     message.text,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isUser ? AppColors.white : AppColors.ink,
-                        ),
+                      color: isUser ? AppColors.white : AppColors.ink,
+                    ),
                   ),
                 ),
                 if (message.link != null) ...[
@@ -381,12 +454,21 @@ class _MessageBubble extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: message.escalated ? null : onEscalate,
                     icon: Icon(
-                      message.escalated ? Icons.check_rounded : Icons.forum_outlined,
+                      message.escalated
+                          ? Icons.check_rounded
+                          : Icons.forum_outlined,
                       size: 16,
                     ),
-                    label: Text(message.escalated ? 'Sent to your team' : 'Talk to our team'),
+                    label: Text(
+                      message.escalated
+                          ? 'Sent to your team'
+                          : 'Talk to our team',
+                    ),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       textStyle: Theme.of(context).textTheme.labelLarge,
                     ),
                   ),
@@ -411,11 +493,17 @@ class _ThinkingBubble extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(color: AppColors.grey50, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+              color: AppColors.grey50,
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: const SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.violet400),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.violet400,
+              ),
             ),
           ),
         ],
@@ -447,14 +535,19 @@ class _SuggestedChips extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
                 onTap: () => onTap(s),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 9,
+                  ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(color: AppColors.grey200),
                   ),
                   child: Text(
                     s.question,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.ink),
                   ),
                 ),
               ),
