@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import '../data/account_type_config.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
+import '../data/profile_fields.dart';
 import '../data/site_data.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/avatar.dart';
 import '../widgets/eyebrow.dart';
 import '../widgets/feature_card.dart';
 import '../widgets/profile_progress_strip.dart';
@@ -96,20 +98,12 @@ class HomeScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Row(
                             children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                alignment: Alignment.center,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.violet600,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  (session?.name.trim().isNotEmpty ?? false)
-                                      ? session!.name.trim()[0].toUpperCase()
-                                      : '?',
-                                  style: Theme.of(context).textTheme.titleLarge
-                                      ?.copyWith(color: AppColors.white),
+                              ValueListenableBuilder<String?>(
+                                valueListenable: ProfileDraft.photoUrl,
+                                builder: (context, photoUrl, _) => Avatar(
+                                  photoUrl: photoUrl,
+                                  name: session?.name ?? '',
+                                  size: 44,
                                 ),
                               ),
                               const SizedBox(width: AppSpacing.md),

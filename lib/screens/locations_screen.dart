@@ -106,8 +106,17 @@ class _LocationsScreenState extends State<LocationsScreen> {
 
   List<Location> _scoped(List<Location> locations) {
     final types = widget.propertyTypes;
-    if (types == null) return locations;
-    return locations.where((l) => types.contains(l.propertyType)).toList();
+    final scoped = types == null
+        ? locations
+        : locations.where((l) => types.contains(l.propertyType)).toList();
+    // A stable partition, not a sort — listings with at least one photo
+    // first, everything else after, each group keeping the server's own
+    // order. .sort() isn't used here since Dart's isn't guaranteed
+    // stable, and a comparator alone would risk reshuffling within a
+    // group on ties.
+    final withPhotos = scoped.where((l) => l.photoUrls.isNotEmpty);
+    final withoutPhotos = scoped.where((l) => l.photoUrls.isEmpty);
+    return [...withPhotos, ...withoutPhotos];
   }
 
   @override
@@ -662,7 +671,10 @@ class _LocationCard extends StatelessWidget {
     return AppCard(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => LocationDetailScreen(location: location),
+          builder: (_) => LocationDetailScreen(
+            location: location,
+            showFavorite: onToggleFavorite != null,
+          ),
         ),
       ),
       child: Column(

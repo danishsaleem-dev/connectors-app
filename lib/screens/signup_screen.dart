@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import '../data/account_types.dart';
 import '../data/api_client.dart';
 import '../data/auth_state.dart';
+import '../data/countries.dart';
 import '../data/oauth_flow.dart';
 import '../data/oauth_service.dart';
 import '../theme/colors.dart';
+import '../utils/validators.dart';
 import '../widgets/auth_shell.dart';
 import 'login_screen.dart';
 
@@ -38,14 +40,6 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscure = true;
   String? _error;
 
-  static const _countries = [
-    'United Kingdom',
-    'United States',
-    'Pakistan',
-    'United Arab Emirates',
-    'Other',
-  ];
-
   @override
   void dispose() {
     _orgController.dispose();
@@ -56,18 +50,19 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  AccountTypeOption get _activeType => accountTypes.firstWhere((t) => t.value == _type);
+  AccountTypeOption get _activeType =>
+      accountTypes.firstWhere((t) => t.value == _type);
 
   /// Signing up with a provider is the same call as signing in with one —
   /// the server decides which it is by whether the verified email already
   /// has an account, so there's no separate "register with Google" path.
   void _oauth(String provider) => startOAuthSignIn(
-        context,
-        provider: provider,
-        setBusy: (busy) {
-          if (mounted) setState(() => _loading = busy);
-        },
-      );
+    context,
+    provider: provider,
+    setBusy: (busy) {
+      if (mounted) setState(() => _loading = busy);
+    },
+  );
 
   Future<void> _submit() async {
     if (_orgController.text.trim().length < 2) {
@@ -82,6 +77,22 @@ class _SignupScreenState extends State<SignupScreen> {
       setState(() => _error = 'Choose what you do.');
       return;
     }
+    final email = _emailController.text.trim();
+    if (!FormatValidators.isValidEmail(email)) {
+      setState(() => _error = 'Enter a valid email address.');
+      return;
+    }
+    final phone = _phoneController.text.trim();
+    if (phone.isNotEmpty) {
+      final phoneError = FormatValidators.phoneError(
+        phone,
+        country: countryByName(_country),
+      );
+      if (phoneError != null) {
+        setState(() => _error = phoneError);
+        return;
+      }
+    }
 
     setState(() {
       _loading = true;
@@ -92,7 +103,7 @@ class _SignupScreenState extends State<SignupScreen> {
         type: _type,
         organizationName: _orgController.text.trim(),
         name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
+        email: email,
         password: _passwordController.text,
         discipline: _discipline,
       );
@@ -101,7 +112,6 @@ class _SignupScreenState extends State<SignupScreen> {
       // file's own doc comment) — sent on afterward instead, best-effort,
       // so a save failure here doesn't block getting into the app that was
       // just successfully created.
-      final phone = _phoneController.text.trim();
       if (phone.isNotEmpty || _country != null) {
         ApiClient.saveProfile(
           phone: phone.isEmpty ? null : phone,
@@ -117,7 +127,9 @@ class _SignupScreenState extends State<SignupScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = err is ApiException ? err.message : 'Something went wrong. Please try again.';
+        _error = err is ApiException
+            ? err.message
+            : 'Something went wrong. Please try again.';
       });
     }
   }
@@ -132,10 +144,10 @@ class _SignupScreenState extends State<SignupScreen> {
         children: [
           Text(
             'I AM A…',
-            style: Theme.of(context)
-                .textTheme
-                .labelMedium
-                ?.copyWith(color: AppColors.grey500, letterSpacing: 1.1),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: AppColors.grey500,
+              letterSpacing: 1.1,
+            ),
           ),
           const SizedBox(height: 10),
           Wrap(
@@ -151,7 +163,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 borderRadius: BorderRadius.circular(999),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 9,
+                  ),
                   decoration: BoxDecoration(
                     color: selected ? AppColors.violet600 : AppColors.grey50,
                     border: Border.all(
@@ -162,9 +177,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Text(
                     option.label,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: selected ? AppColors.white : AppColors.ink,
-                          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                        ),
+                      color: selected ? AppColors.white : AppColors.ink,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    ),
                   ),
                 ),
               );
@@ -173,20 +188,31 @@ class _SignupScreenState extends State<SignupScreen> {
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
-            decoration: authInput(icon: Icons.person_outline_rounded, hint: 'Full name'),
+            decoration: authInput(
+              icon: Icons.person_outline_rounded,
+              hint: 'Full name',
+            ),
           ),
           const SizedBox(height: 14),
           TextField(
             controller: _orgController,
-            decoration: authInput(icon: Icons.apartment_rounded, hint: _activeType.orgLabel),
+            decoration: authInput(
+              icon: Icons.apartment_rounded,
+              hint: _activeType.orgLabel,
+            ),
           ),
           if (_type == 'vendor') ...[
             const SizedBox(height: 14),
             DropdownButtonFormField<String>(
               initialValue: _discipline,
-              decoration: authInput(icon: Icons.build_outlined, hint: 'Choose your discipline…'),
+              decoration: authInput(
+                icon: Icons.build_outlined,
+                hint: 'Choose your discipline…',
+              ),
               items: vendorDisciplines.entries
-                  .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                  .map(
+                    (e) => DropdownMenuItem(value: e.key, child: Text(e.value)),
+                  )
                   .toList(),
               onChanged: (value) => setState(() => _discipline = value),
             ),
@@ -195,20 +221,28 @@ class _SignupScreenState extends State<SignupScreen> {
           TextField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: authInput(icon: Icons.mail_outline_rounded, hint: 'Email address'),
+            decoration: authInput(
+              icon: Icons.mail_outline_rounded,
+              hint: 'Email address',
+            ),
           ),
           const SizedBox(height: 14),
           TextField(
             controller: _phoneController,
             keyboardType: TextInputType.phone,
-            decoration: authInput(icon: Icons.smartphone_rounded, hint: 'Phone number'),
+            decoration: authInput(
+              icon: Icons.smartphone_rounded,
+              hint: 'Phone number',
+            ),
           ),
           const SizedBox(height: 14),
           DropdownButtonFormField<String>(
             initialValue: _country,
             decoration: authInput(icon: Icons.public_rounded, hint: 'Country'),
-            items: _countries
-                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+            items: countries
+                .map(
+                  (c) => DropdownMenuItem(value: c.name, child: Text(c.name)),
+                )
                 .toList(),
             onChanged: (value) => setState(() => _country = value),
           ),
@@ -221,7 +255,9 @@ class _SignupScreenState extends State<SignupScreen> {
               hint: 'Password (min. 8 characters)',
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   color: AppColors.grey300,
                   size: 20,
                 ),
@@ -243,7 +279,10 @@ class _SignupScreenState extends State<SignupScreen> {
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.white,
+                      ),
                     )
                   : const Text('Create account'),
             ),
@@ -273,15 +312,17 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               child: Text.rich(
                 TextSpan(
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: AppColors.grey500),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
                   children: const [
                     TextSpan(text: 'Already have an account?  '),
                     TextSpan(
                       text: 'Sign in',
-                      style: TextStyle(color: AppColors.violet600, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        color: AppColors.violet600,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ],
                 ),

@@ -6,6 +6,7 @@ import '../data/form_fields.dart';
 import '../data/upload.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
+import '../utils/validators.dart';
 
 /// One picked-and-uploaded file — [displayName] is what was actually
 /// picked (for showing "brand-logo.png" in the UI); [path] is the private
@@ -57,7 +58,8 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
   TextEditingController _controllerFor(String name) =>
       _controllers.putIfAbsent(name, () => TextEditingController());
 
-  String _otherKey(CheckboxGroupSpec field) => field.otherFieldName ?? '${field.name}:other';
+  String _otherKey(CheckboxGroupSpec field) =>
+      field.otherFieldName ?? '${field.name}:other';
 
   /// Picks (one, or several when [FileFieldSpec.multiple]) and uploads
   /// immediately — same "upload on pick, not on submit" flow as Edit
@@ -96,7 +98,10 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
       for (final file in files) {
         final path = file.path;
         if (path == null) continue;
-        final res = await ApiClient.uploadFile(File(path), purpose: UploadPurpose.document);
+        final res = await ApiClient.uploadFile(
+          File(path),
+          purpose: UploadPurpose.document,
+        );
         uploaded.add(_UploadedFile(displayName: file.name, path: res.path));
       }
       if (!mounted) return;
@@ -112,8 +117,9 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
       if (!mounted) return;
       setState(() {
         _fileUploading[field.name] = false;
-        _stepError =
-            err is ApiException ? err.message : "Couldn't upload that file. Please try again.";
+        _stepError = err is ApiException
+            ? err.message
+            : "Couldn't upload that file. Please try again.";
       });
     }
   }
@@ -170,13 +176,6 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
     return true;
   }
 
-  static final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-  // Digits plus the punctuation a real phone number is actually written
-  // with (+, spaces, hyphens, parens) — rejects anything with a letter or
-  // other stray character, then separately requires enough digits that a
-  // partial/garbled number ("123") can't pass just for looking phone-shaped.
-  static final _phoneCharsPattern = RegExp(r'^[0-9+\-\s()]+$');
-
   /// Real format checks, independent of _isFilled's presence check —
   /// applies whether or not the field is required, so an *optional* email
   /// field that's been typed into still has to actually be an email.
@@ -190,14 +189,18 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
         final text = _controllerFor(name).text.trim();
         if (text.isEmpty) return null;
         if (keyboardType == TextInputType.emailAddress) {
-          if (!_emailPattern.hasMatch(text)) return 'Enter a valid email address.';
-        } else if (keyboardType == TextInputType.phone) {
-          final digitCount = text.replaceAll(RegExp(r'[^0-9]'), '').length;
-          if (!_phoneCharsPattern.hasMatch(text) || digitCount < 7) {
-            return 'Enter a valid phone number.';
+          if (!FormatValidators.isValidEmail(text)) {
+            return 'Enter a valid email address.';
           }
+        } else if (keyboardType == TextInputType.phone) {
+          // No country field on these forms to key a stricter pattern off
+          // (they collect cities, not a country) — the generic check.
+          final error = FormatValidators.phoneError(text);
+          if (error != null) return error;
         } else if (keyboardType == TextInputType.number) {
-          if (double.tryParse(text) == null) return 'Enter a valid number for "$label".';
+          if (double.tryParse(text) == null) {
+            return 'Enter a valid number for "$label".';
+          }
         }
         return null;
 
@@ -261,7 +264,9 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
           case FileFieldSpec(:final name, :final multiple):
             final files = _uploadedFiles[name] ?? const [];
             if (files.isEmpty) break;
-            payload[name] = multiple ? files.map((f) => f.path).toList() : files.first.path;
+            payload[name] = multiple
+                ? files.map((f) => f.path).toList()
+                : files.first.path;
         }
       }
     }
@@ -281,7 +286,9 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _stepError = err is ApiException ? err.message : 'Something went wrong. Please try again.';
+        _stepError = err is ApiException
+            ? err.message
+            : 'Something went wrong. Please try again.';
       });
     }
   }
@@ -322,7 +329,11 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _StepProgress(total: widget.steps.length, current: _stepIndex, title: step.title),
+          _StepProgress(
+            total: widget.steps.length,
+            current: _stepIndex,
+            title: step.title,
+          ),
           const SizedBox(height: 20),
           for (var i = 0; i < step.fields.length; i++) ...[
             if (i > 0) const SizedBox(height: 14),
@@ -341,7 +352,9 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
             const SizedBox(height: 16),
             Text(
               _stepError!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.red.shade700),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.red.shade700),
             ),
           ],
           const SizedBox(height: 24),
@@ -362,7 +375,10 @@ class _EnquiryWizardState extends State<EnquiryWizard> {
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.white,
+                          ),
                         )
                       // Scales the label down to fit one line instead of
                       // wrapping — labels like "Submit application" don't
@@ -395,7 +411,11 @@ class _StepProgress extends StatelessWidget {
   final int current;
   final String title;
 
-  const _StepProgress({required this.total, required this.current, required this.title});
+  const _StepProgress({
+    required this.total,
+    required this.current,
+    required this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -410,7 +430,9 @@ class _StepProgress extends StatelessWidget {
                 child: Container(
                   height: 4,
                   decoration: BoxDecoration(
-                    color: i <= current ? AppColors.violet600 : AppColors.grey100,
+                    color: i <= current
+                        ? AppColors.violet600
+                        : AppColors.grey100,
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
@@ -423,17 +445,19 @@ class _StepProgress extends StatelessWidget {
           children: [
             Text(
               'Step ${current + 1} of $total',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppColors.violet600),
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: AppColors.violet600),
             ),
             Expanded(
               child: Text(
                 '  ·  $title',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelLarge
-                    ?.copyWith(color: AppColors.grey500, fontWeight: FontWeight.w500),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: AppColors.grey500,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -463,7 +487,10 @@ class _SuccessCard extends StatelessWidget {
           Container(
             width: 44,
             height: 44,
-            decoration: const BoxDecoration(color: AppColors.violet600, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+              color: AppColors.violet600,
+              shape: BoxShape.circle,
+            ),
             child: const Icon(Icons.check_rounded, color: AppColors.white),
           ),
           const SizedBox(height: 16),
@@ -471,7 +498,9 @@ class _SuccessCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             body,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
           ),
         ],
       ),
@@ -503,14 +532,17 @@ class _FieldRenderer extends StatelessWidget {
   Widget _label(BuildContext context) {
     return RichText(
       text: TextSpan(
-        style: Theme.of(context)
-            .textTheme
-            .labelLarge
-            ?.copyWith(color: AppColors.ink, fontWeight: FontWeight.w600),
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: AppColors.ink,
+          fontWeight: FontWeight.w600,
+        ),
         children: [
           TextSpan(text: field.label),
           if (field.required)
-            const TextSpan(text: ' *', style: TextStyle(color: AppColors.violet400)),
+            const TextSpan(
+              text: ' *',
+              style: TextStyle(color: AppColors.violet400),
+            ),
         ],
       ),
     );
@@ -519,11 +551,16 @@ class _FieldRenderer extends StatelessWidget {
   Widget _floatingLabel(BuildContext context, {String? text}) {
     return RichText(
       text: TextSpan(
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
         children: [
           TextSpan(text: text ?? field.label),
           if (field.required)
-            const TextSpan(text: ' *', style: TextStyle(color: AppColors.violet400)),
+            const TextSpan(
+              text: ' *',
+              style: TextStyle(color: AppColors.violet400),
+            ),
         ],
       ),
     );
@@ -535,7 +572,11 @@ class _FieldRenderer extends StatelessWidget {
   /// label + input into one compact control is the mobile-native
   /// equivalent, and shaves real vertical space off a 5-field-per-step
   /// form.
-  InputDecoration _floatingDecoration(BuildContext context, {String? hintText, Widget? label}) {
+  InputDecoration _floatingDecoration(
+    BuildContext context, {
+    String? hintText,
+    Widget? label,
+  }) {
     return InputDecoration(
       label: label ?? _floatingLabel(context),
       hintText: hintText,
@@ -584,7 +625,12 @@ class _FieldRenderer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (field) {
-      case TextFieldSpec(:final name, :final keyboardType, :final maxLines, :final hint):
+      case TextFieldSpec(
+        :final name,
+        :final keyboardType,
+        :final maxLines,
+        :final hint,
+      ):
         return TextField(
           controller: controllerFor(name),
           keyboardType: keyboardType,
@@ -655,7 +701,11 @@ class _FieldRenderer extends StatelessWidget {
                 const SizedBox(height: 3),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined, size: 15, color: AppColors.grey500),
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 15,
+                      color: AppColors.grey500,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       selected == null
@@ -670,7 +720,12 @@ class _FieldRenderer extends StatelessWidget {
           ),
         );
 
-      case CheckboxGroupSpec(:final name, :final options, :final hint, :final otherFieldName):
+      case CheckboxGroupSpec(
+        :final name,
+        :final options,
+        :final hint,
+        :final otherFieldName,
+      ):
         final selected = (values[name] as Set<String>?) ?? <String>{};
         final otherKey = otherFieldName ?? '$name:other';
         return Column(
@@ -679,7 +734,12 @@ class _FieldRenderer extends StatelessWidget {
             _label(context),
             if (hint != null) ...[
               const SizedBox(height: 2),
-              Text(hint, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500)),
+              Text(
+                hint,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+              ),
             ],
             const SizedBox(height: 10),
             Wrap(
@@ -753,9 +813,13 @@ class _FieldRenderer extends StatelessWidget {
             const SizedBox(height: 8),
             for (var i = 0; i < files.length; i++) ...[
               if (i > 0) const SizedBox(height: 6),
-              _UploadedFileTile(name: files[i].displayName, onRemove: () => onRemoveFile(name, i)),
+              _UploadedFileTile(
+                name: files[i].displayName,
+                onRemove: () => onRemoveFile(name, i),
+              ),
             ],
-            if (files.isNotEmpty && (uploading || showPicker)) const SizedBox(height: 8),
+            if (files.isNotEmpty && (uploading || showPicker))
+              const SizedBox(height: 8),
             if (uploading)
               const _UploadingTile()
             else if (showPicker)
@@ -791,14 +855,20 @@ class _UploadedFileTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.insert_drive_file_outlined, size: 18, color: AppColors.violet600),
+          const Icon(
+            Icons.insert_drive_file_outlined,
+            size: 18,
+            color: AppColors.violet600,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.violet700),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.violet700),
             ),
           ),
           InkWell(
@@ -806,7 +876,11 @@ class _UploadedFileTile extends StatelessWidget {
             onTap: onRemove,
             child: const Padding(
               padding: EdgeInsets.all(2),
-              child: Icon(Icons.close_rounded, size: 16, color: AppColors.violet600),
+              child: Icon(
+                Icons.close_rounded,
+                size: 16,
+                color: AppColors.violet600,
+              ),
             ),
           ),
         ],
@@ -833,10 +907,18 @@ class _UploadingTile extends StatelessWidget {
           const SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.violet400),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.violet400,
+            ),
           ),
           const SizedBox(height: 8),
-          Text('Uploading…', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500)),
+          Text(
+            'Uploading…',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+          ),
         ],
       ),
     );
@@ -848,7 +930,11 @@ class _SelectChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _SelectChip({required this.label, required this.selected, required this.onTap});
+  const _SelectChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -860,15 +946,17 @@ class _SelectChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
           color: selected ? AppColors.violet50 : AppColors.white,
-          border: Border.all(color: selected ? AppColors.violet600 : AppColors.grey200),
+          border: Border.all(
+            color: selected ? AppColors.violet600 : AppColors.grey200,
+          ),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: selected ? AppColors.violet600 : AppColors.ink,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              ),
+            color: selected ? AppColors.violet600 : AppColors.ink,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          ),
         ),
       ),
     );
@@ -895,7 +983,12 @@ class DottedTile extends StatelessWidget {
           const Icon(Icons.upload_file_outlined, color: AppColors.grey300),
           if (hint != null) ...[
             const SizedBox(height: 6),
-            Text(hint!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500)),
+            Text(
+              hint!,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+            ),
           ],
         ],
       ),

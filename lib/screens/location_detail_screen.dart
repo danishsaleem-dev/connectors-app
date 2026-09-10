@@ -1,25 +1,72 @@
 import 'package:flutter/material.dart';
+import '../data/api_client.dart';
 import '../data/location.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../widgets/enquire_cta.dart';
 
-class LocationDetailScreen extends StatelessWidget {
+class LocationDetailScreen extends StatefulWidget {
   final Location location;
 
-  const LocationDetailScreen({super.key, required this.location});
+  /// Off for a landlord/developer's own "My Properties" — saving your own
+  /// listing isn't a thing there, matching LocationsScreen's own
+  /// showFavorite on the card this was opened from.
+  final bool showFavorite;
+
+  const LocationDetailScreen({
+    super.key,
+    required this.location,
+    this.showFavorite = true,
+  });
+
+  @override
+  State<LocationDetailScreen> createState() => _LocationDetailScreenState();
+}
+
+class _LocationDetailScreenState extends State<LocationDetailScreen> {
+  // Nullable so it only overrides what the card handed off once someone
+  // actually taps here — same optimistic-update shape as LocationsScreen's
+  // own _favoriteOverrides, just for a single location instead of a map.
+  bool? _favoriteOverride;
+
+  bool get _isFavorited => _favoriteOverride ?? widget.location.isFavorited;
+
+  void _toggleFavorite() {
+    final next = !_isFavorited;
+    setState(() => _favoriteOverride = next);
+    ApiClient.toggleFavorite(widget.location.id).catchError((_) {
+      if (mounted) setState(() => _favoriteOverride = !next);
+      return false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final location = widget.location;
     return Scaffold(
-      appBar: AppBar(title: const Text('Location Details')),
+      appBar: AppBar(
+        title: const Text('Location Details'),
+        actions: [
+          if (widget.showFavorite)
+            IconButton(
+              onPressed: _toggleFavorite,
+              icon: Icon(
+                _isFavorited
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                color: _isFavorited ? Colors.red.shade400 : AppColors.grey500,
+              ),
+            ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (location.photoUrls.isNotEmpty) _PhotoCarousel(photoUrls: location.photoUrls),
+              if (location.photoUrls.isNotEmpty)
+                _PhotoCarousel(photoUrls: location.photoUrls),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.page,
@@ -35,31 +82,41 @@ class LocationDetailScreen extends StatelessWidget {
                       runSpacing: 8,
                       children: [
                         _Pill(
-                          text: propertyStatusLabels[location.status] ?? location.status,
+                          text:
+                              propertyStatusLabels[location.status] ??
+                              location.status,
                           color: AppColors.violet600,
                         ),
                         _Pill(
-                          text: propertyTypeLabels[location.propertyType] ?? location.propertyType,
+                          text:
+                              propertyTypeLabels[location.propertyType] ??
+                              location.propertyType,
                           color: AppColors.grey500,
                         ),
-                        if (location.featured) const _Pill(text: 'Featured', color: AppColors.ink),
+                        if (location.featured)
+                          const _Pill(text: 'Featured', color: AppColors.ink),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    Text(location.title, style: Theme.of(context).textTheme.headlineMedium),
+                    Text(
+                      location.title,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.location_on_outlined, size: 16, color: AppColors.grey500),
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: AppColors.grey500,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             [location.area, location.city, location.country]
                                 .where((s) => s != null && s.isNotEmpty)
                                 .join(', '),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
+                            style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(color: AppColors.grey500),
                           ),
                         ),
@@ -67,20 +124,26 @@ class LocationDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     _DetailGrid(location: location),
-                    if (location.description != null && location.description!.isNotEmpty) ...[
+                    if (location.description != null &&
+                        location.description!.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.xl),
-                      Text('About this space', style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        'About this space',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         location.description!,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(color: AppColors.grey500),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.grey500,
+                        ),
                       ),
                     ],
                     const SizedBox(height: AppSpacing.section),
-                    InquireCta(message: 'Interested in this location?', subject: location.title),
+                    InquireCta(
+                      message: 'Interested in this location?',
+                      subject: location.title,
+                    ),
                   ],
                 ),
               ),
@@ -111,9 +174,14 @@ class _DetailGrid extends StatelessWidget {
         'Parking',
         location.parkingAvailable ? 'Available' : 'Not available',
       ),
-      if (location.rentDisplay != null) (Icons.payments_outlined, 'Rent', location.rentDisplay!),
+      if (location.rentDisplay != null)
+        (Icons.payments_outlined, 'Rent', location.rentDisplay!),
       if (location.availableFrom != null && location.availableFrom!.isNotEmpty)
-        (Icons.event_available_outlined, 'Available from', location.availableFrom!),
+        (
+          Icons.event_available_outlined,
+          'Available from',
+          location.availableFrom!,
+        ),
     ];
 
     return Wrap(
@@ -122,7 +190,11 @@ class _DetailGrid extends StatelessWidget {
       children: [
         for (final (icon, label, value) in items)
           SizedBox(
-            width: (MediaQuery.of(context).size.width - AppSpacing.page * 2 - AppSpacing.md) / 2,
+            width:
+                (MediaQuery.of(context).size.width -
+                    AppSpacing.page * 2 -
+                    AppSpacing.md) /
+                2,
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -140,9 +212,7 @@ class _DetailGrid extends StatelessWidget {
                       children: [
                         Text(
                           label,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
+                          style: Theme.of(context).textTheme.labelMedium
                               ?.copyWith(color: AppColors.grey500),
                         ),
                         Text(
@@ -198,7 +268,11 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
               errorBuilder: (context, error, stackTrace) => Container(
                 color: AppColors.grey50,
                 alignment: Alignment.center,
-                child: const Icon(Icons.storefront_outlined, color: AppColors.grey300, size: 32),
+                child: const Icon(
+                  Icons.storefront_outlined,
+                  color: AppColors.grey300,
+                  size: 32,
+                ),
               ),
             ),
           ),
@@ -237,10 +311,15 @@ class _Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Text(
         text,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.white),
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(color: AppColors.white),
       ),
     );
   }

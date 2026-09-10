@@ -3,6 +3,7 @@ import '../data/api_client.dart';
 import '../data/message.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
+import '../widgets/floating_nav_bar.dart';
 import '../widgets/page_header.dart';
 
 /// MessagesBody with its own AppBar/back button — for reaching the thread
@@ -121,14 +122,20 @@ class _MessagesBodyState extends State<MessagesBody> {
 
   @override
   Widget build(BuildContext context) {
-    // 82 clears exactly the floating nav bar's own footprint (68 tall + 14
-    // bottom margin — see FloatingNavBar), which overlays the body (see
-    // AppShell's extendBody). Other tabs pad scrollable *content* by 110 for
-    // generous end-of-list breathing room past the bar; a pinned composer
-    // isn't scrolling content, so the bigger number just reads as a gap
-    // between it and the bar instead of the composer sitting snug above it.
+    // FloatingNavBar.reservedHeight clears exactly the bar's own footprint
+    // (height + margin + the device's own system inset — see that
+    // getter), which overlays the body (see AppShell's extendBody). Other
+    // tabs pad scrollable *content* by a flat 110 for generous
+    // end-of-list breathing room past the bar; a pinned composer isn't
+    // scrolling content, so an approximate number just reads as a gap
+    // between it and the bar instead of the composer sitting snug above
+    // it — this needs to be exact, and vary with the device.
     return Padding(
-      padding: EdgeInsets.only(bottom: widget.reserveNavBarSpace ? 82 : 0),
+      padding: EdgeInsets.only(
+        bottom: widget.reserveNavBarSpace
+            ? FloatingNavBar.reservedHeight(context)
+            : 0,
+      ),
       child: Column(
         children: [
           const PageHeader(

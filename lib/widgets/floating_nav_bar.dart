@@ -33,12 +33,30 @@ class FloatingNavBar extends StatelessWidget {
     required this.onSelect,
   });
 
+  /// The bar's total footprint from the true bottom of the screen — bar
+  /// height + its own bottom margin + the device's own system inset
+  /// (gesture pill / 3-button nav), which this widget sits above rather
+  /// than under. Anything that needs to reserve exactly enough space to
+  /// clear the bar (a pinned composer, say — a scrolling list can just
+  /// pad generously) should read this instead of guessing at a fixed
+  /// number, since the system-inset part varies by device.
+  static double reservedHeight(BuildContext context) =>
+      _height + _bottomMargin + MediaQuery.of(context).viewPadding.bottom;
+
+  static const _height = 68.0;
+  static const _bottomMargin = 14.0;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        _bottomMargin + MediaQuery.of(context).viewPadding.bottom,
+      ),
       child: Container(
-        height: 68,
+        height: _height,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: AppColors.white,
@@ -98,7 +116,11 @@ class _NavButton extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _NavButton({required this.item, required this.selected, required this.onTap});
+  const _NavButton({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +128,9 @@ class _NavButton extends StatelessWidget {
     // semantics announcement so screen readers get it even though sighted
     // users don't see it.
     return Semantics(
-      label: item.badgeCount > 0 ? '${item.label}, ${item.badgeCount} unread' : item.label,
+      label: item.badgeCount > 0
+          ? '${item.label}, ${item.badgeCount} unread'
+          : item.label,
       button: true,
       selected: selected,
       child: Material(

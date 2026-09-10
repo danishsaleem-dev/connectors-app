@@ -61,15 +61,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const LightGradientBackground(child: SizedBox.expand()),
           // Crossfades to the current slide's own photo rather than
           // swapping instantly, so paging feels considered rather than a
-          // hard cut.
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 320),
-            child: Image.network(
-              onboardingPhotoUrl(onboardingSlides[_page].backgroundPhotoId),
-              key: ValueKey(_page),
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox.expand(),
+          // hard cut. AnimatedSwitcher's own internal Stack gives its
+          // child loose constraints (sized to content, centered) rather
+          // than the screen's — which is why BoxFit.cover had nothing to
+          // actually cover before this; SizedBox.expand forces full-bleed
+          // regardless.
+          Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 320),
+              child: SizedBox.expand(
+                key: ValueKey(_page),
+                child: Image.network(
+                  onboardingPhotoUrl(onboardingSlides[_page].backgroundPhotoId),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.expand(),
+                ),
+              ),
             ),
           ),
           // A light wash over the photo — enough of it shows through to

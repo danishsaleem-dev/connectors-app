@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'countries.dart';
 
 /// What the app asks to complete a profile — kept in exact lockstep with
 /// the website's own onboarding wizard (see connectors/src/components/
@@ -19,7 +20,15 @@ import 'package:flutter/material.dart';
 /// and a dozen inputs in one wall is how a signup becomes an abandoned
 /// signup. Short themed steps, each skippable, gets the same data with
 /// somewhere sensible to stop.
-enum ProfileFieldKind { text, number, multiline, select, multiSelect, checkbox, upload }
+enum ProfileFieldKind {
+  text,
+  number,
+  multiline,
+  select,
+  multiSelect,
+  checkbox,
+  upload,
+}
 
 class ProfileField {
   final String key;
@@ -77,7 +86,14 @@ const _industries = [
 /// Same keys as _vendorDisciplines, kept as a literal list rather than
 /// derived via .keys.toList() — that call isn't allowed inside the const
 /// ProfileField below.
-const _vendorDisciplineKeys = ['designer', 'architect', 'interior', 'agency', 'consultant', 'contractor'];
+const _vendorDisciplineKeys = [
+  'designer',
+  'architect',
+  'interior',
+  'agency',
+  'consultant',
+  'contractor',
+];
 
 /// Same values as vendorDisciplineEnum / VENDOR_DISCIPLINE_LABEL.
 const _vendorDisciplines = {
@@ -94,13 +110,23 @@ const _vendorDisciplines = {
 /// everything else — ApiClient.saveProfile knows to pull just these three
 /// reserved keys out of the draft and send them as the request's top-level
 /// fields rather than inside `fields`. Every role gets this step first.
-const _organizationStep = ProfileStep(
+///
+/// Country comes before phone, not just alphabetically — the phone
+/// field's own validation (see ProfileFieldInput) reads whichever country
+/// is currently selected to know which pattern to check against, so the
+/// field it depends on has to already be on screen above it.
+final _organizationStep = ProfileStep(
   title: 'About your organization',
   subtitle: 'The basics, wherever your organization appears.',
   fields: [
-    ProfileField(key: 'organizationName', label: 'Organization name'),
-    ProfileField(key: 'phone', label: 'Phone number', hint: '+44 …'),
-    ProfileField(key: 'country', label: 'Country'),
+    const ProfileField(key: 'organizationName', label: 'Organization name'),
+    ProfileField(
+      key: 'country',
+      label: 'Country',
+      kind: ProfileFieldKind.select,
+      options: countries.map((c) => c.name).toList(),
+    ),
+    const ProfileField(key: 'phone', label: 'Phone number', hint: '+44 7…'),
   ],
 );
 
@@ -128,7 +154,11 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
       title: 'Scale & presence',
       subtitle: 'Where you already operate.',
       fields: [
-        ProfileField(key: 'foundedYear', label: 'Year founded', kind: ProfileFieldKind.number),
+        ProfileField(
+          key: 'foundedYear',
+          label: 'Year founded',
+          kind: ProfileFieldKind.number,
+        ),
         ProfileField(
           key: 'outletCount',
           label: 'Outlets currently open',
@@ -165,8 +195,16 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
           label: 'Franchise investment to',
           kind: ProfileFieldKind.number,
         ),
-        ProfileField(key: 'franchiseFee', label: 'Franchise fee', kind: ProfileFieldKind.number),
-        ProfileField(key: 'royaltyPercent', label: 'Royalty %', kind: ProfileFieldKind.number),
+        ProfileField(
+          key: 'franchiseFee',
+          label: 'Franchise fee',
+          kind: ProfileFieldKind.number,
+        ),
+        ProfileField(
+          key: 'royaltyPercent',
+          label: 'Royalty %',
+          kind: ProfileFieldKind.number,
+        ),
       ],
     ),
   ],
@@ -175,8 +213,16 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
       title: "What you're looking for",
       subtitle: 'So we only show you franchises that fit.',
       fields: [
-        ProfileField(key: 'budgetMin', label: 'Investment budget from', kind: ProfileFieldKind.number),
-        ProfileField(key: 'budgetMax', label: 'Investment budget to', kind: ProfileFieldKind.number),
+        ProfileField(
+          key: 'budgetMin',
+          label: 'Investment budget from',
+          kind: ProfileFieldKind.number,
+        ),
+        ProfileField(
+          key: 'budgetMax',
+          label: 'Investment budget to',
+          kind: ProfileFieldKind.number,
+        ),
         ProfileField(
           key: 'preferredCities',
           label: 'Preferred cities',
@@ -204,7 +250,11 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
           label: 'I already operate a business',
           kind: ProfileFieldKind.checkbox,
         ),
-        ProfileField(key: 'notes', label: 'Anything else', kind: ProfileFieldKind.multiline),
+        ProfileField(
+          key: 'notes',
+          label: 'Anything else',
+          kind: ProfileFieldKind.multiline,
+        ),
       ],
     ),
   ],
@@ -223,7 +273,11 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
           label: 'Number of units in portfolio',
           kind: ProfileFieldKind.number,
         ),
-        ProfileField(key: 'notes', label: 'Anything else', kind: ProfileFieldKind.multiline),
+        ProfileField(
+          key: 'notes',
+          label: 'Anything else',
+          kind: ProfileFieldKind.multiline,
+        ),
       ],
     ),
   ],
@@ -252,14 +306,26 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
       title: 'Scale & timing',
       subtitle: 'What brands ask before they commit.',
       fields: [
-        ProfileField(key: 'totalUnits', label: 'Total units', kind: ProfileFieldKind.number),
+        ProfileField(
+          key: 'totalUnits',
+          label: 'Total units',
+          kind: ProfileFieldKind.number,
+        ),
         ProfileField(
           key: 'occupancyPercent',
           label: 'Current occupancy %',
           kind: ProfileFieldKind.number,
         ),
-        ProfileField(key: 'openingDate', label: 'Opening date', hint: "Or 'open'"),
-        ProfileField(key: 'notes', label: 'Anything else', kind: ProfileFieldKind.multiline),
+        ProfileField(
+          key: 'openingDate',
+          label: 'Opening date',
+          hint: "Or 'open'",
+        ),
+        ProfileField(
+          key: 'notes',
+          label: 'Anything else',
+          kind: ProfileFieldKind.multiline,
+        ),
       ],
     ),
   ],
@@ -268,8 +334,16 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
       title: 'Your mandate',
       subtitle: 'The shape of deal you want to see.',
       fields: [
-        ProfileField(key: 'ticketMin', label: 'Ticket size from', kind: ProfileFieldKind.number),
-        ProfileField(key: 'ticketMax', label: 'Ticket size to', kind: ProfileFieldKind.number),
+        ProfileField(
+          key: 'ticketMin',
+          label: 'Ticket size from',
+          kind: ProfileFieldKind.number,
+        ),
+        ProfileField(
+          key: 'ticketMax',
+          label: 'Ticket size to',
+          kind: ProfileFieldKind.number,
+        ),
         ProfileField(
           key: 'sectors',
           label: 'Sectors of interest',
@@ -281,14 +355,22 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
           label: 'Investment types',
           hint: 'Comma separated — e.g. Equity, Joint venture',
         ),
-        ProfileField(key: 'horizonMonths', label: 'Horizon (months)', kind: ProfileFieldKind.number),
+        ProfileField(
+          key: 'horizonMonths',
+          label: 'Horizon (months)',
+          kind: ProfileFieldKind.number,
+        ),
       ],
     ),
     ProfileStep(
       title: 'Anything else',
       subtitle: 'Helps brands understand who they are talking to.',
       fields: [
-        ProfileField(key: 'notes', label: 'Notes', kind: ProfileFieldKind.multiline),
+        ProfileField(
+          key: 'notes',
+          label: 'Notes',
+          kind: ProfileFieldKind.multiline,
+        ),
       ],
     ),
   ],
@@ -304,8 +386,16 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
           options: _vendorDisciplineKeys,
           optionLabels: _vendorDisciplines,
         ),
-        ProfileField(key: 'headline', label: 'Headline', hint: 'One line, shown under your name'),
-        ProfileField(key: 'bio', label: 'About', kind: ProfileFieldKind.multiline),
+        ProfileField(
+          key: 'headline',
+          label: 'Headline',
+          hint: 'One line, shown under your name',
+        ),
+        ProfileField(
+          key: 'bio',
+          label: 'About',
+          kind: ProfileFieldKind.multiline,
+        ),
         ProfileField(
           key: 'specialties',
           label: 'Specialties',
@@ -322,8 +412,16 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
           label: 'Cities served',
           hint: 'Comma separated — e.g. London, Dubai, Lahore',
         ),
-        ProfileField(key: 'yearsExperience', label: 'Years experience', kind: ProfileFieldKind.number),
-        ProfileField(key: 'teamSize', label: 'Team size', kind: ProfileFieldKind.number),
+        ProfileField(
+          key: 'yearsExperience',
+          label: 'Years experience',
+          kind: ProfileFieldKind.number,
+        ),
+        ProfileField(
+          key: 'teamSize',
+          label: 'Team size',
+          kind: ProfileFieldKind.number,
+        ),
         ProfileField(
           key: 'projectsCompleted',
           label: 'Projects completed',
@@ -342,9 +440,21 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
       title: 'Your roster profile',
       subtitle: "What Connectors' team reviews before it goes live.",
       fields: [
-        ProfileField(key: 'title', label: 'Title', hint: 'e.g. Hospitality Operations Consultant'),
-        ProfileField(key: 'yearsExperience', label: 'Years of experience', kind: ProfileFieldKind.number),
-        ProfileField(key: 'bio', label: 'Bio', kind: ProfileFieldKind.multiline),
+        ProfileField(
+          key: 'title',
+          label: 'Title',
+          hint: 'e.g. Hospitality Operations Consultant',
+        ),
+        ProfileField(
+          key: 'yearsExperience',
+          label: 'Years of experience',
+          kind: ProfileFieldKind.number,
+        ),
+        ProfileField(
+          key: 'bio',
+          label: 'Bio',
+          kind: ProfileFieldKind.multiline,
+        ),
       ],
     ),
   ],
@@ -354,9 +464,9 @@ final Map<String, List<ProfileStep>> profileStepsByRole = {
 /// specific to its type (none for a role this map doesn't cover, though
 /// every current role has at least one).
 List<ProfileStep> profileStepsFor(String? orgType) => [
-      _organizationStep,
-      ...?profileStepsByRole[orgType],
-    ];
+  _organizationStep,
+  ...?profileStepsByRole[orgType],
+];
 
 List<ProfileField> profileFieldsFor(String? orgType) =>
     profileStepsFor(orgType).expand((s) => s.fields).toList();
@@ -389,7 +499,9 @@ class ProfileDraft {
 
   static void set(String key, Object? value) {
     final next = Map<String, Object>.from(values.value);
-    if (value == null || (value is String && value.trim().isEmpty) || (value is List && value.isEmpty)) {
+    if (value == null ||
+        (value is String && value.trim().isEmpty) ||
+        (value is List && value.isEmpty)) {
       next.remove(key);
     } else {
       next[key] = value;
@@ -441,7 +553,9 @@ Object? coerceProfileValue(ProfileField field, Object? raw) {
     case ProfileFieldKind.number:
     case ProfileFieldKind.multiline:
     case ProfileFieldKind.select:
-      return raw is List ? raw.map((e) => e.toString()).join(', ') : raw.toString();
+      return raw is List
+          ? raw.map((e) => e.toString()).join(', ')
+          : raw.toString();
   }
 }
 
